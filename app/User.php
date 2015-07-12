@@ -12,15 +12,40 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 {
     use Authenticatable, CanResetPassword;
 
-    protected $table = 'users';
-
     protected $fillable = ['name', 'email', 'password'];
 
-    protected $hidden = ['password', 'remember_token'];
-
-    public function setPasswordAttribute($password){
-
+    public function setPasswordAttribute($password)
+    {
         $this->attributes['password'] = bcrypt($password);
+    }
 
+    public function team()
+    {
+        return $this->belongsTo('App\Team');
+    }
+
+    public function websites()
+    {
+        return $this->hasMany('App\Website');
+    }
+
+    public function house()
+    {
+        $team = $this->team;
+        if ($team) {
+            return $team->house;
+        }
+
+        return House::ownedBy($this)->first();
+    }
+
+    public function items()
+    {
+        $team = $this->team;
+        if ($team) {
+            return $team->items;
+        }
+
+        return Item::ownedBy($this)->get();
     }
 }

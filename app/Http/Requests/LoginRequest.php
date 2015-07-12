@@ -1,6 +1,6 @@
 <?php
 
-namespace app\Http\Requests;
+namespace App\Http\Requests;
 
 use Auth;
 
@@ -34,6 +34,6 @@ class LoginRequest extends Request
             return;
         }
 
-        $validator->errors()->add('username', 'These credentials do not match our records.');
+        $validator->errors()->add('global', 'These credentials do not match any records.');
     }
 }

@@ -2,4 +2,6 @@
 /node_modules
 Homestead.yaml
 .env
-_ide_helper.php
+.DS_Store
+Thumbs.db
+tags

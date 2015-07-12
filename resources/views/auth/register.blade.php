@@ -9,54 +9,52 @@
 				<div class="panel-body">
 					@if (count($errors) > 0)
 						<div class="alert alert-danger">
-							<strong>Whoops!</strong> There were some problems with your input.<br><br>
-							<ul>
-								@foreach ($errors->all() as $error)
-									<li>{{ $error }}</li>
-								@endforeach
-							</ul>
+							<strong>Whoops!</strong> There were some problems with your input.
 						</div>
 					@endif
 
-					<form class="form-horizontal" role="form" method="POST" action="{{ url('/auth/register') }}">
-						<input type="hidden" name="_token" value="{{ csrf_token() }}">
+					{!! Form::open(['class' => 'form-horizontal']) !!}
 
 						<div class="form-group">
-							<label class="col-md-4 control-label">Name</label>
-							<div class="col-md-6">
-								<input type="text" class="form-control" name="name" value="{{ old('name') }}">
+						    {!! Form::label('name', 'Name', ['class' => 'col-sm-4 control-label']) !!}
+							<div class="col-sm-6">
+						    	{!! Form::text('name', null, ['class' => 'form-control', 'required' => 'required']) !!}
+						    	<small class="text-danger">{{ $errors->first('name') }}</small>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label">E-Mail Address</label>
-							<div class="col-md-6">
-								<input type="email" class="form-control" name="email" value="{{ old('email') }}">
+						    {!! Form::label('email', 'Email', ['class' =>'col-sm-4 control-label']) !!}
+						    <div class="col-sm-6">
+						    	{!! Form::email('email', null, ['class' => 'form-control', 'required' => 'required']) !!}
+						    	<small class="text-danger">{{ $errors->first('email') }}</small>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label">Password</label>
-							<div class="col-md-6">
-								<input type="password" class="form-control" name="password">
+						    {!! Form::label('password', 'Password', ['class' => 'col-sm-4 control-label']) !!}
+						    <div class="col-sm-6">
+							    {!! Form::password('password', ['class' => 'form-control', 'required' => 'required']) !!}
+							    <small class="text-danger">{{ $errors->first('password') }}</small>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-md-4 control-label">Confirm Password</label>
-							<div class="col-md-6">
-								<input type="password" class="form-control" name="password_confirmation">
+						    {!! Form::label('confirm_password', 'Confirm Password', ['class' => 'col-sm-4 control-label']) !!}
+						    <div class="col-sm-6">
+							    {!! Form::password('confirm_password', ['class' => 'form-control', 'required' => 'required']) !!}
+							    <small class="text-danger">{{ $errors->first('confirm_password') }}</small>
 							</div>
 						</div>
 
 						<div class="form-group">
-							<div class="col-md-6 col-md-offset-4">
-								<button type="submit" class="btn btn-primary">
-									Register
-								</button>
+							<div class="col-sm-6 col-sm-offset-4">
+								{!! Form::submit('Register', ['class' => 'btn btn-primary']) !!}
 							</div>
 						</div>
-					</form>
+
+					{!! Form::close() !!}
+
 				</div>
 			</div>
 		</div>
