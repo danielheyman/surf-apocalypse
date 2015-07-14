@@ -7,6 +7,12 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">Register</div>
 				<div class="panel-body">
+					@if (session('status'))
+						<div class="alert alert-success">
+							{{ session('status') }}
+						</div>
+					@endif
+
 					@if (count($errors) > 0)
 						<div class="alert alert-danger">
 							<strong>Whoops!</strong> There were some problems with your input.
@@ -40,10 +46,10 @@
 						</div>
 
 						<div class="form-group">
-						    {!! Form::label('confirm_password', 'Confirm Password', ['class' => 'col-sm-4 control-label']) !!}
+						    {!! Form::label('password_confirmation', 'Confirm Password', ['class' => 'col-sm-4 control-label']) !!}
 						    <div class="col-sm-6">
-							    {!! Form::password('confirm_password', ['class' => 'form-control', 'required' => 'required']) !!}
-							    <small class="text-danger">{{ $errors->first('confirm_password') }}</small>
+							    {!! Form::password('password_confirmation', ['class' => 'form-control', 'required' => 'required']) !!}
+							    <small class="text-danger">{{ $errors->first('password_confirmation') }}</small>
 							</div>
 						</div>
 

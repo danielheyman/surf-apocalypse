@@ -29,11 +29,16 @@ trait OwnedByUserOrTeam
         }
 
         $this->attributes['owner_id'] = $model->id;
-        $this->attributes['team_owned'] = $model instanceof App\Team;
+        $this->attributes['team_owned'] = $this->isTeam($model);
     }
 
     public function scopeOwnedBy($query, $model)
     {
-        $query->where('owner_id', $model->id)->where('team_owned', $model instanceof App\Team);
+        $query->where('owner_id', $model->id)->where('team_owned', $this->isTeam($model));
+    }
+
+    public function isTeam($model)
+    {
+        return get_class($model) == "App\Team";
     }
 }

@@ -13,16 +13,11 @@ class Team extends Model
 
     public function house()
     {
-        return House::ownedByMe()->first();
+        return House::ownedBy($this)->first();
     }
 
     public function items()
     {
-        return Item::ownedByMe()->get();
-    }
-
-    public function ownedByMe($query)
-    {
-        $query->ownedBy($this);
+        return Item::ownedBy($this)->get();
     }
 }

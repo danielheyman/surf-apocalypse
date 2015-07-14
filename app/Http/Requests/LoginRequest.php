@@ -30,7 +30,9 @@ class LoginRequest extends Request
 
     public function moreValidation($validator, $request)
     {
-        if (Auth::validate($request->only('email', 'password'))) {
+        $credentials = array_merge($request->only('email', 'password'), ['confirmation_code' => null]);
+
+        if (Auth::validate($credentials)) {
             return;
         }
 

@@ -15,6 +15,7 @@ class CreateUsersTable extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password', 60);
+            $table->string('confirmation_code', 30)->nullable();
             $table->smallInteger('coins')->unsigned()->default(0);
             $table->smallInteger('hunger')->unsigned()->default(0);
             $table->boolean('human');

@@ -19,11 +19,32 @@ class DatabaseSeeder extends Seeder
         DB::table('users')->delete();
         DB::table('teams')->delete();
 
+        // DB::raw("SELECT setval('house_items_id_seq', 1);");
+        // DB::raw("SELECT setval('houses_id_seq', 1);");
+        // DB::raw("SELECT setval('item_types_id_seq', 1);");
+        // DB::raw("SELECT setval('items_id_seq', 1);");
+        // DB::raw("SELECT setval('teams_id_seq', 1);");
+        // DB::raw("SELECT setval('users_id_seq', 1);");
+        // DB::raw("SELECT setval('websites_id_seq', 1);");
+
+        DB::statement('ALTER SEQUENCE houses_id_seq RESTART;');
+        DB::statement('ALTER SEQUENCE item_types_id_seq RESTART;');
+        DB::statement('ALTER SEQUENCE items_id_seq RESTART;');
+        DB::statement('ALTER SEQUENCE teams_id_seq RESTART;');
+        DB::statement('ALTER SEQUENCE users_id_seq RESTART;');
+        DB::statement('ALTER SEQUENCE websites_id_seq RESTART;');
+
+        $team = App\Team::create([
+            'name' => 'Team Awesome',
+        ]);
+
         $user = App\User::create([
             'name' => 'Daniel Heyman',
             'email' => 'daniel.heyman@gmail.com',
             'password' => 'Daniel',
             'human' => true,
+            'confirmation_code' => str_random(30),
+            'team_id' => $team->id ?: null,
         ]);
 
         $website = $user->websites()->create([
@@ -44,11 +65,11 @@ class DatabaseSeeder extends Seeder
 
         $item = $itemType->items()->create([
             'count' => 1,
-            'owner_id' => $user,
+            'owner_id' => $team ?: $user,
         ]);
 
         $house = App\House::create([
-            'owner_id' => $user,
+            'owner_id' => $team ?: $user,
         ]);
 
         $house->items()->create([

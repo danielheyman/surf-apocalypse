@@ -55,7 +55,8 @@
 							<div class="col-sm-6 col-sm-offset-4">
 								{!! Form::submit('Submit', ['class' => 'btn btn-primary']) !!}
 
-								<a href="{{ url('forgot/password') }}" class="btn btn-link">Forgot Your Password</a>
+								<a href="{{ url('password/forgot') }}" class="btn btn-link">Forgot Your Password</a>
+								<a href="{{ url('register/resend') }}" class="btn btn-link">Resend Confirmation</a>
 							</div>
 						</div>
 

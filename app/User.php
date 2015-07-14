@@ -12,7 +12,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 {
     use Authenticatable, CanResetPassword;
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'confirmation_code', 'human'];
 
     public function setPasswordAttribute($password)
     {
@@ -31,21 +31,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function house()
     {
-        $team = $this->team;
-        if ($team) {
-            return $team->house;
-        }
-
-        return House::ownedBy($this)->first();
+        return House::ownedBy($this->team ?: $this)->first();
     }
 
     public function items()
     {
-        $team = $this->team;
-        if ($team) {
-            return $team->items;
-        }
-
-        return Item::ownedBy($this)->get();
+        return Item::ownedBy($this->team ?: $this)->get();
     }
 }

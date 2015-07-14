@@ -3,6 +3,8 @@
 namespace app\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 
 class PasswordController extends Controller
 {
@@ -20,8 +22,8 @@ class PasswordController extends Controller
     {
         $this->validate($request, ['email' => 'required|email']);
 
-        $response = Password::sendResetLink($request->only('email'), function (Message $message) {
-            $message->subject($this->getEmailSubject());
+        $response = Password::sendResetLink($request->only('email'), function ($message) {
+            $message->subject('Your Password Reset Link');
         });
 
         switch ($response) {
@@ -33,17 +35,8 @@ class PasswordController extends Controller
         }
     }
 
-    protected function getEmailSubject()
-    {
-        return isset($this->subject) ? $this->subject : 'Your Password Reset Link';
-    }
-
     public function getReset($token = null)
     {
-        if (is_null($token)) {
-            throw new NotFoundHttpException();
-        }
-
         return view('auth.reset')->with('token', $token);
     }
 
@@ -60,35 +53,19 @@ class PasswordController extends Controller
         );
 
         $response = Password::reset($credentials, function ($user, $password) {
-            $this->resetPassword($user, $password);
+            $user->password = $password;
+            $user->save();
+            Auth::login($user);
         });
 
         switch ($response) {
             case Password::PASSWORD_RESET:
-                return redirect($this->redirectPath());
+                return redirect('/');
 
             default:
                 return redirect()->back()
                             ->withInput($request->only('email'))
                             ->withErrors(['email' => trans($response)]);
         }
-    }
-
-    protected function resetPassword($user, $password)
-    {
-        $user->password = bcrypt($password);
-
-        $user->save();
-
-        Auth::login($user);
-    }
-
-    public function redirectPath()
-    {
-        if (property_exists($this, 'redirectPath')) {
-            return $this->redirectPath;
-        }
-
-        return property_exists($this, 'redirectTo') ? $this->redirectTo : '/home';
     }
 }
