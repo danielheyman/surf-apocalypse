@@ -26,7 +26,7 @@ Route::group(['namespace' => 'Auth'], function () {
     Route::post('login', 'AuthController@postLogin');
     Route::get('logout', 'AuthController@getLogout');
 
-    Route::group(['prefix' => 'register'], function () {
+    Route::group(['prefix' => 'password'], function () {
         Route::get('forgot', 'PasswordController@getEmail');
         Route::post('forgot', 'PasswordController@postEmail');
         Route::get('reset/{token}', 'PasswordController@getReset');

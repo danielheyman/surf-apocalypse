@@ -6,6 +6,8 @@ use Auth;
 
 class LoginRequest extends Request
 {
+    protected $redirect = 'login';
+
     /**
      * Determine if the user is authorized to make this request.
      *

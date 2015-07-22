@@ -1,1 +1,304 @@
+@import "variables";
 @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+
+body {
+    padding-top: 70px;
+}
+
+nav.navbar {
+    background: url("../img/nav-bg.jpg");
+    border: 0;
+    border-radius: 0;
+    padding: 10px;
+    -webkit-box-shadow: 0 1px 5px 0 rgba(0,0,0,0.75);
+    -moz-box-shadow: 0 1px 5px 0 rgba(0,0,0,0.75);
+    box-shadow: 0 1px 5px 0 rgba(0,0,0,0.75);
+    
+    .navbar-collapse[aria-expanded=true],
+    .navbar-collapse.collapsing {
+        border: 0;
+        box-shadow: none;
+    }
+    
+    .navbar-nav {
+        padding-top: 50px;
+    }
+    
+    .navbar-brand {
+        height: auto;
+        
+        .logo {
+            position: absolute;
+            top: 10px;
+            height: 130%;
+            max-height: 80px;
+        }
+    }
+    
+    .navbar-nav > li > a {
+        color: #808080;
+        -webkit-transition: all 0.4s ease;
+        -moz-transition: all 0.4s ease;
+        -ms-transition: all 0.4s ease;
+        -o-transition: all 0.4s ease;
+        transition: all 0.4s ease;
+        padding: 10px 15px;
+        text-transform: uppercase;
+        
+        &.active {
+            background-color: #937c4b;
+            color: #000;
+        }
+        
+        &.strong {
+            color: #ffdc93 !important;
+        }
+        
+        &:hover {
+            background-color: #937c4b;
+            color: #000;
+        }
+    }
+    
+    .navbar-toggle {
+        border-color: #937c4b;
+        
+        &:focus {
+            background-color: transparent;
+        }
+        
+        &:hover {
+            background-color: #937c4b;
+        }
+        
+        .icon-bar {
+            background-color: #ffdc93;
+        }
+    }
+}
+
+@-webkit-keyframes fadeInRight {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(100%,0,0);
+        transform: translate3d(100%,0,0);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+    }
+}
+
+@keyframes fadeInRight {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(100%,0,0);
+        transform: translate3d(100%,0,0);
+    }
+    100% {
+        opacity: 1;
+        -webkit-transform: none;
+        transform: none;
+    }
+}
+
+section.banner {
+    background-image: url("../img/banner.jpg");
+    background-size: cover;
+    background-position: center center;
+    padding-top: 69px;
+    padding-bottom: 45px;
+    
+    h1 {
+        font-family: "myriadpro-regular";
+        font-weight: normal;
+        color: #fff;
+        margin: 0 0 30px;
+        font-size: 32px;
+        -webkit-animation-duration: 1s;
+        animation-duration: 1s;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        -webkit-animation-name: fadeInRight;
+        animation-name: fadeInRight;
+        -webkit-animation-delay: 0.3s;
+        animation-delay: 0.3s;
+        
+        span {
+            background-color: rgba(0, 0, 0, 0.32);
+            padding: 15px 15px 10px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+    }
+    
+    h6 {
+        font-family: "myriadpro-regular";
+        font-size: 24px;
+        font-weight: normal;
+        color: #fff;
+        margin: 0 0 50px;
+    }
+    
+    p {
+        font-family: "myriadpro-regular";
+        font-size: 14px;
+        font-weight: normal;
+        color: #101319;
+        line-height: 1.6;
+        margin: 0 0 25px;
+        background-color: rgba(255, 255, 255, 0.6);
+        padding: 10px;
+    }
+}
+
+section.login {
+    background-color: #000;
+    border-bottom: 1px solid #191714;
+    -webkit-box-shadow: 0 3px 10px 1px rgba(0,0,0,1);
+    -moz-box-shadow: 0 3px 10px 1px rgba(0,0,0,1);
+    box-shadow: 0 3px 10px 1px rgba(0,0,0,1);
+    z-index: 1;
+    position: relative;
+    padding: 15px 0;
+    
+    .info {
+        background: url("../img/badge.png");
+        min-height: 85px;
+        background-repeat: no-repeat;
+        text-align: center;
+        padding-left: 85px;
+        
+        h5 {
+            font-family: "myriadpro-bold";
+            font-size: 18px;
+            color: #b2a27f;
+            border-bottom: 1px solid #252525;
+            padding-bottom: 5px;
+            margin: 0 0 10px;
+            padding-top: 13px;
+            
+            span {
+                color: #ffdc91;
+            }
+        }
+        
+        p {
+            font-family: "myriadpro-regular";
+            font-size: 12px;
+            color: #9b9b9b;
+            margin-bottom: 0;
+        }
+    }
+    
+    .form {
+        margin-top: 30px;
+        
+        form {
+            
+            div {
+                margin-bottom: 5px;
+            }
+        }
+        
+        .more {
+            text-align: right;
+        }
+    }
+}
+
+@media (min-width: $screen-xs) {
+    
+    section.banner {
+        
+        h1 {
+            font-size: 42px;
+        }
+    }
+}
+
+@media (min-width: $screen-sm) {
+    
+    nav.navbar {
+        
+        .navbar-nav {
+            padding-top: 60px;
+        }
+        
+        .navbar-brand {
+            
+            .logo {
+                max-height: 90px;
+            }
+        }
+    }
+    
+    section.banner {
+        
+        h1 {
+            font-size: 52px;
+        }
+    }
+}
+
+@media (min-width: $screen-md) {
+    body {
+        padding-top: 80px;
+    }
+    
+    nav.navbar {
+        padding: 20px 10px;
+        
+        .navbar-nav {
+            padding-top: 0;
+        }
+        
+        .navbar-brand {
+            
+            .logo {
+                max-height: none;
+            }
+        }
+    }
+    
+    section.banner {
+        
+        h1 {
+            font-size: 62px;
+        }
+        
+        p {
+            padding-left: 75px;
+            background-color: inherit;
+        }
+    }
+    
+    section.login {
+        
+        .form {
+            margin-top: 10px;
+            
+            form div {
+                padding: 0 10px;
+            }
+        }
+    }
+}
+
+@media (min-width: $screen-lg) {
+    body {
+        padding-top: 100px;
+    }
+    
+    nav.navbar {
+        padding: 30px 10px;
+    }
+    
+    section.banner {
+        
+        p {
+            padding-left: 50px;
+        }
+    }
+}
