@@ -56,6 +56,29 @@
 		</div>
 	</section>
 
+    <section class="benefits">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <h2>Benefit One</h2>
+                    <p>Surf Apocalypse is on the cutting edge of TE programs. Endorsed and promoted by some of the biggest names in internet marketing world, Surf Apocalypse is destined to be a player in the TE world.</p>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <h2>Benefit Two</h2>
+                    <p>Fast and friendly customer service to earning real cash and commissions on upgrades and credit purchases. Surf Apocalypse advertising is fast paced and a great promotional tool.</p>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <h2>Benefit Three</h2>
+                    <p>Earn both traffic and cash from your promotional efforts. And with our custom built Click and Surf System you earn Traffic every time you visit another member's webpage.</p>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <h2>Benefit Four</h2>
+                    <p>Earn credits from your own referral's surfing . Each time they surf for credits you will automatically earn credits too. The more members you refer, the more credits and commission you earn.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- <div class="container">
         <div class="row">
             <div class="col-md-10 col-md-offset-1">
