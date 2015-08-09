@@ -67,7 +67,7 @@ class AuthController extends Controller
             return redirect()->back()->withErrors(['email' => 'Email not found.']);
         }
 
-        if ($user->confirmation_code) {
+        if (!$user->confirmation_code) {
             return redirect()->back()->withErrors(['email' => 'Account already confirmed.']);
         }
 

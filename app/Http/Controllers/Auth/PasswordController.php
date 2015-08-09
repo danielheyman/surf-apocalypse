@@ -5,6 +5,8 @@ namespace app\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Auth;
+use App\User;
 
 class PasswordController extends Controller
 {
@@ -21,6 +23,16 @@ class PasswordController extends Controller
     public function postEmail(Request $request)
     {
         $this->validate($request, ['email' => 'required|email']);
+
+        $user = User::whereEmail($request->get('email'))->first(['confirmation_code']);
+
+        if (!$user) {
+            return redirect()->back()->withErrors(['email' => 'Email not found.']);
+        }
+
+        if ($user->confirmation_code) {
+            return redirect()->back()->withErrors(['email' => 'Account not confirmed. Please click on the activation email.']);
+        }
 
         $response = Password::sendResetLink($request->only('email'), function ($message) {
             $message->subject('Your Password Reset Link');
