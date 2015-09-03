@@ -1,3 +1,12 @@
 {
-  "css/app.css": "css/app-3f92a12f.css"
+  "css/global.css": "css/global-f59472b4.css",
+  "css/global.css.map": "css/global.css-7697c081.map",
+  "css/main.css": "css/main-b875a8a6.css",
+  "css/main.css.map": "css/main.css-4d9d0e04.map",
+  "css/surf.css": "css/surf-0a9f9a47.css",
+  "css/surf.css.map": "css/surf.css-49a8c39a.map",
+  "js/global.js": "js/global-eee1da6c.js",
+  "js/global.js.map": "js/global.js-e9ee89a2.map",
+  "js/surf.js": "js/surf-0e2eee62.js",
+  "js/surf.js.map": "js/surf.js-a6a40a3c.map"
 }

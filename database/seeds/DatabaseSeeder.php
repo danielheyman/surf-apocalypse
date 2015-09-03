@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'daniel.heyman@gmail.com',
             'password' => 'Daniel',
             'human' => true,
-            'confirmation_code' => str_random(30),
+            'confirmation_code' => null,
             'team_id' => $team->id ?: null,
         ]);
 

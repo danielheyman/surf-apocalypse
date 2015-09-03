@@ -13,6 +13,8 @@
 
 Route::get('/', 'HomeController@index');
 
+Route::get('surf', 'SurfController@index');
+
 Route::group(['namespace' => 'Auth'], function () {
     Route::group(['prefix' => 'register'], function () {
         Route::get('/', 'AuthController@getRegister');
@@ -32,4 +34,11 @@ Route::group(['namespace' => 'Auth'], function () {
         Route::get('reset/{token}', 'PasswordController@getReset');
         Route::post('reset', 'PasswordController@postReset');
     });
+});
+
+
+Route::get('fire', function () {
+    // this fires the event
+    event(new App\Events\SentGlobalMessage());
+    return "event fired";
 });
