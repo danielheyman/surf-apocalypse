@@ -36,6 +36,13 @@ Route::group(['namespace' => 'Auth'], function () {
     });
 });
 
+Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
+    Route::get('sites', 'SiteController@getSites');
+    Route::post('sites/{id}', 'SiteController@toggleSite');
+    Route::delete('sites/{id}', 'SiteController@deleteSite');
+    Route::post('sites/new', 'SiteController@addSite');
+});
+
 
 Route::get('fire', function () {
     // this fires the event

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Website extends Model
 {
+    protected $fillable = ['name', 'url'];
+    
     public function user()
     {
         return $this->belongsTo('App\User');

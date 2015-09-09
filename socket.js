@@ -73,28 +73,38 @@ io.use(function(socket, next)
     {
         if(typeof socket.request.headers.cookie != 'undefined')
         {
-            redis_client.get('laravel:' + decryptCookie(cookie.parse(socket.request.headers.cookie).laravel_session), function(error, result)
+            var userCookie = cookie.parse(socket.request.headers.cookie).laravel_session;
+            
+            if(typeof userCookie != 'undefined')
             {
-                if (error)
+                redis_client.get('laravel:' + decryptCookie(userCookie), function(error, result)
                 {
-                    console.log('ERROR');
-                    next(new Error(error));
-                }
-                else if (result)
-                {
-                    console.log('Logged In');
-                    laravelSession = PHPUnserialize.unserialize( PHPUnserialize.unserialize( result ) );
-                    console.log(laravelSession);
-                    socket.user_id = laravelSession['login_82e5d2c56bdd0811318f0cf078b78bfc'];
-                    socket.name = laravelSession['name'];
-                    next();
-                }
-                else
-                {
-                    console.log('Not Authorized');
-                    next(new Error('Not Authorized'));
-                }
-            });
+                    if (error)
+                    {
+                        console.log('ERROR');
+                        next(new Error(error));
+                    }
+                    else if (result)
+                    {
+                        console.log('Logged In');
+                        laravelSession = PHPUnserialize.unserialize( PHPUnserialize.unserialize( result ) );
+                        console.log(laravelSession);
+                        socket.user_id = laravelSession['login_82e5d2c56bdd0811318f0cf078b78bfc'];
+                        socket.name = laravelSession['name'];
+                        next();
+                    }
+                    else
+                    {
+                        console.log('Not Authorized');
+                        next(new Error('Not Authorized'));
+                    }
+                });
+            }
+            else
+            {
+                console.log('Not Authorized');
+                next(new Error('Not Authorized'));
+            }
         }
         else
         {

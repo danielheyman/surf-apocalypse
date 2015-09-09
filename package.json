@@ -13,6 +13,8 @@
     "mcrypt": "0.0.15",
     "dotenv": "^1.2.0",
     "php-unserialize": "0.0.1",
-    "redis": "^0.12.1"
+    "vue": "^0.12.12",
+    "vue-resource": "^0.1.15",
+    "font-awesome": "^4.4.0"
   }
 }

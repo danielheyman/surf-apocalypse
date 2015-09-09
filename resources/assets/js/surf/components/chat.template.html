@@ -1,0 +1,12 @@
+<div class="messages" v-el="messages">
+    <div class="message" v-repeat="messages">
+        <span>{{ name }}:</span>{{ text }}
+    </div>
+</div>
+<div class="chat-menu">
+    <div class="form">
+        <div class="type">Global</div>
+        <input type="text" class="message" v-on="keyup: sendMessage | key 'enter'" v-model="message"/>
+    </div>
+    <div class="send" v-on="click: sendMessage">Send</div>
+</div>
