@@ -23,6 +23,7 @@ function show() {
 
 var Vue = require('vue');
 Vue.use(require('vue-resource'));
+Vue.use(require('vue-validator'));
 
 var socket = io('http://surf.local:3000');
 window.socket = socket;
@@ -38,7 +39,7 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'sites'
+        currentView: 'map'
     },
 
     components: {
@@ -52,7 +53,7 @@ new Vue({
     ready: function ready() {}
 });
 
-},{"./components/chat":79,"./components/map":81,"./components/sites":83,"vue":75,"vue-resource":4}],2:[function(require,module,exports){
+},{"./components/chat":83,"./components/map":85,"./components/sites":87,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -971,6 +972,741 @@ module.exports = function (_) {
 };
 
 },{}],11:[function(require,module,exports){
+/**
+ * Import(s)
+ */
+
+var validates = require('./lib/validates')
+var _ = require('./lib/util')
+
+
+/**
+ * Export(s)
+ */
+
+module.exports = install
+
+
+/**
+ * Install plugin
+ */
+
+function install (Vue, options) {
+  options = options || {}
+  var componentName = options.component = options.component || '$validator'
+  var directiveName = options.directive = options.directive || 'validate'
+  var path = Vue.parsers.path
+  var util = Vue.util
+
+  function getVal (obj, keypath) {
+    var ret = null
+    try {
+      ret = path.get(obj, keypath)
+    } catch (e) { }
+    return ret
+  }
+
+
+  Vue.directive(directiveName, {
+
+    priority: 1024,
+
+    bind: function () {
+      var vm = this.vm
+      var el = this.el
+      var $validator = vm[componentName]
+      var keypath = this._keypath = this._parseModelAttribute(el.getAttribute(Vue.config.prefix + 'model'))
+      var validator = this.arg ? this.arg : this.expression
+      var arg = this.arg ? this.expression : null
+
+      var customs = (vm.$options.validator && vm.$options.validator.validates) || {}
+      if (!this._checkDirective(validator, validates, customs)) {
+        _.warn('specified invalid v-validate directive !! please check v-validator directive !!')
+        this._ignore = true
+        return
+      }
+
+      if (!$validator) {
+        vm[componentName] = $validator = vm.$addChild({
+          validator: vm.$options.validator
+        }, Vue.extend(require('./lib/validator')))
+      }
+
+      var value = el.getAttribute('value')
+      if (el.getAttribute('number') !== null) {
+        value = util.toNumber(value)
+      }
+      this._init = value
+
+      var validation = $validator._getValidationNamespace('validation')
+      var init = value || vm.$get(keypath)
+      var readyEvent = el.getAttribute('wait-for')
+
+      if (readyEvent && !$validator._isRegistedReadyEvent(keypath)) {
+        $validator._addReadyEvents(keypath, this._checkParam('wait-for'))
+      }
+      
+      this._setupValidator($validator, keypath, validation, validator, el, arg, init)
+    },
+
+    update: function (val, old) {
+      if (this._ignore) { return }
+
+      var self = this
+      var vm = this.vm
+      var keypath = this._keypath
+      var validator = this.arg ? this.arg : this.expression
+      var $validator = vm[componentName]
+
+      $validator._changeValidator(keypath, validator, val)
+      if (!$validator._isRegistedReadyEvent(keypath)) { // normal
+        this._updateValidator($validator, validator, keypath)
+      } else { // wait-for
+        vm.$once($validator._getReadyEvents(keypath), function (val) {
+          $validator._setInitialValue(keypath, val)
+          vm.$set(keypath, val)
+          self._updateValidator($validator, validator, keypath)
+        })
+      }
+    },
+
+     
+    unbind: function () {
+      if (this._ignore) { return }
+
+      var vm = this.vm
+      var keypath = this._keypath
+      var validator = this.arg ? this.arg : this.expression
+      var $validator = vm[componentName]
+
+      this._teardownValidator(vm, $validator, keypath, validator)
+    },
+
+    _parseModelAttribute: function (attr) {
+      var res = Vue.parsers.directive.parse(attr)
+      return res[0].arg ? res[0].arg : res[0].expression
+    },
+
+    _checkDirective: function (validator, validates, customs) {
+      var items = Object.keys(validates).concat(Object.keys(customs))
+      return items.some(function (item) {
+        return item === validator
+      })
+    },
+
+    _setupValidator: function ($validator, keypath, validation, validator, el, arg, init) {
+      var vm = this.vm
+
+      if (!getVal($validator[validation], keypath)) {
+        $validator._defineModelValidationScope(keypath)
+        if (el.tagName === 'INPUT' && el.type === 'radio') {
+          if (getVal(vm, keypath) === init) {
+            $validator._setInitialValue(keypath, init)
+          }
+        } else {
+          $validator._setInitialValue(keypath, init)
+        }
+      }
+
+      if (!getVal($validator[validation], [keypath, validator].join('.'))) {
+        $validator._defineValidatorToValidationScope(keypath, validator)
+        $validator._addValidator(keypath, validator, getVal(vm, arg) || arg)
+      }
+    },
+
+    _updateValidator: function ($validator, validator, keypath) {
+      var value = $validator.$get(keypath)
+      var el = this.el
+
+      if (this._init) {
+        value = this._init
+        delete this._init
+      }
+
+      if (el.tagName === 'INPUT' && el.type === 'radio') {
+        if (value === $validator.$get(keypath)) {
+          $validator._updateDirtyProperty(keypath, value)
+        }
+      } else {
+        $validator._updateDirtyProperty(keypath, value)
+      }
+
+      $validator._doValidate(keypath, validator, $validator.$get(keypath))
+    },
+
+    _teardownValidator: function (vm, $validator, keypath, validator) {
+      $validator._undefineValidatorToValidationScope(keypath, validator)
+      $validator._undefineModelValidationScope(keypath, validator)
+    }
+  })
+}
+
+},{"./lib/util":12,"./lib/validates":13,"./lib/validator":14}],12:[function(require,module,exports){
+/**
+ * Utilties
+ */
+
+
+/**
+ * warn
+ *
+ * @param {String} msg
+ * @param {Error} [err]
+ *
+ */
+
+exports.warn = function (msg, err) {
+  if (window.console) {
+    console.warn('[vue-validator] ' + msg)
+    if (err) {
+      console.warn(err.stack)
+    }
+  }
+}
+
+/**
+ * Get target validatable object
+ *
+ * @param {Object} validation
+ * @param {String} keypath
+ * @return {Object} validatable object
+ */
+
+exports.getTarget = function (validation, keypath) {
+  var last = validation
+  var keys = keypath.split('.')
+  var key, obj
+  for (var i = 0; i < keys.length; i++) {
+    key = keys[i]
+    obj = last[key]
+    last = obj
+    if (!last) {
+      break
+    }
+  }
+  return last
+}
+
+},{}],13:[function(require,module,exports){
+/**
+ * Fundamental validate functions
+ */
+
+
+/**
+ * required
+ *
+ * This function validate whether the value has been filled out.
+ *
+ * @param val
+ * @return {Boolean}
+ */
+
+function required (val) {
+  if (Array.isArray(val)) {
+    return val.length > 0
+  } else if (typeof val === 'number') {
+    return true
+  } else if ((val !== null) && (typeof val === 'object')) {
+    return Object.keys(val).length > 0
+  } else {
+    return !val
+      ? false
+      : true
+  }
+}
+
+
+/**
+ * pattern
+ *
+ * This function validate whether the value matches the regex pattern
+ *
+ * @param val
+ * @param {String} pat
+ * @return {Boolean}
+ */
+
+function pattern (val, pat) {
+  if (typeof pat !== 'string') { return false }
+
+  var match = pat.match(new RegExp('^/(.*?)/([gimy]*)$'))
+  if (!match) { return false }
+
+  return new RegExp(match[1], match[2]).test(val)
+}
+
+
+/**
+ * minLength
+ *
+ * This function validate whether the minimum length of the string.
+ *
+ * @param {String} val
+ * @param {String|Number} min
+ * @return {Boolean}
+ */
+
+function minLength (val, min) {
+  return typeof val === 'string' &&
+    isInteger(min, 10) &&
+    val.length >= parseInt(min, 10)
+}
+
+
+/**
+ * maxLength
+ *
+ * This function validate whether the maximum length of the string.
+ *
+ * @param {String} val
+ * @param {String|Number} max
+ * @return {Boolean}
+ */
+
+function maxLength (val, max) {
+  return typeof val === 'string' &&
+    isInteger(max, 10) &&
+    val.length <= parseInt(max, 10)
+}
+
+
+/**
+ * min
+ *
+ * This function validate whether the minimum value of the numberable value.
+ *
+ * @param {*} val
+ * @param {*} arg minimum
+ * @return {Boolean}
+ */
+
+function min (val, arg) {
+  return !isNaN(+(val)) && !isNaN(+(arg)) && (+(val) >= +(arg))
+}
+
+
+/**
+ * max
+ *
+ * This function validate whether the maximum value of the numberable value.
+ *
+ * @param {*} val
+ * @param {*} arg maximum
+ * @return {Boolean}
+ */
+
+function max (val, arg) {
+  return !isNaN(+(val)) && !isNaN(+(arg)) && (+(val) <= +(arg))
+}
+
+
+/**
+ * isInteger
+ *
+ * This function check whether the value of the string is integer.
+ *
+ * @param {String} val
+ * @return {Boolean}
+ * @private
+ */
+
+function isInteger (val) {
+  return /^(-?[1-9]\d*|0)$/.test(val)
+}
+
+
+/**
+ * export(s)
+ */
+module.exports = {
+  required: required,
+  pattern: pattern,
+  minLength: minLength,
+  maxLength: maxLength,
+  min: min,
+  max: max
+}
+
+},{}],14:[function(require,module,exports){
+/**
+ * Import(s)
+ */
+
+var validates = require('./validates')
+var _ = require('./util')
+
+
+/**
+ * Export(s)
+ */
+
+
+/**
+ * `v-validator` component with mixin
+ */
+
+module.exports = {
+  inherit: true,
+
+  created: function () {
+    this._initValidationVariables()
+    this._initOptions()
+    this._mixinCustomValidates()
+    this._defineProperties()
+    this._defineValidationScope()
+  },
+
+  methods: {
+    _getValidationNamespace: function (key) {
+      return this.$options.validator.namespace[key]
+    },
+
+    _initValidationVariables: function () {
+      this._validators = {}
+      this._validates = {}
+      this._initialValues = {}
+      for (var key in validates) {
+        this._validates[key] = validates[key]
+      }
+      this._validatorWatchers = {}
+      this._readyEvents = {}
+    },
+
+    _initOptions: function () {
+      var validator = this.$options.validator = this.$options.validator || {}
+      var namespace = validator.namespace = validator.namespace || {}
+      namespace.validation = namespace.validation || 'validation'
+      namespace.valid = namespace.valid || 'valid'
+      namespace.invalid = namespace.invalid || 'invalid'
+      namespace.dirty = namespace.dirty || 'dirty'
+    },
+
+    _mixinCustomValidates: function () {
+      var customs = this.$options.validator.validates
+      for (var key in customs) {
+        this._validates[key] = customs[key]
+      }
+    },
+
+    _defineValidProperty: function (target, getter) {
+      Object.defineProperty(target, this._getValidationNamespace('valid'), {
+        enumerable: true,
+        configurable: true,
+        get: getter
+      })
+    },
+
+    _undefineValidProperty: function (target) {
+      delete target[this._getValidationNamespace('valid')]
+    },
+
+    _defineInvalidProperty: function (target) {
+      var self = this
+      Object.defineProperty(target, this._getValidationNamespace('invalid'), {
+        enumerable: true,
+        configurable: true,
+        get: function () {
+          return !target[self._getValidationNamespace('valid')]
+        }
+      })
+    },
+
+    _undefineInvalidProperty: function (target) {
+      delete target[this._getValidationNamespace('invalid')]
+    },
+
+    _defineDirtyProperty: function (target, getter) {
+      Object.defineProperty(target, this._getValidationNamespace('dirty'), {
+        enumerable: true,
+        configurable: true,
+        get: getter
+      })
+    },
+
+    _undefineDirtyProperty: function (target) {
+      delete target[this._getValidationNamespace('dirty')]
+    },
+
+    _defineProperties: function () {
+      var self = this
+
+      var walk = function (obj, propName, namespaces) {
+        var ret = false
+        var keys = Object.keys(obj)
+        var i = keys.length
+        var key, last
+        while (i--) {
+          key = keys[i]
+          last = obj[key]
+          if (!(key in namespaces) && typeof last === 'object') {
+            ret = walk(last, propName, namespaces)
+            if ((propName === self._getValidationNamespace('valid') && !ret) ||
+                (propName === self._getValidationNamespace('dirty') && ret)) {
+              break
+            }
+          } else if (key === propName && typeof last !== 'object') {
+            ret = last
+            if ((key === self._getValidationNamespace('valid') && !ret) ||
+                (key === self._getValidationNamespace('dirty') && ret)) {
+              break
+            }
+          }
+        }
+        return ret
+      }
+
+      this._defineValidProperty(this.$parent, function () {
+        var validationName = self._getValidationNamespace('validation')
+        var validName = self._getValidationNamespace('valid')
+        var namespaces = self.$options.validator.namespace
+
+        return walk(this[validationName], validName, namespaces)
+      })
+
+      this._defineInvalidProperty(this.$parent)
+
+      this._defineDirtyProperty(this.$parent, function () {
+        var validationName = self._getValidationNamespace('validation')
+        var dirtyName = self._getValidationNamespace('dirty')
+        var namespaces = self.$options.validator.namespace
+
+        return walk(this[validationName], dirtyName, namespaces)
+      })
+    },
+
+    _undefineProperties: function () {
+      this._undefineDirtyProperty(this.$parent)
+      this._undefineInvalidProperty(this.$parent)
+      this._undefineValidProperty(this.$parent)
+    },
+
+    _defineValidationScope: function () {
+      this.$parent.$add(this._getValidationNamespace('validation'), {})
+    },
+
+    _undefineValidationScope: function () {
+      var validationName = this._getValidationNamespace('validation')
+      this.$parent.$delete(validationName)
+    },
+
+    _defineModelValidationScope: function (keypath) {
+      var self = this
+      var validationName = this._getValidationNamespace('validation')
+      var dirtyName = this._getValidationNamespace('dirty')
+
+      var keys = keypath.split('.')
+      var last = this[validationName]
+      var obj, key
+      for (var i = 0; i < keys.length; i++) {
+        key = keys[i]
+        obj = last[key]
+        if (!obj) {
+          obj = {}
+          last.$add(key, obj)
+        }
+        last = obj
+      }
+      last.$add(dirtyName, false)
+
+      this._defineValidProperty(last, function () {
+        var ret = true
+        var validators = self._validators[keypath]
+        var i = validators.length
+        var validator
+        while (i--) {
+          validator = validators[i]
+          if (last[validator.name]) {
+            ret = false
+            break
+          }
+        }
+        return ret
+      })
+      this._defineInvalidProperty(last)
+      
+      this._validators[keypath] = []
+
+      this._watchModel(keypath, function (val, old) {
+        self._updateDirtyProperty(keypath, val)
+        self._validators[keypath].forEach(function (validator) {
+          self._doValidate(keypath, validator.name, val)
+        })
+      })
+    },
+
+    _undefineModelValidationScope: function (keypath, validator) {
+      if (this.$parent) {
+        var targetPath = [this._getValidationNamespace('validation'), keypath].join('.')
+        var target = this.$parent.$get(targetPath)
+        if (target && Object.keys(target).length === 3 &&
+            this._getValidationNamespace('valid') in target &&
+            this._getValidationNamespace('invalid') in target &&
+            this._getValidationNamespace('dirty') in target) {
+          this._unwatchModel(keypath)
+          this._undefineDirtyProperty(target)
+          this._undefineInvalidProperty(target)
+          this._undefineValidProperty(target)
+          removeValidationProperties(
+            this.$parent.$get(this._getValidationNamespace('validation')),
+            keypath
+          )
+        }
+      }
+    },
+
+    _defineValidatorToValidationScope: function (keypath, validator) {
+      var target = _.getTarget(this[this._getValidationNamespace('validation')], keypath)
+      target.$add(validator, null)
+    },
+
+    _undefineValidatorToValidationScope: function (keypath, validator) {
+      var validationName = this._getValidationNamespace('validation')
+      if (this.$parent) {
+        var targetPath = [validationName, keypath].join('.')
+        var target = this.$parent.$get(targetPath)
+        if (target) {
+          target.$delete(validator)
+        }
+      }
+    },
+
+    _getInitialValue: function (keypath) {
+      return this._initialValues[keypath]
+    },
+
+    _setInitialValue: function (keypath, val) {
+      this._initialValues[keypath] = val
+    },
+
+    _addValidator: function (keypath, validator, arg) {
+      this._validators[keypath].push({ name: validator, arg: arg })
+    },
+
+    _changeValidator: function (keypath, validator, arg) {
+      var validators = this._validators[keypath]
+      var i = validators.length
+      while (i--) {
+        if (validators[i].name === validator) {
+          validators[i].arg = arg
+          break
+        }
+      }
+    },
+
+    _findValidator: function (keypath, validator) {
+      var found = null
+      var validators = this._validators[keypath]
+      var i = validators.length
+      while (i--) {
+        if (validators[i].name === validator) {
+          found = validators[i]
+          break
+        }
+      }
+      return found
+    },
+
+    _watchModel: function (keypath, fn) {
+      this._validatorWatchers[keypath] =
+        this.$watch(keypath, fn, { deep: false, immediate: true })
+    },
+
+    _unwatchModel: function (keypath) {
+      var unwatch = this._validatorWatchers[keypath]
+      if (unwatch) {
+        unwatch()
+        delete this._validatorWatchers[keypath]
+      }
+    },
+    
+    _addReadyEvents: function (id, event) {
+      this._readyEvents[id] = event
+    },
+
+    _getReadyEvents: function (id) {
+      return this._readyEvents[id]
+    },
+
+    _isRegistedReadyEvent: function (id) {
+      return id in this._readyEvents
+    },
+
+    _updateDirtyProperty: function (keypath, val) {
+      var validationName = this._getValidationNamespace('validation')
+      var dirtyName = this._getValidationNamespace('dirty')
+
+      var target = _.getTarget(this[validationName], keypath)
+      if (target) {
+        target.$set(dirtyName, this._getInitialValue(keypath) !== val)
+      }
+    },
+
+    _doValidate: function (keypath, validateName, val) {
+      var validationName = this._getValidationNamespace('validation')
+
+      var target = _.getTarget(this[validationName], keypath)
+      var validator = this._findValidator(keypath, validateName)
+      if (target && validator) {
+        this._invokeValidator(
+          this._validates[validateName],
+          val, validator.arg,
+          function (result) {
+            target.$set(validateName, !result)
+          })
+      }
+    },
+    
+    _invokeValidator: function (validator, val, arg, fn) {
+      var future = validator.call(this, val, arg)
+      if (typeof future === 'function') { // async
+        if (future.resolved) {
+          // cached
+          fn(future.resolved)
+        } else if (future.requested) {
+          // pool callbacks
+          future.pendingCallbacks.push(fn)
+        } else {
+          future.requested = true
+          var fns = future.pendingCallbacks = [fn]
+          future(function resolve () {
+            future.resolved = true
+            for (var i = 0, l = fns.length; i < l; i++) {
+              fns[i](true)
+            }
+          }, function reject () {
+            fn(false)
+          })
+        }
+      } else { // sync
+        fn(future)
+      }
+    }
+  }
+}
+
+/**
+ * Remove properties from target validation
+ *
+ * @param {Object} validation
+ * @param {String} keypath
+ */
+
+function removeValidationProperties (validation, keypath) {
+  var keys = keypath.split('.')
+  var key, obj
+  while (keys.length) {
+    key = keys.pop()
+    if (keys.length !== 0) {
+      obj = _.getTarget(validation, keys.join('.'))
+      obj.$delete(key)
+    } else {
+      validation.$delete(key)
+    }
+  }
+}
+
+},{"./util":12,"./validates":13}],15:[function(require,module,exports){
 var _ = require('../util')
 
 /**
@@ -1021,7 +1757,7 @@ exports.$addChild = function (opts, BaseCtor) {
   return child
 }
 
-},{"../util":72}],12:[function(require,module,exports){
+},{"../util":76}],16:[function(require,module,exports){
 var Watcher = require('../watcher')
 var Path = require('../parsers/path')
 var textParser = require('../parsers/text')
@@ -1174,7 +1910,7 @@ exports.$log = function (path) {
   console.log(data)
 }
 
-},{"../parsers/directive":60,"../parsers/expression":61,"../parsers/path":62,"../parsers/text":64,"../watcher":76}],13:[function(require,module,exports){
+},{"../parsers/directive":64,"../parsers/expression":65,"../parsers/path":66,"../parsers/text":68,"../watcher":80}],17:[function(require,module,exports){
 var _ = require('../util')
 var transition = require('../transition')
 
@@ -1402,7 +2138,7 @@ function remove (el, vm, cb) {
   if (cb) cb()
 }
 
-},{"../transition":65,"../util":72}],14:[function(require,module,exports){
+},{"../transition":69,"../util":76}],18:[function(require,module,exports){
 var _ = require('../util')
 
 /**
@@ -1578,7 +2314,7 @@ function modifyListenerCount (vm, event, count) {
   }
 }
 
-},{"../util":72}],15:[function(require,module,exports){
+},{"../util":76}],19:[function(require,module,exports){
 var _ = require('../util')
 var config = require('../config')
 
@@ -1699,7 +2435,7 @@ config._assetTypes.forEach(function (type) {
   }
 })
 
-},{"../compiler":21,"../config":23,"../parsers/directive":60,"../parsers/expression":61,"../parsers/path":62,"../parsers/template":63,"../parsers/text":64,"../util":72}],16:[function(require,module,exports){
+},{"../compiler":25,"../config":27,"../parsers/directive":64,"../parsers/expression":65,"../parsers/path":66,"../parsers/template":67,"../parsers/text":68,"../util":76}],20:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var compiler = require('../compiler')
@@ -1771,7 +2507,7 @@ exports.$compile = function (el, host) {
 }
 
 }).call(this,require('_process'))
-},{"../compiler":21,"../util":72,"_process":2}],17:[function(require,module,exports){
+},{"../compiler":25,"../util":76,"_process":2}],21:[function(require,module,exports){
 (function (process){
 var _ = require('./util')
 var config = require('./config')
@@ -1873,7 +2609,7 @@ exports.push = function (watcher) {
 }
 
 }).call(this,require('_process'))
-},{"./config":23,"./util":72,"_process":2}],18:[function(require,module,exports){
+},{"./config":27,"./util":76,"_process":2}],22:[function(require,module,exports){
 /**
  * A doubly linked list-based Least Recently Used (LRU)
  * cache. Will keep most recently used items while
@@ -1987,7 +2723,7 @@ p.get = function (key, returnEntry) {
 
 module.exports = Cache
 
-},{}],19:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var textParser = require('../parsers/text')
@@ -2174,7 +2910,7 @@ function getDefault (options) {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"../directives/prop":39,"../parsers/path":62,"../parsers/text":64,"../util":72,"_process":2}],20:[function(require,module,exports){
+},{"../config":27,"../directives/prop":43,"../parsers/path":66,"../parsers/text":68,"../util":76,"_process":2}],24:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var compileProps = require('./compile-props')
@@ -2804,13 +3540,13 @@ function directiveComparator (a, b) {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"../directives/component":28,"../parsers/directive":60,"../parsers/template":63,"../parsers/text":64,"../util":72,"./compile-props":19,"_process":2}],21:[function(require,module,exports){
+},{"../config":27,"../directives/component":32,"../parsers/directive":64,"../parsers/template":67,"../parsers/text":68,"../util":76,"./compile-props":23,"_process":2}],25:[function(require,module,exports){
 var _ = require('../util')
 
 _.extend(exports, require('./compile'))
 _.extend(exports, require('./transclude'))
 
-},{"../util":72,"./compile":20,"./transclude":22}],22:[function(require,module,exports){
+},{"../util":76,"./compile":24,"./transclude":26}],26:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var config = require('../config')
@@ -2958,7 +3694,7 @@ function mergeAttrs (from, to) {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"../parsers/template":63,"../util":72,"_process":2}],23:[function(require,module,exports){
+},{"../config":27,"../parsers/template":67,"../util":76,"_process":2}],27:[function(require,module,exports){
 module.exports = {
 
   /**
@@ -3084,7 +3820,7 @@ Object.defineProperty(module.exports, 'delimiters', {
   }
 })
 
-},{}],24:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (process){
 var _ = require('./util')
 var config = require('./config')
@@ -3339,7 +4075,7 @@ Directive.prototype._teardown = function () {
 module.exports = Directive
 
 }).call(this,require('_process'))
-},{"./config":23,"./parsers/expression":61,"./parsers/text":64,"./util":72,"./watcher":76,"_process":2}],25:[function(require,module,exports){
+},{"./config":27,"./parsers/expression":65,"./parsers/text":68,"./util":76,"./watcher":80,"_process":2}],29:[function(require,module,exports){
 // xlink
 var xlinkNS = 'http://www.w3.org/1999/xlink'
 var xlinkRE = /^xlink:/
@@ -3400,7 +4136,7 @@ module.exports = {
   }
 }
 
-},{}],26:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var _ = require('../util')
 var addClass = _.addClass
 var removeClass = _.removeClass
@@ -3472,7 +4208,7 @@ function stringToObject (value) {
   return res
 }
 
-},{"../util":72}],27:[function(require,module,exports){
+},{"../util":76}],31:[function(require,module,exports){
 var config = require('../config')
 
 module.exports = {
@@ -3484,7 +4220,7 @@ module.exports = {
   }
 }
 
-},{"../config":23}],28:[function(require,module,exports){
+},{"../config":27}],32:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var config = require('../config')
@@ -3832,7 +4568,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"../parsers/template":63,"../util":72,"_process":2}],29:[function(require,module,exports){
+},{"../config":27,"../parsers/template":67,"../util":76,"_process":2}],33:[function(require,module,exports){
 module.exports = {
 
   isLiteral: true,
@@ -3846,7 +4582,7 @@ module.exports = {
   }
 }
 
-},{}],30:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var _ = require('../util')
 var templateParser = require('../parsers/template')
 
@@ -3888,7 +4624,7 @@ module.exports = {
   }
 }
 
-},{"../parsers/template":63,"../util":72}],31:[function(require,module,exports){
+},{"../parsers/template":67,"../util":76}],35:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var compiler = require('../compiler')
@@ -4017,7 +4753,7 @@ function callDetach (child) {
 }
 
 }).call(this,require('_process'))
-},{"../cache":18,"../compiler":21,"../parsers/template":63,"../transition":65,"../util":72,"_process":2}],32:[function(require,module,exports){
+},{"../cache":22,"../compiler":25,"../parsers/template":67,"../transition":69,"../util":76,"_process":2}],36:[function(require,module,exports){
 // manipulation directives
 exports.text = require('./text')
 exports.html = require('./html')
@@ -4043,7 +4779,7 @@ exports['if'] = require('./if')
 exports._component = require('./component')
 exports._prop = require('./prop')
 
-},{"./attr":25,"./class":26,"./cloak":27,"./component":28,"./el":29,"./html":30,"./if":31,"./model":34,"./on":38,"./prop":39,"./ref":40,"./repeat":41,"./show":42,"./style":43,"./text":44,"./transition":45}],33:[function(require,module,exports){
+},{"./attr":29,"./class":30,"./cloak":31,"./component":32,"./el":33,"./html":34,"./if":35,"./model":38,"./on":42,"./prop":43,"./ref":44,"./repeat":45,"./show":46,"./style":47,"./text":48,"./transition":49}],37:[function(require,module,exports){
 var _ = require('../../util')
 
 module.exports = {
@@ -4087,7 +4823,7 @@ module.exports = {
   }
 }
 
-},{"../../util":72}],34:[function(require,module,exports){
+},{"../../util":76}],38:[function(require,module,exports){
 (function (process){
 var _ = require('../../util')
 
@@ -4167,7 +4903,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"../../util":72,"./checkbox":33,"./radio":35,"./select":36,"./text":37,"_process":2}],35:[function(require,module,exports){
+},{"../../util":76,"./checkbox":37,"./radio":39,"./select":40,"./text":41,"_process":2}],39:[function(require,module,exports){
 var _ = require('../../util')
 
 module.exports = {
@@ -4202,7 +4938,7 @@ module.exports = {
   }
 }
 
-},{"../../util":72}],36:[function(require,module,exports){
+},{"../../util":76}],40:[function(require,module,exports){
 (function (process){
 var _ = require('../../util')
 var Watcher = require('../../watcher')
@@ -4436,7 +5172,7 @@ function indexOf (arr, val) {
 }
 
 }).call(this,require('_process'))
-},{"../../parsers/directive":60,"../../util":72,"../../watcher":76,"_process":2}],37:[function(require,module,exports){
+},{"../../parsers/directive":64,"../../util":76,"../../watcher":80,"_process":2}],41:[function(require,module,exports){
 var _ = require('../../util')
 
 module.exports = {
@@ -4566,7 +5302,7 @@ module.exports = {
   }
 }
 
-},{"../../util":72}],38:[function(require,module,exports){
+},{"../../util":76}],42:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 
@@ -4629,7 +5365,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"../util":72,"_process":2}],39:[function(require,module,exports){
+},{"../util":76,"_process":2}],43:[function(require,module,exports){
 // NOTE: the prop internal directive is compiled and linked
 // during _initScope(), before the created hook is called.
 // The purpose is to make the initial prop values available
@@ -4693,7 +5429,7 @@ module.exports = {
   }
 }
 
-},{"../config":23,"../util":72,"../watcher":76}],40:[function(require,module,exports){
+},{"../config":27,"../util":76,"../watcher":80}],44:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 
@@ -4719,7 +5455,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"../util":72,"_process":2}],41:[function(require,module,exports){
+},{"../util":76,"_process":2}],45:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var config = require('../config')
@@ -5477,7 +6213,7 @@ function isPrimitive (value) {
 }
 
 }).call(this,require('_process'))
-},{"../compiler":21,"../config":23,"../parsers/expression":61,"../parsers/template":63,"../parsers/text":64,"../util":72,"_process":2}],42:[function(require,module,exports){
+},{"../compiler":25,"../config":27,"../parsers/expression":65,"../parsers/template":67,"../parsers/text":68,"../util":76,"_process":2}],46:[function(require,module,exports){
 var transition = require('../transition')
 
 module.exports = function (value) {
@@ -5487,7 +6223,7 @@ module.exports = function (value) {
   }, this.vm)
 }
 
-},{"../transition":65}],43:[function(require,module,exports){
+},{"../transition":69}],47:[function(require,module,exports){
 var _ = require('../util')
 var prefixes = ['-webkit-', '-moz-', '-ms-']
 var camelPrefixes = ['Webkit', 'Moz', 'ms']
@@ -5599,7 +6335,7 @@ function prefix (prop) {
   }
 }
 
-},{"../util":72}],44:[function(require,module,exports){
+},{"../util":76}],48:[function(require,module,exports){
 var _ = require('../util')
 
 module.exports = {
@@ -5615,7 +6351,7 @@ module.exports = {
   }
 }
 
-},{"../util":72}],45:[function(require,module,exports){
+},{"../util":76}],49:[function(require,module,exports){
 var _ = require('../util')
 var Transition = require('../transition/transition')
 
@@ -5643,7 +6379,7 @@ module.exports = {
   }
 }
 
-},{"../transition/transition":67,"../util":72}],46:[function(require,module,exports){
+},{"../transition/transition":71,"../util":76}],50:[function(require,module,exports){
 var _ = require('../util')
 var clone = require('../parsers/template').clone
 
@@ -5756,11 +6492,11 @@ function extractFragment (nodes, parent, main) {
   return frag
 }
 
-},{"../parsers/template":63,"../util":72}],47:[function(require,module,exports){
+},{"../parsers/template":67,"../util":76}],51:[function(require,module,exports){
 exports.content = require('./content')
 exports.partial = require('./partial')
 
-},{"./content":46,"./partial":48}],48:[function(require,module,exports){
+},{"./content":50,"./partial":52}],52:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var templateParser = require('../parsers/template')
@@ -5837,7 +6573,7 @@ module.exports = {
 }
 
 }).call(this,require('_process'))
-},{"../cache":18,"../compiler":21,"../directives/if":31,"../parsers/template":63,"../parsers/text":64,"../util":72,"_process":2}],49:[function(require,module,exports){
+},{"../cache":22,"../compiler":25,"../directives/if":35,"../parsers/template":67,"../parsers/text":68,"../util":76,"_process":2}],53:[function(require,module,exports){
 var _ = require('../util')
 var Path = require('../parsers/path')
 
@@ -5931,7 +6667,7 @@ function contains (val, search) {
   }
 }
 
-},{"../parsers/path":62,"../util":72}],50:[function(require,module,exports){
+},{"../parsers/path":66,"../util":76}],54:[function(require,module,exports){
 var _ = require('../util')
 
 /**
@@ -6078,7 +6814,7 @@ exports.debounce = function (handler, delay) {
 
 _.extend(exports, require('./array-filters'))
 
-},{"../util":72,"./array-filters":49}],51:[function(require,module,exports){
+},{"../util":76,"./array-filters":53}],55:[function(require,module,exports){
 var _ = require('../util')
 var Directive = require('../directive')
 var compiler = require('../compiler')
@@ -6280,7 +7016,7 @@ exports._cleanup = function () {
   this.$off()
 }
 
-},{"../compiler":21,"../directive":24,"../util":72}],52:[function(require,module,exports){
+},{"../compiler":25,"../directive":28,"../util":76}],56:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var inDoc = _.inDoc
@@ -6423,7 +7159,7 @@ exports._callHook = function (hook) {
 }
 
 }).call(this,require('_process'))
-},{"../util":72,"_process":2}],53:[function(require,module,exports){
+},{"../util":76,"_process":2}],57:[function(require,module,exports){
 var mergeOptions = require('../util').mergeOptions
 
 /**
@@ -6514,7 +7250,7 @@ exports._init = function (options) {
   }
 }
 
-},{"../util":72}],54:[function(require,module,exports){
+},{"../util":76}],58:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 
@@ -6611,7 +7347,7 @@ exports._resolveComponent = function (id, cb) {
 }
 
 }).call(this,require('_process'))
-},{"../util":72,"_process":2}],55:[function(require,module,exports){
+},{"../util":76,"_process":2}],59:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var compiler = require('../compiler')
@@ -6897,7 +7633,7 @@ exports._defineMeta = function (key, value) {
 }
 
 }).call(this,require('_process'))
-},{"../compiler":21,"../observer":58,"../observer/dep":57,"../util":72,"../watcher":76,"_process":2}],56:[function(require,module,exports){
+},{"../compiler":25,"../observer":62,"../observer/dep":61,"../util":76,"../watcher":80,"_process":2}],60:[function(require,module,exports){
 var _ = require('../util')
 var arrayProto = Array.prototype
 var arrayMethods = Object.create(arrayProto)
@@ -6991,7 +7727,7 @@ _.define(
 
 module.exports = arrayMethods
 
-},{"../util":72}],57:[function(require,module,exports){
+},{"../util":76}],61:[function(require,module,exports){
 var _ = require('../util')
 
 /**
@@ -7052,7 +7788,7 @@ Dep.prototype.notify = function () {
 
 module.exports = Dep
 
-},{"../util":72}],58:[function(require,module,exports){
+},{"../util":76}],62:[function(require,module,exports){
 var _ = require('../util')
 var config = require('../config')
 var Dep = require('./dep')
@@ -7259,7 +7995,7 @@ function copyAugment (target, src, keys) {
 
 module.exports = Observer
 
-},{"../config":23,"../util":72,"./array":56,"./dep":57,"./object":59}],59:[function(require,module,exports){
+},{"../config":27,"../util":76,"./array":60,"./dep":61,"./object":63}],63:[function(require,module,exports){
 var _ = require('../util')
 var objProto = Object.prototype
 
@@ -7343,7 +8079,7 @@ _.define(
   }
 )
 
-},{"../util":72}],60:[function(require,module,exports){
+},{"../util":76}],64:[function(require,module,exports){
 var _ = require('../util')
 var Cache = require('../cache')
 var cache = new Cache(1000)
@@ -7525,7 +8261,7 @@ exports.parse = function (s) {
   return dirs
 }
 
-},{"../cache":18,"../util":72}],61:[function(require,module,exports){
+},{"../cache":22,"../util":76}],65:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var Path = require('./path')
@@ -7793,7 +8529,7 @@ exports.isSimplePath = function (exp) {
 }
 
 }).call(this,require('_process'))
-},{"../cache":18,"../util":72,"./path":62,"_process":2}],62:[function(require,module,exports){
+},{"../cache":22,"../util":76,"./path":66,"_process":2}],66:[function(require,module,exports){
 (function (process){
 var _ = require('../util')
 var Cache = require('../cache')
@@ -8145,7 +8881,7 @@ function warnNonExistent (path) {
 }
 
 }).call(this,require('_process'))
-},{"../cache":18,"../util":72,"_process":2}],63:[function(require,module,exports){
+},{"../cache":22,"../util":76,"_process":2}],67:[function(require,module,exports){
 var _ = require('../util')
 var Cache = require('../cache')
 var templateCache = new Cache(1000)
@@ -8429,7 +9165,7 @@ exports.parse = function (template, clone, noSelector) {
     : frag
 }
 
-},{"../cache":18,"../util":72}],64:[function(require,module,exports){
+},{"../cache":22,"../util":76}],68:[function(require,module,exports){
 var Cache = require('../cache')
 var config = require('../config')
 var dirParser = require('./directive')
@@ -8607,7 +9343,7 @@ function inlineFilters (exp, single) {
   }
 }
 
-},{"../cache":18,"../config":23,"./directive":60}],65:[function(require,module,exports){
+},{"../cache":22,"../config":27,"./directive":64}],69:[function(require,module,exports){
 var _ = require('../util')
 
 /**
@@ -8737,7 +9473,7 @@ var apply = exports.apply = function (el, direction, op, vm, cb) {
   transition[action](op, cb)
 }
 
-},{"../util":72}],66:[function(require,module,exports){
+},{"../util":76}],70:[function(require,module,exports){
 var _ = require('../util')
 var queue = []
 var queued = false
@@ -8774,7 +9510,7 @@ function flush () {
   return f
 }
 
-},{"../util":72}],67:[function(require,module,exports){
+},{"../util":76}],71:[function(require,module,exports){
 var _ = require('../util')
 var queue = require('./queue')
 var addClass = _.addClass
@@ -9102,7 +9838,7 @@ p.setupCssCb = function (event, cb) {
 
 module.exports = Transition
 
-},{"../util":72,"./queue":66}],68:[function(require,module,exports){
+},{"../util":76,"./queue":70}],72:[function(require,module,exports){
 (function (process){
 var _ = require('./index')
 
@@ -9230,7 +9966,7 @@ function formatValue (val) {
 }
 
 }).call(this,require('_process'))
-},{"./index":72,"_process":2}],69:[function(require,module,exports){
+},{"./index":76,"_process":2}],73:[function(require,module,exports){
 (function (process){
 /**
  * Enable debug utilities.
@@ -9298,7 +10034,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"_process":2}],70:[function(require,module,exports){
+},{"../config":27,"_process":2}],74:[function(require,module,exports){
 (function (process){
 var _ = require('./index')
 var config = require('../config')
@@ -9574,7 +10310,7 @@ exports.createAnchor = function (content, persist) {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"./index":72,"_process":2}],71:[function(require,module,exports){
+},{"../config":27,"./index":76,"_process":2}],75:[function(require,module,exports){
 // can we use __proto__?
 exports.hasProto = '__proto__' in {}
 
@@ -9661,7 +10397,7 @@ exports.nextTick = (function () {
   }
 })()
 
-},{}],72:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 var lang = require('./lang')
 var extend = lang.extend
 
@@ -9672,7 +10408,7 @@ extend(exports, require('./options'))
 extend(exports, require('./component'))
 extend(exports, require('./debug'))
 
-},{"./component":68,"./debug":69,"./dom":70,"./env":71,"./lang":73,"./options":74}],73:[function(require,module,exports){
+},{"./component":72,"./debug":73,"./dom":74,"./env":75,"./lang":77,"./options":78}],77:[function(require,module,exports){
 /**
  * Check is a string starts with $ or _
  *
@@ -9982,7 +10718,7 @@ exports.looseEqual = function (a, b) {
   /* eslint-enable eqeqeq */
 }
 
-},{}],74:[function(require,module,exports){
+},{}],78:[function(require,module,exports){
 (function (process){
 var _ = require('./index')
 var config = require('../config')
@@ -10343,7 +11079,7 @@ exports.resolveAsset = function resolve (options, type, id) {
 }
 
 }).call(this,require('_process'))
-},{"../config":23,"./index":72,"_process":2}],75:[function(require,module,exports){
+},{"../config":27,"./index":76,"_process":2}],79:[function(require,module,exports){
 var _ = require('./util')
 var extend = _.extend
 
@@ -10434,7 +11170,7 @@ extend(p, require('./api/lifecycle'))
 
 module.exports = _.Vue = Vue
 
-},{"./api/child":11,"./api/data":12,"./api/dom":13,"./api/events":14,"./api/global":15,"./api/lifecycle":16,"./directives":32,"./element-directives":47,"./filters":50,"./instance/compile":51,"./instance/events":52,"./instance/init":53,"./instance/misc":54,"./instance/scope":55,"./util":72}],76:[function(require,module,exports){
+},{"./api/child":15,"./api/data":16,"./api/dom":17,"./api/events":18,"./api/global":19,"./api/lifecycle":20,"./directives":36,"./element-directives":51,"./filters":54,"./instance/compile":55,"./instance/events":56,"./instance/init":57,"./instance/misc":58,"./instance/scope":59,"./util":76}],80:[function(require,module,exports){
 (function (process){
 var _ = require('./util')
 var config = require('./config')
@@ -10751,7 +11487,7 @@ function traverse (obj) {
 module.exports = Watcher
 
 }).call(this,require('_process'))
-},{"./batcher":17,"./config":23,"./observer/dep":57,"./parsers/expression":61,"./util":72,"_process":2}],77:[function(require,module,exports){
+},{"./batcher":21,"./config":27,"./observer/dep":61,"./parsers/expression":65,"./util":76,"_process":2}],81:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10844,9 +11580,9 @@ module.exports = {
     }
 };
 
-},{"./character.template.html":78}],78:[function(require,module,exports){
+},{"./character.template.html":82}],82:[function(require,module,exports){
 module.exports = '<div class="character human"></div>\n';
-},{}],79:[function(require,module,exports){
+},{}],83:[function(require,module,exports){
 "use strict";
 
 module.exports = {
@@ -10899,9 +11635,9 @@ module.exports = {
     }
 };
 
-},{"./chat.template.html":80}],80:[function(require,module,exports){
+},{"./chat.template.html":84}],84:[function(require,module,exports){
 module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">Global</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
-},{}],81:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10940,9 +11676,9 @@ module.exports = {
     }
 };
 
-},{"./character.js":77,"./map.template.html":82}],82:[function(require,module,exports){
+},{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
 module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <iframe src="http://clicktrackprofit.com"></iframe>\n</div>\n<character v-el="character"></character>\n';
-},{}],83:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -10953,11 +11689,22 @@ module.exports = {
         return {
             sites: null,
             'delete': null,
-            addingNew: false,
-            newName: '',
-            newUrl: '',
-            postingNew: false
+            newSite: {
+                active: false,
+                name: '',
+                url: '',
+                posting: false
+            }
         };
+    },
+
+    validator: {
+        validates: {
+            url: function url(val) {
+                return (/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/.test(val)
+                );
+            }
+        }
     },
 
     computed: {
@@ -10994,26 +11741,28 @@ module.exports = {
         },
 
         addSite: function addSite() {
-            this.addingNew = true;
+            this.newSite.active = true;
         },
 
         cancelAdd: function cancelAdd() {
-            this.addingNew = false;
+            this.newSite.active = false;
+            self.newSite.name = '';
+            self.newSite.url = '';
         },
 
         confirmAdd: function confirmAdd() {
-            this.postingNew = true;
+            this.newSite.posting = true;
 
             var self = this;
 
-            this.$http.post('/api/sites/new', { 'name': this.newName, 'url': this.newUrl }).success(function (site) {
+            this.$http.post('/api/sites/new', { 'name': this.newSite.name, 'url': this.newSite.url }).success(function (site) {
 
                 self.sites.push(site);
 
-                this.addingNew = false;
-                this.postingNew = false;
-                this.newName = '';
-                this.newUrl = '';
+                self.newSite.active = false;
+                self.newSite.posting = false;
+                self.newSite.name = '';
+                self.newSite.url = '';
             });
         }
 
@@ -11029,6 +11778,6 @@ module.exports = {
     }
 };
 
-},{"./sites.template.html":84}],84:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="4">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-show="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!addingNew">Add New Site</button>\n\n        <div class="panel panel-default" v-show="addingNew">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="postingNew">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!postingNew">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newName">\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="url" class="form-control" id="siteUrl" v-model="newUrl">\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
+},{"./sites.template.html":88}],88:[function(require,module,exports){
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="4">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
 },{}]},{},[1]);

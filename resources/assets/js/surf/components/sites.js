@@ -6,10 +6,20 @@ module.exports = {
         return {
             sites: null,
             delete: null,
-            addingNew: false,
-            newName: '',
-            newUrl: '',
-            postingNew: false
+            newSite: {
+                active: false,
+                name: '',
+                url: '',
+                posting: false
+            }
+        }
+    },
+
+    validator: {
+        validates: {
+            url: function (val) {
+                return /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/.test(val);
+            }
         }
     },
 
@@ -47,26 +57,28 @@ module.exports = {
         },
 
         addSite: function() {
-            this.addingNew = true;
+            this.newSite.active = true;
         },
 
         cancelAdd: function() {
-            this.addingNew = false;
+            this.newSite.active = false;
+            self.newSite.name = '';
+            self.newSite.url = '';
         },
 
         confirmAdd: function() {
-            this.postingNew = true;
+            this.newSite.posting = true;
 
             var self = this;
 
-            this.$http.post('/api/sites/new', {'name': this.newName, 'url': this.newUrl}).success(function(site) {
+            this.$http.post('/api/sites/new', {'name': this.newSite.name, 'url': this.newSite.url}).success(function(site) {
 
                 self.sites.push(site);
 
-                this.addingNew = false;
-                this.postingNew = false;
-                this.newName = '';
-                this.newUrl = '';
+                self.newSite.active = false;
+                self.newSite.posting = false;
+                self.newSite.name = '';
+                self.newSite.url = '';
             });
         }
 

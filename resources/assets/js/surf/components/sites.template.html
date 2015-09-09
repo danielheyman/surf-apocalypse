@@ -34,36 +34,38 @@
             </tbody>
         </table>
 
-        <div class="alert alert-danger" role="alert" v-show="delete">
+        <div class="alert alert-danger" role="alert" v-if="delete">
               <p>Are you sure you want to remove '{{ delete.name }}'? </p>
               <br>
-              <button type="button" class="btn btn-danger" v-on="click: confirmDelete">Yes, Delete Me</button>
+              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>
               <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>
         </div>
 
-        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!addingNew">Add New Site</button>
+        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active">Add New Site</button>
 
-        <div class="panel panel-default" v-show="addingNew">
+        <div class="panel panel-default" v-show="newSite.active">
             <div class="panel-body">
-                <div class="loader-inner" v-show="postingNew">
+                <div class="loader-inner" v-show="newSite.posting">
                     <div class="ball"></div>
                     <p>ADDING SITE</p>
                 </div>
 
-                <div v-show="!postingNew">
+                <div v-show="!newSite.posting">
                     <div class="form-group">
                         <label for="siteName">Website Name:</label>
-                        <input type="text" class="form-control" id="siteName" v-model="newName">
+                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">
+                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>
                     </div>
 
                     <div class="form-group">
                         <label for="siteUrl">Website URL:</label>
-                        <input type="url" class="form-control" id="siteUrl" v-model="newUrl">
+                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">
+                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>
                     </div>
 
                     <br>
 
-                    <button type="button" class="btn btn-primary" v-on="click: confirmAdd">Add Me</button>
+                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>
                     <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>
                 </div>
             </div>

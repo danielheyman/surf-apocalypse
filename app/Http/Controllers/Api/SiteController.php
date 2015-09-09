@@ -31,6 +31,8 @@ class SiteController extends Controller
 
     public function addSite(Request $request)
     {
+        $this->validate($request, ['name' => 'required|min:2', 'url' => 'required|url']);
+
         $site = Auth::user()->websites()->create($request->all());
 
         return [

@@ -24,6 +24,7 @@ function show() {
 
 var Vue = require('vue');
 Vue.use(require('vue-resource'));
+Vue.use(require('vue-validator'));
 
 var socket = io('http://surf.local:3000');
 window.socket = socket;
@@ -40,7 +41,7 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'sites'
+        currentView: 'map'
     },
 
     components: {
