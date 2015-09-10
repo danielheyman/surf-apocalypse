@@ -28,14 +28,12 @@ Vue.use(require('vue-validator'));
 
 var socket = io('http://surf.local:3000');
 window.socket = socket;
-socket.emit("join");
 
 // socket.on("global:App\\Events\\SentGlobalMessage", function(message){
 //     console.log(message.data);
 // });
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
-
 
 new Vue({
     el: '#app',

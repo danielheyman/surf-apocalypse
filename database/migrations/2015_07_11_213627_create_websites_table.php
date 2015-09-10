@@ -15,6 +15,8 @@ class CreateWebsitesTable extends Migration
             $table->string('name');
             $table->string('url');
             $table->boolean('enabled')->default(true);
+            $table->smallInteger('views_total')->unsigned()->default(0);
+            $table->smallInteger('views_today')->unsigned()->default(0);
 
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

@@ -38,6 +38,9 @@
 
 
         <!-- Scripts -->
+        <script type="text/javascript">
+            window.session_name = '{{ Auth::user()->name }}';
+        </script>
         <script src="{{ elixir('js/global.js') }}"></script>
         <script src="{{ elixir('js/surfv.js') }}"></script>
         <script src="{{ elixir('js/surf.js') }}"></script>

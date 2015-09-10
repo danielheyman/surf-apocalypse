@@ -6,6 +6,7 @@ module.exports = {
         return {
             frame: 13,
             interval: 1,
+            name: '',
             states: {
                 IDLE_RIGHT: {
                     frames: 6,
@@ -32,14 +33,18 @@ module.exports = {
                     moving: true
                 }
             },
-            state: null
+            state: null,
+            stateKey: null
         }
     },
 
     methods: {
         drawCharacter: function() {
-            if(this.state.moving)
-                this.$dispatch('character_moving', this.getStateKey(this.state));
+            if(!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey)
+                this.initNewState($(this.$el).attr('data-state'));
+
+            if($(this.$el).data('main') && this.state.moving)
+                this.$dispatch('character_moving', this.stateKey);
 
             if(this.interval++ != 1) {
                 if(this.interval > this.state.intervals)
@@ -61,42 +66,42 @@ module.exports = {
             }
         },
 
-        getStateKey: function(state) {
-            var keys = Object.keys(this.states);
-            for(var x = 0; x < keys.length; x++) {
-                var key = keys[x];
-                if(this.states[key] == state)
-                    return key;
-            }
-        },
-
         initNewState: function(state) {
-            this.state = state;
+            this.stateKey = state;
+            this.state = this.states[state];
             this.interval = 1;
-            this.frame = state.reverse ? state.frames : 1;
+            this.frame = this.state.reverse ? this.state.frames : 1;
         }
     },
 
     ready: function() {
-        this.initNewState(this.states.IDLE_RIGHT);
+        if($(this.$el).data('main'))
+        {
+            this.name = window.session_name;
+            this.initNewState('IDLE_RIGHT');
+
+            var self = this;
+            $("body").keydown(function(e) {
+                if(e.keyCode == 39 && self.state != self.states.WALK_RIGHT)
+                    self.initNewState('WALK_RIGHT');
+
+                else if(e.keyCode == 37 && self.state != self.states.WALK_LEFT)
+                    self.initNewState('WALK_LEFT');
+            });
+            $("body").keyup(function() {
+                if(self.state == self.states.WALK_RIGHT)
+                    self.initNewState('IDLE_RIGHT');
+
+                else if(self.state == self.states.WALK_LEFT)
+                    self.initNewState('IDLE_LEFT');
+            });
+        }
+        else {
+            this.name = $(this.$el).data('name');
+            
+            this.$dispatch('character_created', $(this.$el));
+        }
 
         setInterval(this.drawCharacter, 50);
-
-        var self = this;
-
-        $("body").keydown(function(e) {
-            if(e.keyCode == 39 && self.state != self.states.WALK_RIGHT)
-                self.initNewState(self.states.WALK_RIGHT);
-
-            else if(e.keyCode == 37 && self.state != self.states.WALK_LEFT)
-                self.initNewState(self.states.WALK_LEFT);
-        });
-        $("body").keyup(function() {
-            if(self.state == self.states.WALK_RIGHT)
-                self.initNewState(self.states.IDLE_RIGHT);
-
-            else if(self.state == self.states.WALK_LEFT)
-                self.initNewState(self.states.IDLE_LEFT);
-        });
     }
 };

@@ -41,6 +41,8 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
     Route::post('sites/{id}', 'SiteController@toggleSite');
     Route::delete('sites/{id}', 'SiteController@deleteSite');
     Route::post('sites/new', 'SiteController@addSite');
+
+    Route::get('map', 'MapController@getMap');
 });
 
 

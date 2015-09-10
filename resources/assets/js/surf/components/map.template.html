@@ -4,6 +4,17 @@
 <div class="billboard-shadow"></div>
 <div class="billboard-sign"></div>
 <div class="frame-wrapper">
-    <iframe src="http://clicktrackprofit.com"></iframe>
+    <div class="loader" v-show="!site">
+        <div class="ball"></div>
+        <p>LOADING MAP</p>
+    </div>
+
+    <span v-if="site">
+        <iframe src="{{ site.url }}"></iframe>
+    </span>
+
 </div>
-<character v-el="character"></character>
+<character data-main="main" v-el="character" v-if="site"></character>
+<div class="characters">
+    <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>
+</div>

@@ -27,7 +27,6 @@ Vue.use(require('vue-validator'));
 
 var socket = io('http://surf.local:3000');
 window.socket = socket;
-socket.emit("join");
 
 // socket.on("global:App\\Events\\SentGlobalMessage", function(message){
 //     console.log(message.data);
@@ -11498,6 +11497,7 @@ module.exports = {
         return {
             frame: 13,
             interval: 1,
+            name: '',
             states: {
                 IDLE_RIGHT: {
                     frames: 6,
@@ -11524,13 +11524,16 @@ module.exports = {
                     moving: true
                 }
             },
-            state: null
+            state: null,
+            stateKey: null
         };
     },
 
     methods: {
         drawCharacter: function drawCharacter() {
-            if (this.state.moving) this.$dispatch('character_moving', this.getStateKey(this.state));
+            if (!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey) this.initNewState($(this.$el).attr('data-state'));
+
+            if ($(this.$el).data('main') && this.state.moving) this.$dispatch('character_moving', this.stateKey);
 
             if (this.interval++ != 1) {
                 if (this.interval > this.state.intervals) this.interval = 1;
@@ -11549,39 +11552,38 @@ module.exports = {
             }
         },
 
-        getStateKey: function getStateKey(state) {
-            var keys = Object.keys(this.states);
-            for (var x = 0; x < keys.length; x++) {
-                var key = keys[x];
-                if (this.states[key] == state) return key;
-            }
-        },
-
         initNewState: function initNewState(state) {
-            this.state = state;
+            this.stateKey = state;
+            this.state = this.states[state];
             this.interval = 1;
-            this.frame = state.reverse ? state.frames : 1;
+            this.frame = this.state.reverse ? this.state.frames : 1;
         }
     },
 
     ready: function ready() {
-        this.initNewState(this.states.IDLE_RIGHT);
+        if ($(this.$el).data('main')) {
+            this.name = window.session_name;
+            this.initNewState('IDLE_RIGHT');
+
+            var self = this;
+            $("body").keydown(function (e) {
+                if (e.keyCode == 39 && self.state != self.states.WALK_RIGHT) self.initNewState('WALK_RIGHT');else if (e.keyCode == 37 && self.state != self.states.WALK_LEFT) self.initNewState('WALK_LEFT');
+            });
+            $("body").keyup(function () {
+                if (self.state == self.states.WALK_RIGHT) self.initNewState('IDLE_RIGHT');else if (self.state == self.states.WALK_LEFT) self.initNewState('IDLE_LEFT');
+            });
+        } else {
+            this.name = $(this.$el).data('name');
+
+            this.$dispatch('character_created', $(this.$el));
+        }
 
         setInterval(this.drawCharacter, 50);
-
-        var self = this;
-
-        $("body").keydown(function (e) {
-            if (e.keyCode == 39 && self.state != self.states.WALK_RIGHT) self.initNewState(self.states.WALK_RIGHT);else if (e.keyCode == 37 && self.state != self.states.WALK_LEFT) self.initNewState(self.states.WALK_LEFT);
-        });
-        $("body").keyup(function () {
-            if (self.state == self.states.WALK_RIGHT) self.initNewState(self.states.IDLE_RIGHT);else if (self.state == self.states.WALK_LEFT) self.initNewState(self.states.IDLE_LEFT);
-        });
     }
 };
 
 },{"./character.template.html":82}],82:[function(require,module,exports){
-module.exports = '<div class="character human"></div>\n';
+module.exports = '<div class="character human" data-state="{{ stateKey }}">\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
 },{}],83:[function(require,module,exports){
 "use strict";
 
@@ -11646,8 +11648,31 @@ module.exports = {
 
     data: function data() {
         return {
-            charXPercent: 5
+            charXPercent: 5,
+            site: null,
+            characters: [],
+            state: null
         };
+    },
+
+    methods: {
+        sendStatus: function sendStatus() {
+            var facingRight = $(this.$$.character).attr('data-state').indexOf('RIGHT') > -1;
+            socket.emit("map_status", { m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight });
+        },
+
+        getCharArrayPos: function getCharArrayPos(id) {
+            var keys = Object.keys(this.characters);
+            var char_array_pos = null;
+            for (var x = 0; x < keys.length; x++) {
+                if (id == this.characters[keys[x]].i) char_array_pos = keys[x];
+            }
+            return char_array_pos;
+        },
+
+        getLeftPos: function getLeftPos(percent) {
+            return ($(window).width() - $(this.$$.character).width()) * percent / 100;
+        }
     },
 
     components: {
@@ -11667,17 +11692,66 @@ module.exports = {
 
             if (self.charXPercent < 0) self.charXPercent = 0;else if (self.charXPercent > 100) self.charXPercent = 100;
 
-            var left = ($(window).width() - $(self.$$.character).width()) * self.charXPercent / 100;
+            var left = self.getLeftPos(self.charXPercent);
 
-            $(self.$$.character).css({
+            $(self.$$.character).stop(true, true).animate({
+                'left': left
+            }, 50);
+        });
+
+        this.$on('character_created', function (char) {
+            var char_array_pos = self.getCharArrayPos(char.data('id'));
+            var data = self.characters[char_array_pos];
+            var left = self.getLeftPos(data.l);
+            var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+
+            self.characters[char_array_pos].char = char;
+            char.attr('data-state', state);
+
+            char.css({
                 'left': left
             });
         });
+
+        this.$http.get('/api/map').success(function (site) {
+
+            self.site = site;
+
+            setInterval(this.sendStatus, 1000);
+
+            socket.on('map_status', function (data) {
+                var char_array_pos = self.getCharArrayPos(data.i);
+
+                if (char_array_pos) {
+                    var oldData = self.characters[char_array_pos];
+                    if (oldData.l != data.l) {
+                        var state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
+                        var left = self.getLeftPos(data.l);
+
+                        var time = Math.abs(data.l - oldData.l) / .7 * 65;
+                        oldData.char.attr('data-state', state);
+
+                        oldData.char.stop(true).animate({
+                            'left': left
+                        }, time, 'linear', function () {
+                            state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                            oldData.char.attr('data-state', state);
+                        });
+                    } else if (oldData.r != data.r) {
+                        var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                        oldData.char.attr('data-state', state);
+                    }
+
+                    self.characters[char_array_pos].l = data.l;
+                    self.characters[char_array_pos].r = data.r;
+                } else self.characters.push(data);
+            });
+        }).error(function () {});
     }
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <iframe src="http://clicktrackprofit.com"></iframe>\n</div>\n<character v-el="character"></character>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character data-main="main" v-el="character" v-if="site"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 

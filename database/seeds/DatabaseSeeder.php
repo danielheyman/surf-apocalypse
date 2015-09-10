@@ -47,6 +47,15 @@ class DatabaseSeeder extends Seeder
             'team_id' => $team->id ?: null,
         ]);
 
+        App\User::create([
+            'name' => 'Test Dude',
+            'email' => 'test@dude.com',
+            'password' => 'test',
+            'human' => true,
+            'confirmation_code' => null,
+            'team_id' => $team->id ?: null,
+        ]);
+
         $website = $user->websites()->create([
             'name' => 'My first website',
             'url' => 'http://clicktrackprofit.com',

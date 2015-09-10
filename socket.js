@@ -42,6 +42,7 @@ server = require('http').createServer(),
 io = require('socket.io')(server);
 
 offline_timeout = {};
+map_timeout = {};
 users = {};
 locations = {};
 
@@ -74,7 +75,7 @@ io.use(function(socket, next)
         if(typeof socket.request.headers.cookie != 'undefined')
         {
             var userCookie = cookie.parse(socket.request.headers.cookie).laravel_session;
-            
+
             if(typeof userCookie != 'undefined')
             {
                 redis_client.get('laravel:' + decryptCookie(userCookie), function(error, result)
@@ -86,11 +87,16 @@ io.use(function(socket, next)
                     }
                     else if (result)
                     {
-                        console.log('Logged In');
                         laravelSession = PHPUnserialize.unserialize( PHPUnserialize.unserialize( result ) );
-                        console.log(laravelSession);
                         socket.user_id = laravelSession['login_82e5d2c56bdd0811318f0cf078b78bfc'];
                         socket.name = laravelSession['name'];
+
+                        clearTimeout(offline_timeout[socket.user_id]);
+
+                        users[socket.user_id] = {
+                            socket_info: socket
+                        };
+
                         next();
                     }
                     else
@@ -126,29 +132,57 @@ redis.on('message', function(channel, message) {
 
 io.on('connection', function (socket)
 {
-    console.log(socket.user_id);
-    socket.on('join', function ()
-    {
-        clearTimeout(offline_timeout[socket.user_id]);
+    console.log(socket.user_id + ' joined');
+    // socket.on('join', function ()
+    // {
+    //     clearTimeout(offline_timeout[socket.user_id]);
+    //
+    //     if(!users[socket.user_id])
+    //     {
+    //         users[socket.user_id] = {
+    //             socket_info: socket
+    //         };
+    //     }
+    //     else
+    //     {
+    //         //socket.leave(users[user_info.id].location);
+    //         //users[user_info.id].location = user_info.location;
+    //     }
+    //     //socket.join(user_info.location);
+    // });
 
-        if(!users[socket.user_id])
-        {
-            users[socket.user_id] = {
-                socket_info: socket
-            };
-        }
-        else
-        {
-            //socket.leave(users[user_info.id].location);
-            //users[user_info.id].location = user_info.location;
-        }
-        //socket.join(user_info.location);
-    });
     socket.on('chat', function (message)
     {
         if(message.c == 'global') {
             io.emit("chat", {n: socket.name, m: message.m});
         }
+    });
+
+    socket.on('map_status', function (map)
+    {
+        clearTimeout(map_timeout[socket.user_id]);
+
+        if(!locations[map.m])
+        {
+            locations[map.m] = {};
+        }
+
+        locations[map.m][socket.user_id] = map.l;
+
+        var keys = Object.keys(locations[map.m]);
+        for(var x = 0; x < keys.length; x++)
+        {
+            if(keys[x] == socket.user_id)
+                continue;
+
+            users[keys[x]].socket_info.emit('map_status', {i: socket.user_id, l: map.l, r: map.r, n: socket.name})
+        }
+
+        map_timeout[socket.user_id] = setTimeout(
+        function()
+        {
+            delete locations[map.m][socket.user_id];
+        }, 2000);
     });
 
 
@@ -168,7 +202,7 @@ io.on('connection', function (socket)
             offline_timeout[socket.user_id] = setTimeout(
             function()
             {
-                delete users[socket.user_id]
+                delete users[socket.user_id];
             }, 15000);
         }
     });

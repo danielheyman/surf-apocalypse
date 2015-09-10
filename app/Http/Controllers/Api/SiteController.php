@@ -21,12 +21,17 @@ class SiteController extends Controller
 
     public function toggleSite(Request $request, $id)
     {
-        Auth::user()->websites()->where('id', $id)->update(['enabled' => $request->input('enabled')]);
+        $site = Auth::user()->websites()->where('id', $id)->first();
+        if($site->enabled == $request->input('enabled'))
+            return;
+
+        $site->enabled = $request->input('enabled');
+        $site->save();
     }
 
     public function deleteSite($id)
     {
-        Auth::user()->websites()->where('id', $id)->delete();
+        Auth::user()->websites()->where('id', $id)->first()->delete();
     }
 
     public function addSite(Request $request)

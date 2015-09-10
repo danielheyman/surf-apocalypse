@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Website;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Website::updated(function ($site) {
+            $site->updateUserSiteCount();
+        });
+        Website::saved(function ($site) {
+            $site->updateUserSiteCount();
+        });
+        Website::deleted(function ($site) {
+            $site->updateUserSiteCount();
+        });
     }
 
     /**
