@@ -15,10 +15,12 @@ class CreateItemTypesTable extends Migration
             $table->string('name');
             $table->text('icon');
             $table->boolean('human');
-            $table->decimal('find_chance', 4, 2);
+            $table->decimal('find_chance', 5, 2);
+            $table->smallInteger('height')->unsigned();
+            $table->smallInteger('width')->unsigned();
             $table->smallInteger('find_min')->unsigned();
             $table->smallInteger('find_max')->unsigned();
-            $table->boolean('house_item');
+            $table->smallInteger('item_type')->unsigned();
             $table->smallInteger('protection_value')->unsigned()->nullable();
             $table->timestamps();
         });

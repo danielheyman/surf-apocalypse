@@ -39,7 +39,7 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'map'
+        currentView: 'sites'
     },
 
     components: {

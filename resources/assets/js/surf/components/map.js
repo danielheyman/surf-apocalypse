@@ -79,6 +79,11 @@ module.exports = {
 
         this.$http.get('/api/map').success(function(site) {
 
+            for(var x = 0; x < site.items.length; x++)
+            {
+                site.items[x].left = this.getLeftPos(Math.floor((Math.random() * 65) + 25));
+            }
+
             self.site = site;
 
             setInterval(this.sendStatus, 1000);

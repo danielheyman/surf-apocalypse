@@ -16,7 +16,7 @@ class SiteController extends Controller
 
     public function getSites()
     {
-        return Auth::user()->websites()->get(['id', 'name', 'url', 'enabled']);
+        return Auth::user()->websites()->get(['id', 'name', 'url', 'enabled', 'views_total', 'views_today']);
     }
 
     public function toggleSite(Request $request, $id)

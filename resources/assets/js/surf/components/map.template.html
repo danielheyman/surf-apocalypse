@@ -18,3 +18,6 @@
 <div class="characters">
     <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>
 </div>
+<div class="items" v-if="site">
+    <span v-repeat="item: site.items" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>
+</div>

@@ -17,6 +17,8 @@
                 <tr>
                     <th>Name</th>
                     <th>URL</th>
+                    <th>Views Today</th>
+                    <th>Total Views</th>
                     <th>Enabled</th>
                     <th>Delete</th>
                 </tr>
@@ -25,6 +27,8 @@
                 <tr v-repeat="site: sites">
                     <td>{{ site.name }}</td>
                     <td>{{ site.url }}</td>
+                    <td>{{ site.views_today }}</td>
+                    <td>{{ site.views_total }}</td>
                     <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? 'Yup :)' : 'Nope :(' }}</a></td>
                     <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>
                 </tr>

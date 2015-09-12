@@ -311,4 +311,43 @@ iframe {
 .margin-right {
   margin-right: 10px; }
 
+.map-view .items {
+  position: absolute;
+  bottom: 20px;
+  z-index: 10; }
+  .map-view .items span {
+    position: relative;
+    display: inline-block; }
+  .map-view .items span::after {
+    content: "";
+    width: 76%;
+    height: 8px;
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    -ms-filter: blur(3px);
+    filter: blur(3px);
+    position: absolute;
+    bottom: -10px;
+    left: 12%;
+    border-radius: 5px;
+    background: #fff; }
+  .map-view .items img {
+    max-width: 30px;
+    margin-bottom: 15px;
+    -webkit-animation: item_float 0.7s infinite alternate linear;
+    animation: item_float 0.7s infinite alternate linear;
+    border-radius: 3px; }
+
+@-webkit-keyframes item_float {
+  0% {
+    margin-bottom: 12px; }
+  100% {
+    margin-bottom: 5px; } }
+
+@keyframes item_float {
+  0% {
+    margin-bottom: 12px; }
+  100% {
+    margin-bottom: 5px; } }
+
 /*# sourceMappingURL=surf.css.map */

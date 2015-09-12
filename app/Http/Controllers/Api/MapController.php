@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
+use App\ItemType;
 
 class MapController extends Controller
 {
@@ -15,6 +16,24 @@ class MapController extends Controller
 
     public function getMap()
     {
+        $items = ItemType::all();
+
+        $map_items = [];
+
+        foreach($items as $item)
+        {
+            if(rand(1,10000)/100 <= $item->find_chance)
+            {
+                $map_items[] = [
+                    'id' => $item->id,
+                    'icon' => $item->icon,
+                    'height' => $item->height,
+                    'width' => $item->width,
+                    'count' => rand($item->find_min, $item->find_max)
+                ];
+            }
+        }
+
         $user = User::where(function($query)
         {
             $query->where('human', true)
@@ -23,6 +42,9 @@ class MapController extends Controller
 
         $site = $user->websites()->where('enabled', true)->orderByRaw("RANDOM()")->first(['id', 'url']);
 
-        return $site;
+        $map = $site->toArray();
+        $map['items'] = $map_items;
+
+        return $map;
     }
 }
