@@ -375,7 +375,8 @@ iframe {
     z-index: 10;
 
     span {
-        position: relative;
+        position: absolute;
+        bottom: 0px;
         display: inline-block;
     }
 

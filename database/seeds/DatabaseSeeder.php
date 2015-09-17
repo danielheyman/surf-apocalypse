@@ -61,33 +61,25 @@ class DatabaseSeeder extends Seeder
             'url' => 'http://clicktrackprofit.com',
         ]);
 
-        $image = Image::make(base_path('resources/assets/item_images/brick.jpg'));
+        App\ItemType::create([
+            'name' => 'coin',
+            'icon' => Image::make(base_path('resources/assets/item_images/coin.png'))->encode('data-url'),
+            'human' => true,
+            'find_chance' => 50,
+            'find_min' => 1,
+            'find_max' => 2,
+            'item_type' => App\ItemTypes::COIN
+        ]);
 
         $itemType = App\ItemType::create([
             'name' => 'brick',
-            'icon' => $image->encode('data-url'),
-            'height' => $image->height(),
-            'width' => $image->width(),
+            'icon' => Image::make(base_path('resources/assets/item_images/brick.jpg'))->encode('data-url'),
             'human' => true,
             'find_chance' => 50,
             'find_min' => 1,
             'find_max' => 1,
             'item_type' => App\ItemTypes::HOUSE,
             'protection_value' => 1
-        ]);
-
-        $image = Image::make(base_path('resources/assets/item_images/coin.png'));
-
-        App\ItemType::create([
-            'name' => 'coin',
-            'icon' => $image->encode('data-url'),
-            'height' => $image->height(),
-            'width' => $image->width(),
-            'human' => true,
-            'find_chance' => 50,
-            'find_min' => 1,
-            'find_max' => 2,
-            'item_type' => App\ItemTypes::COIN
         ]);
 
         $item = $itemType->items()->create([

@@ -39,6 +39,14 @@ module.exports = {
         'character': require('./character.js')
     },
 
+    filters: {
+        removeFoundItems: function(items) {
+            return items.filter(function(item) {
+                return !item.pickedUp;
+            });
+        }
+    },
+
     ready: function() {
         var self = this;
 
@@ -82,11 +90,27 @@ module.exports = {
             for(var x = 0; x < site.items.length; x++)
             {
                 site.items[x].left = this.getLeftPos(Math.floor((Math.random() * 65) + 25));
+                site.items[x].pickedUp = false;
             }
 
             self.site = site;
 
-            setInterval(this.sendStatus, 1000);
+            setInterval(this.sendStatus, 500);
+
+            $("body").keydown(function(e) {
+                if(e.keyCode != 38) return;
+
+                var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
+                var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
+
+                for(var x = 0; x < self.site.items.length; x++)
+                {
+                    if(myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30)
+                    {
+                        self.site.items[x].pickedUp = true;
+                    }
+                }
+            });
 
             socket.on('map_status', function (data) {
                 var char_array_pos = self.getCharArrayPos(data.i);

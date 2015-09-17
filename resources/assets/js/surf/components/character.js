@@ -34,14 +34,17 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: null
+            stateKey: 'IDLE_RIGHT'
         }
     },
 
     methods: {
         drawCharacter: function() {
+            
             if(!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey)
                 this.initNewState($(this.$el).attr('data-state'));
+
+            if(!this.state) return;
 
             if($(this.$el).data('main') && this.state.moving)
                 this.$dispatch('character_moving', this.stateKey);
@@ -98,7 +101,7 @@ module.exports = {
         }
         else {
             this.name = $(this.$el).data('name');
-            
+
             this.$dispatch('character_created', $(this.$el));
         }
 

@@ -316,7 +316,8 @@ iframe {
   bottom: 20px;
   z-index: 10; }
   .map-view .items span {
-    position: relative;
+    position: absolute;
+    bottom: 0px;
     display: inline-block; }
   .map-view .items span::after {
     content: "";

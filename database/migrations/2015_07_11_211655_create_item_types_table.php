@@ -16,8 +16,6 @@ class CreateItemTypesTable extends Migration
             $table->text('icon');
             $table->boolean('human');
             $table->decimal('find_chance', 5, 2);
-            $table->smallInteger('height')->unsigned();
-            $table->smallInteger('width')->unsigned();
             $table->smallInteger('find_min')->unsigned();
             $table->smallInteger('find_max')->unsigned();
             $table->smallInteger('item_type')->unsigned();

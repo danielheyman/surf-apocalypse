@@ -38,7 +38,7 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'sites'
+        currentView: 'map'
     },
 
     components: {
@@ -11525,13 +11525,16 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: null
+            stateKey: 'IDLE_RIGHT'
         };
     },
 
     methods: {
         drawCharacter: function drawCharacter() {
+
             if (!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey) this.initNewState($(this.$el).attr('data-state'));
+
+            if (!this.state) return;
 
             if ($(this.$el).data('main') && this.state.moving) this.$dispatch('character_moving', this.stateKey);
 
@@ -11679,6 +11682,14 @@ module.exports = {
         'character': require('./character.js')
     },
 
+    filters: {
+        removeFoundItems: function removeFoundItems(items) {
+            return items.filter(function (item) {
+                return !item.pickedUp;
+            });
+        }
+    },
+
     ready: function ready() {
         var self = this;
 
@@ -11717,11 +11728,25 @@ module.exports = {
 
             for (var x = 0; x < site.items.length; x++) {
                 site.items[x].left = this.getLeftPos(Math.floor(Math.random() * 65 + 25));
+                site.items[x].pickedUp = false;
             }
 
             self.site = site;
 
-            setInterval(this.sendStatus, 1000);
+            setInterval(this.sendStatus, 500);
+
+            $("body").keydown(function (e) {
+                if (e.keyCode != 38) return;
+
+                var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
+                var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
+
+                for (var x = 0; x < self.site.items.length; x++) {
+                    if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
+                        self.site.items[x].pickedUp = true;
+                    }
+                }
+            });
 
             socket.on('map_status', function (data) {
                 var char_array_pos = self.getCharArrayPos(data.i);
@@ -11755,7 +11780,7 @@ module.exports = {
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character data-main="main" v-el="character" v-if="site"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character data-main="main" v-el="character" v-if="site"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 
