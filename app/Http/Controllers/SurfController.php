@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 use Session;
-use Auth;
 
 class SurfController extends Controller
 {
@@ -13,7 +12,7 @@ class SurfController extends Controller
 
     public function index()
     {
-        Session::put('name', Auth::user()->name);
+        Session::put('name', auth()->user()->name);
         return view('surf');
     }
 }

@@ -6,7 +6,6 @@ module.exports = {
         return {
             frame: 13,
             interval: 1,
-            name: '',
             states: {
                 IDLE_RIGHT: {
                     frames: 6,
@@ -38,16 +37,39 @@ module.exports = {
         }
     },
 
+    props: {
+        onCreate: {
+            type: Function
+        },
+        setState: {
+          type: String
+        },
+        movable: {
+          type: Boolean
+        },
+        name: {
+          type: String
+        },
+        onMove: {
+            type: Function
+        },
+        charId: {
+            type: Number
+        },
+        currentState: {
+            type: String,
+            twoWay: true
+        }
+    },
+
     methods: {
         drawCharacter: function() {
-            
-            if(!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey)
-                this.initNewState($(this.$el).attr('data-state'));
 
-            if(!this.state) return;
+            if(this.setState && this.setState != this.stateKey)
+                this.initNewState(this.setState);
 
-            if($(this.$el).data('main') && this.state.moving)
-                this.$dispatch('character_moving', this.stateKey);
+            if(this.onMove && this.state.moving)
+                this.onMove(this.stateKey);
 
             if(this.interval++ != 1) {
                 if(this.interval > this.state.intervals)
@@ -71,6 +93,7 @@ module.exports = {
 
         initNewState: function(state) {
             this.stateKey = state;
+            if(this.currentState) this.currentState = state;
             this.state = this.states[state];
             this.interval = 1;
             this.frame = this.state.reverse ? this.state.frames : 1;
@@ -78,12 +101,13 @@ module.exports = {
     },
 
     ready: function() {
-        if($(this.$el).data('main'))
-        {
-            this.name = window.session_name;
-            this.initNewState('IDLE_RIGHT');
 
+        this.initNewState(this.stateKey);
+
+        if(this.movable)
+        {
             var self = this;
+
             $("body").keydown(function(e) {
                 if(e.keyCode == 39 && self.state != self.states.WALK_RIGHT)
                     self.initNewState('WALK_RIGHT');
@@ -91,6 +115,7 @@ module.exports = {
                 else if(e.keyCode == 37 && self.state != self.states.WALK_LEFT)
                     self.initNewState('WALK_LEFT');
             });
+
             $("body").keyup(function() {
                 if(self.state == self.states.WALK_RIGHT)
                     self.initNewState('IDLE_RIGHT');
@@ -99,11 +124,9 @@ module.exports = {
                     self.initNewState('IDLE_LEFT');
             });
         }
-        else {
-            this.name = $(this.$el).data('name');
 
-            this.$dispatch('character_created', $(this.$el));
-        }
+        if(this.onCreate)
+            this.onCreate($(this.$el), this.charId);
 
         setInterval(this.drawCharacter, 50);
     }

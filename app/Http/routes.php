@@ -43,6 +43,7 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
     Route::post('sites/new', 'SiteController@addSite');
 
     Route::get('map', 'MapController@getMap');
+    Route::post('map', 'MapController@postMap');
 });
 
 

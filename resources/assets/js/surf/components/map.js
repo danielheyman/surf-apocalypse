@@ -1,5 +1,3 @@
-
-
 module.exports = {
 
     template: require('./map.template.html'),
@@ -9,13 +7,16 @@ module.exports = {
             charXPercent: 5,
             site: null,
             characters: [],
-            state: null
+            state: "IDLE_RIGHT",
+            name: "",
         };
     },
 
     methods: {
         sendStatus: function() {
-            var facingRight = ($(this.$$.character).attr('data-state').indexOf('RIGHT') > -1);
+            if(!this.site) return;
+
+            var facingRight = (this.state.indexOf('RIGHT') > -1);
             socket.emit("map_status", {m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight});
         },
 
@@ -32,6 +33,66 @@ module.exports = {
 
         getLeftPos: function(percent) {
             return ($(window).width() - $(this.$$.character).width()) * percent / 100;
+        },
+
+        createCharacter: function(el, id) {
+
+            var char_array_pos = this.getCharArrayPos(id);
+            var data = this.characters[char_array_pos];
+            var left = this.getLeftPos(data.l);
+
+            this.characters[char_array_pos].el = el;
+
+            el.css({
+                'left':  left
+            });
+        },
+
+        moveCharacter: function(state) {
+            if(state == 'WALK_LEFT') {
+                this.charXPercent -= .7;
+            }
+            else if(state == 'WALK_RIGHT') {
+                this.charXPercent += .7;
+            }
+
+            if(this.charXPercent < 0)
+                this.charXPercent = 0;
+            else if(this.charXPercent > 100)
+            {
+                var self = this;
+                var itemsFound = [];
+
+                this.site.items.forEach(function(item) {
+                    if(!item.pickedUp) return;
+                    itemsFound.push(item.id);
+                });
+
+                this.$http.post('/api/map', {'id': this.site.id, 'items': itemsFound}).success(function(site) {
+
+                    self.processSite(site);
+                });
+
+                this.site = null;
+
+                return;
+            }
+
+            var left = this.getLeftPos(this.charXPercent);
+
+            $(this.$$.character).stop(true, true).animate({
+                'left':  left
+            }, 50);
+        },
+
+        processSite: function(site) {
+            for(var x = 0; x < site.items.length; x++)
+            {
+                site.items[x].left = this.getLeftPos(Math.floor((Math.random() * 65) + 25));
+                site.items[x].pickedUp = false;
+            }
+
+            this.site = site;
         }
     },
 
@@ -50,104 +111,68 @@ module.exports = {
     ready: function() {
         var self = this;
 
-        this.$on('character_moving', function (state) {
-
-            if(state == 'WALK_LEFT') {
-                self.charXPercent -= .7;
-            }
-            else if(state == 'WALK_RIGHT') {
-                self.charXPercent += .7;
-            }
-
-            if(self.charXPercent < 0)
-                self.charXPercent = 0;
-            else if(self.charXPercent > 100)
-                self.charXPercent = 100;
-
-            var left = self.getLeftPos(self.charXPercent);
-
-            $(self.$$.character).stop(true, true).animate({
-                'left':  left
-            }, 50);
-        });
-
-        this.$on('character_created', function (char) {
-            var char_array_pos = self.getCharArrayPos(char.data('id'));
-            var data = self.characters[char_array_pos];
-            var left = self.getLeftPos(data.l);
-            var state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-
-            self.characters[char_array_pos].char = char;
-            char.attr('data-state', state);
-
-            char.css({
-                'left':  left
-            });
-        });
+        this.name = window.session_name;
 
         this.$http.get('/api/map').success(function(site) {
+            self.processSite(site);
+        });
 
-            for(var x = 0; x < site.items.length; x++)
+        setInterval(this.sendStatus, 500);
+
+        $("body").keydown(function(e) {
+            if(!self.site) return;
+
+            if(e.keyCode != 38) return;
+
+            var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
+            var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
+
+            for(var x = 0; x < self.site.items.length; x++)
             {
-                site.items[x].left = this.getLeftPos(Math.floor((Math.random() * 65) + 25));
-                site.items[x].pickedUp = false;
+                if(myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30)
+                {
+                    self.site.items[x].pickedUp = true;
+                }
             }
+        });
 
-            self.site = site;
+        socket.on('map_status', function (data) {
+            if(!self.site) return;
 
-            setInterval(this.sendStatus, 500);
+            var char_array_pos = self.getCharArrayPos(data.i);
 
-            $("body").keydown(function(e) {
-                if(e.keyCode != 38) return;
-
-                var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
-                var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
-
-                for(var x = 0; x < self.site.items.length; x++)
+            if(char_array_pos)
+            {
+                var oldData = self.characters[char_array_pos];
+                if(oldData.l != data.l)
                 {
-                    if(myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30)
-                    {
-                        self.site.items[x].pickedUp = true;
-                    }
+                    var state = (data.l > oldData.l) ? "WALK_RIGHT" : "WALK_LEFT";
+                    var left = self.getLeftPos(data.l);
+
+                    var time = Math.abs(data.l - oldData.l) / .7 * 65;
+                    oldData.state = state;
+
+                    oldData.el.stop(true).animate({
+                        'left':  left
+                    }, time, 'linear', function() {
+                        state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
+                        oldData.state = state;
+                    });
                 }
-            });
-
-            socket.on('map_status', function (data) {
-                var char_array_pos = self.getCharArrayPos(data.i);
-
-                if(char_array_pos)
+                else if(oldData.r != data.r)
                 {
-                    var oldData = self.characters[char_array_pos];
-                    if(oldData.l != data.l)
-                    {
-                        var state = (data.l > oldData.l) ? "WALK_RIGHT" : "WALK_LEFT";
-                        var left = self.getLeftPos(data.l);
-
-                        var time = Math.abs(data.l - oldData.l) / .7 * 65;
-                        oldData.char.attr('data-state', state);
-
-                        oldData.char.stop(true).animate({
-                            'left':  left
-                        }, time, 'linear', function() {
-                            state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                            oldData.char.attr('data-state', state);
-                        });
-                    }
-                    else if(oldData.r != data.r)
-                    {
-                        var state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                        oldData.char.attr('data-state', state);
-                    }
-
-                    self.characters[char_array_pos].l = data.l;
-                    self.characters[char_array_pos].r = data.r;
+                    var state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
+                    oldData.state = state;
                 }
-                else
-                    self.characters.push(data);
-            });
 
-        }).error(function() {
-
+                oldData.l = data.l;
+                oldData.r = data.r;
+            }
+            else
+            {
+                data['state'] = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
+                self.characters.push(data);
+            }
         });
     }
 };

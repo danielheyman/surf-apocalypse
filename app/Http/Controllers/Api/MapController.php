@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
+use App\Website;
 use App\ItemType;
 use Session;
 
@@ -48,14 +49,30 @@ class MapController extends Controller
 
         $site = $user->websites()->where('enabled', true)->orderByRaw("RANDOM()")->first(['id', 'url']);
 
-        $ids['id'] = md5($site->id);
+        $ids['id'] = $site->id;
 
         $map = $site->toArray();
         $map['items'] = $map_items;
-        $map['id'] = $ids['id'];
+        $map['id'] = md5($ids['id']);
 
         Session::put('current_map', $ids);
 
         return $map;
+    }
+
+    public function postMap(Request $request)
+    {
+        $input = $request->all();
+        $currentMap = Session::get('current_map');
+
+        if(!$currentMap || md5($currentMap['id']) != $input['id']) return $this->getMap();
+
+        $site = Website::find($currentMap['id']);
+        $site->increment('views_today');
+        $site->increment('views_total');
+
+
+
+        return $this->getMap();
     }
 }

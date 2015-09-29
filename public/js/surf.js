@@ -11497,7 +11497,6 @@ module.exports = {
         return {
             frame: 13,
             interval: 1,
-            name: '',
             states: {
                 IDLE_RIGHT: {
                     frames: 6,
@@ -11529,14 +11528,37 @@ module.exports = {
         };
     },
 
+    props: {
+        onCreate: {
+            type: Function
+        },
+        setState: {
+            type: String
+        },
+        movable: {
+            type: Boolean
+        },
+        name: {
+            type: String
+        },
+        onMove: {
+            type: Function
+        },
+        charId: {
+            type: Number
+        },
+        currentState: {
+            type: String,
+            twoWay: true
+        }
+    },
+
     methods: {
         drawCharacter: function drawCharacter() {
 
-            if (!$(this.$el).data('main') && $(this.$el).attr('data-state') != this.stateKey) this.initNewState($(this.$el).attr('data-state'));
+            if (this.setState && this.setState != this.stateKey) this.initNewState(this.setState);
 
-            if (!this.state) return;
-
-            if ($(this.$el).data('main') && this.state.moving) this.$dispatch('character_moving', this.stateKey);
+            if (this.onMove && this.state.moving) this.onMove(this.stateKey);
 
             if (this.interval++ != 1) {
                 if (this.interval > this.state.intervals) this.interval = 1;
@@ -11557,6 +11579,7 @@ module.exports = {
 
         initNewState: function initNewState(state) {
             this.stateKey = state;
+            if (this.currentState) this.currentState = state;
             this.state = this.states[state];
             this.interval = 1;
             this.frame = this.state.reverse ? this.state.frames : 1;
@@ -11564,29 +11587,29 @@ module.exports = {
     },
 
     ready: function ready() {
-        if ($(this.$el).data('main')) {
-            this.name = window.session_name;
-            this.initNewState('IDLE_RIGHT');
 
+        this.initNewState(this.stateKey);
+
+        if (this.movable) {
             var self = this;
+
             $("body").keydown(function (e) {
                 if (e.keyCode == 39 && self.state != self.states.WALK_RIGHT) self.initNewState('WALK_RIGHT');else if (e.keyCode == 37 && self.state != self.states.WALK_LEFT) self.initNewState('WALK_LEFT');
             });
+
             $("body").keyup(function () {
                 if (self.state == self.states.WALK_RIGHT) self.initNewState('IDLE_RIGHT');else if (self.state == self.states.WALK_LEFT) self.initNewState('IDLE_LEFT');
             });
-        } else {
-            this.name = $(this.$el).data('name');
-
-            this.$dispatch('character_created', $(this.$el));
         }
+
+        if (this.onCreate) this.onCreate($(this.$el), this.charId);
 
         setInterval(this.drawCharacter, 50);
     }
 };
 
 },{"./character.template.html":82}],82:[function(require,module,exports){
-module.exports = '<div class="character human" data-state="{{ stateKey }}">\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
+module.exports = '<div class="character human">\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
 },{}],83:[function(require,module,exports){
 "use strict";
 
@@ -11643,7 +11666,7 @@ module.exports = {
 },{"./chat.template.html":84}],84:[function(require,module,exports){
 module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">Global</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
-'use strict';
+"use strict";
 
 module.exports = {
 
@@ -11654,13 +11677,16 @@ module.exports = {
             charXPercent: 5,
             site: null,
             characters: [],
-            state: null
+            state: "IDLE_RIGHT",
+            name: ""
         };
     },
 
     methods: {
         sendStatus: function sendStatus() {
-            var facingRight = $(this.$$.character).attr('data-state').indexOf('RIGHT') > -1;
+            if (!this.site) return;
+
+            var facingRight = this.state.indexOf('RIGHT') > -1;
             socket.emit("map_status", { m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight });
         },
 
@@ -11675,6 +11701,61 @@ module.exports = {
 
         getLeftPos: function getLeftPos(percent) {
             return ($(window).width() - $(this.$$.character).width()) * percent / 100;
+        },
+
+        createCharacter: function createCharacter(el, id) {
+
+            var char_array_pos = this.getCharArrayPos(id);
+            var data = this.characters[char_array_pos];
+            var left = this.getLeftPos(data.l);
+
+            this.characters[char_array_pos].el = el;
+
+            el.css({
+                'left': left
+            });
+        },
+
+        moveCharacter: function moveCharacter(state) {
+            if (state == 'WALK_LEFT') {
+                this.charXPercent -= .7;
+            } else if (state == 'WALK_RIGHT') {
+                this.charXPercent += .7;
+            }
+
+            if (this.charXPercent < 0) this.charXPercent = 0;else if (this.charXPercent > 100) {
+                var self = this;
+                var itemsFound = [];
+
+                this.site.items.forEach(function (item) {
+                    if (!item.pickedUp) return;
+                    itemsFound.push(item.id);
+                });
+
+                this.$http.post('/api/map', { 'id': this.site.id, 'items': itemsFound }).success(function (site) {
+
+                    self.processSite(site);
+                });
+
+                this.site = null;
+
+                return;
+            }
+
+            var left = this.getLeftPos(this.charXPercent);
+
+            $(this.$$.character).stop(true, true).animate({
+                'left': left
+            }, 50);
+        },
+
+        processSite: function processSite(site) {
+            for (var x = 0; x < site.items.length; x++) {
+                site.items[x].left = this.getLeftPos(Math.floor(Math.random() * 65 + 25));
+                site.items[x].pickedUp = false;
+            }
+
+            this.site = site;
         }
     },
 
@@ -11693,94 +11774,66 @@ module.exports = {
     ready: function ready() {
         var self = this;
 
-        this.$on('character_moving', function (state) {
-
-            if (state == 'WALK_LEFT') {
-                self.charXPercent -= .7;
-            } else if (state == 'WALK_RIGHT') {
-                self.charXPercent += .7;
-            }
-
-            if (self.charXPercent < 0) self.charXPercent = 0;else if (self.charXPercent > 100) self.charXPercent = 100;
-
-            var left = self.getLeftPos(self.charXPercent);
-
-            $(self.$$.character).stop(true, true).animate({
-                'left': left
-            }, 50);
-        });
-
-        this.$on('character_created', function (char) {
-            var char_array_pos = self.getCharArrayPos(char.data('id'));
-            var data = self.characters[char_array_pos];
-            var left = self.getLeftPos(data.l);
-            var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-
-            self.characters[char_array_pos].char = char;
-            char.attr('data-state', state);
-
-            char.css({
-                'left': left
-            });
-        });
+        this.name = window.session_name;
 
         this.$http.get('/api/map').success(function (site) {
+            self.processSite(site);
+        });
 
-            for (var x = 0; x < site.items.length; x++) {
-                site.items[x].left = this.getLeftPos(Math.floor(Math.random() * 65 + 25));
-                site.items[x].pickedUp = false;
-            }
+        setInterval(this.sendStatus, 500);
 
-            self.site = site;
+        $("body").keydown(function (e) {
+            if (!self.site) return;
 
-            setInterval(this.sendStatus, 500);
+            if (e.keyCode != 38) return;
 
-            $("body").keydown(function (e) {
-                if (e.keyCode != 38) return;
+            var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
+            var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
 
-                var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
-                var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
-
-                for (var x = 0; x < self.site.items.length; x++) {
-                    if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
-                        self.site.items[x].pickedUp = true;
-                    }
+            for (var x = 0; x < self.site.items.length; x++) {
+                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
+                    self.site.items[x].pickedUp = true;
                 }
-            });
+            }
+        });
 
-            socket.on('map_status', function (data) {
-                var char_array_pos = self.getCharArrayPos(data.i);
+        socket.on('map_status', function (data) {
+            if (!self.site) return;
 
-                if (char_array_pos) {
-                    var oldData = self.characters[char_array_pos];
-                    if (oldData.l != data.l) {
-                        var state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
-                        var left = self.getLeftPos(data.l);
+            var char_array_pos = self.getCharArrayPos(data.i);
 
-                        var time = Math.abs(data.l - oldData.l) / .7 * 65;
-                        oldData.char.attr('data-state', state);
+            if (char_array_pos) {
+                var oldData = self.characters[char_array_pos];
+                if (oldData.l != data.l) {
+                    var state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
+                    var left = self.getLeftPos(data.l);
 
-                        oldData.char.stop(true).animate({
-                            'left': left
-                        }, time, 'linear', function () {
-                            state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-                            oldData.char.attr('data-state', state);
-                        });
-                    } else if (oldData.r != data.r) {
-                        var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-                        oldData.char.attr('data-state', state);
-                    }
+                    var time = Math.abs(data.l - oldData.l) / .7 * 65;
+                    oldData.state = state;
 
-                    self.characters[char_array_pos].l = data.l;
-                    self.characters[char_array_pos].r = data.r;
-                } else self.characters.push(data);
-            });
-        }).error(function () {});
+                    oldData.el.stop(true).animate({
+                        'left': left
+                    }, time, 'linear', function () {
+                        state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                        oldData.state = state;
+                    });
+                } else if (oldData.r != data.r) {
+                    var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                    oldData.state = state;
+                }
+
+                oldData.l = data.l;
+                oldData.r = data.r;
+            } else {
+                data['state'] = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                self.characters.push(data);
+            }
+        });
     }
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character data-main="main" v-el="character" v-if="site"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character v-if="site" data-id="{{ c.i }}" data-name="{{ c.n }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 
@@ -11882,5 +11935,5 @@ module.exports = {
 };
 
 },{"./sites.template.html":88}],88:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Views Today</th>\n                    <th>Total Views</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td>{{ site.views_today }}</td>\n                    <td>{{ site.views_total }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="4">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Views Today</th>\n                    <th>Total Views</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td>{{ site.views_today }}</td>\n                    <td>{{ site.views_total }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="6">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
 },{}]},{},[1]);
