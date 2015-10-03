@@ -53,6 +53,6 @@ new Vue({
     },
 
     ready: function() {
-
+        
     }
 });

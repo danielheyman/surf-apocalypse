@@ -2,25 +2,26 @@ module.exports = {
 
     template: require('./map.template.html'),
 
-    data: function() {
+    data: function () {
         return {
             charXPercent: 5,
             site: null,
             characters: [],
-            state: "IDLE_RIGHT",
-            name: "",
+            state: 'IDLE_RIGHT',
+            name: '',
+            intervals: []
         };
     },
 
     methods: {
-        sendStatus: function() {
+        sendStatus: function () {
             if(!this.site) return;
 
             var facingRight = (this.state.indexOf('RIGHT') > -1);
-            socket.emit("map_status", {m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight});
+            socket.emit('map_status', {m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight});
         },
 
-        getCharArrayPos: function(id) {
+        getCharArrayPos: function (id) {
             var keys = Object.keys(this.characters);
             var char_array_pos = null;
             for(var x = 0; x < keys.length; x++)
@@ -31,7 +32,7 @@ module.exports = {
             return char_array_pos;
         },
 
-        getLeftPos: function(percent) {
+        getLeftPos: function (percent) {
             return ($(window).width() - $(this.$$.character).width()) * percent / 100;
         },
 
@@ -49,6 +50,9 @@ module.exports = {
         },
 
         moveCharacter: function(state) {
+            if(!this.site)
+                return;
+
             if(state == 'WALK_LEFT') {
                 this.charXPercent -= .7;
             }
@@ -74,6 +78,7 @@ module.exports = {
                 });
 
                 this.site = null;
+                this.charXPercent = 5;
 
                 return;
             }
@@ -108,7 +113,7 @@ module.exports = {
         }
     },
 
-    ready: function() {
+    attached: function() {
         var self = this;
 
         this.name = window.session_name;
@@ -117,9 +122,9 @@ module.exports = {
             self.processSite(site);
         });
 
-        setInterval(this.sendStatus, 500);
+        this.intervals.push(setInterval(this.sendStatus, 500));
 
-        $("body").keydown(function(e) {
+        $(document).keydown(function(e) {
             if(!self.site) return;
 
             if(e.keyCode != 38) return;
@@ -174,5 +179,13 @@ module.exports = {
                 self.characters.push(data);
             }
         });
+    },
+
+    detached: function() {
+        var self = this;
+
+        $.each(this.intervals, function(key) {
+            clearInterval(self.intervals[key]);
+        })
     }
 };

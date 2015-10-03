@@ -36,6 +36,6 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function items()
     {
-        return Item::ownedBy($this->team ?: $this)->get();
+        return Item::ownedBy($this->team ?: $this);
     }
 }

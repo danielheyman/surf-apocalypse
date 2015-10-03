@@ -11524,7 +11524,8 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: 'IDLE_RIGHT'
+            stateKey: 'IDLE_RIGHT',
+            intervals: []
         };
     },
 
@@ -11555,7 +11556,6 @@ module.exports = {
 
     methods: {
         drawCharacter: function drawCharacter() {
-
             if (this.setState && this.setState != this.stateKey) this.initNewState(this.setState);
 
             if (this.onMove && this.state.moving) this.onMove(this.stateKey);
@@ -11583,28 +11583,36 @@ module.exports = {
             this.state = this.states[state];
             this.interval = 1;
             this.frame = this.state.reverse ? this.state.frames : 1;
+        },
+
+        keyDownListener: function keyDownListener(e) {
+            if (e.keyCode == 39 && this.state != this.states.WALK_RIGHT) this.initNewState('WALK_RIGHT');else if (e.keyCode == 37 && this.state != this.states.WALK_LEFT) this.initNewState('WALK_LEFT');
+        },
+
+        keyUpListener: function keyUpListener(e) {
+            if (e.keyCode == 39 && this.state == this.states.WALK_RIGHT) this.initNewState('IDLE_RIGHT');else if (e.keyCode == 37 && this.state == this.states.WALK_LEFT) this.initNewState('IDLE_LEFT');
         }
     },
 
-    ready: function ready() {
-
+    attached: function attached() {
         this.initNewState(this.stateKey);
 
         if (this.movable) {
-            var self = this;
-
-            $("body").keydown(function (e) {
-                if (e.keyCode == 39 && self.state != self.states.WALK_RIGHT) self.initNewState('WALK_RIGHT');else if (e.keyCode == 37 && self.state != self.states.WALK_LEFT) self.initNewState('WALK_LEFT');
-            });
-
-            $("body").keyup(function () {
-                if (self.state == self.states.WALK_RIGHT) self.initNewState('IDLE_RIGHT');else if (self.state == self.states.WALK_LEFT) self.initNewState('IDLE_LEFT');
-            });
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
         }
 
         if (this.onCreate) this.onCreate($(this.$el), this.charId);
 
-        setInterval(this.drawCharacter, 50);
+        this.intervals.push(setInterval(this.drawCharacter, 50));
+    },
+
+    detached: function detached() {
+        var self = this;
+
+        $.each(this.intervals, function (key) {
+            clearInterval(self.intervals[key]);
+        });
     }
 };
 
@@ -11666,7 +11674,7 @@ module.exports = {
 },{"./chat.template.html":84}],84:[function(require,module,exports){
 module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">Global</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
-"use strict";
+'use strict';
 
 module.exports = {
 
@@ -11677,8 +11685,9 @@ module.exports = {
             charXPercent: 5,
             site: null,
             characters: [],
-            state: "IDLE_RIGHT",
-            name: ""
+            state: 'IDLE_RIGHT',
+            name: '',
+            intervals: []
         };
     },
 
@@ -11687,7 +11696,7 @@ module.exports = {
             if (!this.site) return;
 
             var facingRight = this.state.indexOf('RIGHT') > -1;
-            socket.emit("map_status", { m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight });
+            socket.emit('map_status', { m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight });
         },
 
         getCharArrayPos: function getCharArrayPos(id) {
@@ -11717,6 +11726,8 @@ module.exports = {
         },
 
         moveCharacter: function moveCharacter(state) {
+            if (!this.site) return;
+
             if (state == 'WALK_LEFT') {
                 this.charXPercent -= .7;
             } else if (state == 'WALK_RIGHT') {
@@ -11738,6 +11749,7 @@ module.exports = {
                 });
 
                 this.site = null;
+                this.charXPercent = 5;
 
                 return;
             }
@@ -11771,7 +11783,7 @@ module.exports = {
         }
     },
 
-    ready: function ready() {
+    attached: function attached() {
         var self = this;
 
         this.name = window.session_name;
@@ -11780,9 +11792,9 @@ module.exports = {
             self.processSite(site);
         });
 
-        setInterval(this.sendStatus, 500);
+        this.intervals.push(setInterval(this.sendStatus, 500));
 
-        $("body").keydown(function (e) {
+        $(document).keydown(function (e) {
             if (!self.site) return;
 
             if (e.keyCode != 38) return;
@@ -11829,11 +11841,19 @@ module.exports = {
                 self.characters.push(data);
             }
         });
+    },
+
+    detached: function detached() {
+        var self = this;
+
+        $.each(this.intervals, function (key) {
+            clearInterval(self.intervals[key]);
+        });
     }
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 

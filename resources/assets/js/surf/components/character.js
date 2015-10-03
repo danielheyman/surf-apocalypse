@@ -33,7 +33,8 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: 'IDLE_RIGHT'
+            stateKey: 'IDLE_RIGHT',
+            intervals: []
         }
     },
 
@@ -64,7 +65,6 @@ module.exports = {
 
     methods: {
         drawCharacter: function() {
-
             if(this.setState && this.setState != this.stateKey)
                 this.initNewState(this.setState);
 
@@ -97,37 +97,44 @@ module.exports = {
             this.state = this.states[state];
             this.interval = 1;
             this.frame = this.state.reverse ? this.state.frames : 1;
+        },
+
+        keyDownListener: function (e) {
+            if(e.keyCode == 39 && this.state != this.states.WALK_RIGHT)
+                this.initNewState('WALK_RIGHT');
+
+            else if(e.keyCode == 37 && this.state != this.states.WALK_LEFT)
+                this.initNewState('WALK_LEFT');
+        },
+
+        keyUpListener: function (e) {
+            if(e.keyCode == 39 && this.state == this.states.WALK_RIGHT)
+                this.initNewState('IDLE_RIGHT');
+
+            else if(e.keyCode == 37 && this.state == this.states.WALK_LEFT)
+                this.initNewState('IDLE_LEFT');
         }
     },
 
-    ready: function() {
-
+    attached: function() {
         this.initNewState(this.stateKey);
 
-        if(this.movable)
-        {
-            var self = this;
-
-            $("body").keydown(function(e) {
-                if(e.keyCode == 39 && self.state != self.states.WALK_RIGHT)
-                    self.initNewState('WALK_RIGHT');
-
-                else if(e.keyCode == 37 && self.state != self.states.WALK_LEFT)
-                    self.initNewState('WALK_LEFT');
-            });
-
-            $("body").keyup(function() {
-                if(self.state == self.states.WALK_RIGHT)
-                    self.initNewState('IDLE_RIGHT');
-
-                else if(self.state == self.states.WALK_LEFT)
-                    self.initNewState('IDLE_LEFT');
-            });
+        if(this.movable) {
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
         }
 
         if(this.onCreate)
             this.onCreate($(this.$el), this.charId);
 
-        setInterval(this.drawCharacter, 50);
+        this.intervals.push(setInterval(this.drawCharacter, 50));
+    },
+
+    detached: function() {
+        var self = this;
+
+        $.each(this.intervals, function(key) {
+            clearInterval(self.intervals[key]);
+        })
     }
 };

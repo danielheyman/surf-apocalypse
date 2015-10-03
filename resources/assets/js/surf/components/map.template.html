@@ -19,5 +19,5 @@
     <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>
 </div>
 <div class="items" v-if="site">
-    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img src="{{ item.icon }}" /></span>
+    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>
 </div>
