@@ -14,9 +14,9 @@
     </span>
 
 </div>
-<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>
+<character v-el="character" v-if="site" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>
 <div class="characters">
-    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>
+    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
 </div>
 <div class="items" v-if="site">
     <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>

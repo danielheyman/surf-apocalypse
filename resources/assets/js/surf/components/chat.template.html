@@ -5,7 +5,7 @@
 </div>
 <div class="chat-menu">
     <div class="form">
-        <div class="type">Global</div>
+        <div class="type">{{ channel | capitalize }}</div>
         <input type="text" class="message" v-on="keyup: sendMessage | key 'enter'" v-model="message"/>
     </div>
     <div class="send" v-on="click: sendMessage">Send</div>

@@ -4,8 +4,11 @@ module.exports = {
 
     data: function() {
         return {
-            messages: [],
-            message: ""
+            messages: [
+                { name: "System", text: "Welcome to SurfApocalypse!"}
+            ],
+            message: "",
+            channel: "map"
         }
     },
 
@@ -14,34 +17,41 @@ module.exports = {
 
             if(!this.message) return;
 
-            socket.emit("chat", {c: "global", m: self.message});
-            self.message = "";
+            this.$dispatch('chat-sent', this.message);
+            socket.emit("chat", {c: this.channel, m: this.message});
+
+            this.addMessage({c: this.channel, n: window.session_name, m: this.message});
+
+            this.message = "";
         },
 
-        removeOldMessages: function() {
-            if(self.messages.length > 20) {
-                self.messages.shift();
-            }
-        }
-    },
+        addMessage: function(data) {
+            var messages = $(this.$$.messages);
 
-    ready: function() {
-        self = this;
+            var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-        socket.on('chat', function (data) {
-            var messages = $(self.$$.messages);
+            this.messages.push({name: data.n, text: data.m});
 
-            var scrolledToBottom = messages.scrollTop() + messages.innerHeight() >= messages.prop('scrollHeight');
-
-            self.messages.push({name: data.n, text: data.m});
+            var self = this;
 
             if(scrolledToBottom) {
                 setTimeout(function() {
                     messages.animate({ scrollTop: messages.prop('scrollHeight') - messages.innerHeight()}, 100, function() { self.removeOldMessages(); });
                 }, 10);
             }
-        });
 
-        socket.emit("chat", {c: "global", m: "Hey dude how are you today?"});
+            if(data.c == "map" && data.i != null)
+                this.$dispatch('chat-received', {text: data.m, id: data.i});
+        },
+
+        removeOldMessages: function() {
+            if(this.messages.length > 20) {
+                this.messages.shift();
+            }
+        }
+    },
+
+    ready: function() {
+        socket.on('chat', this.addMessage);
     }
 };

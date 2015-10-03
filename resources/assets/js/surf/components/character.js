@@ -34,7 +34,9 @@ module.exports = {
             },
             state: null,
             stateKey: 'IDLE_RIGHT',
-            intervals: []
+            intervals: [],
+            height: 0,
+            width: 0
         }
     },
 
@@ -50,6 +52,9 @@ module.exports = {
         },
         name: {
           type: String
+        },
+        message: {
+            type: String
         },
         onMove: {
             type: Function
@@ -77,10 +82,7 @@ module.exports = {
                 return;
             }
 
-            var height = $(this.$el).height();
-            var width = $(this.$el).width();
-
-            $(this.$el).css('background-position', -((this.frame - 1) * width) + 'px ' + -((this.state.line - 1) * height) + 'px');
+            $(this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
             if(!this.state.reverse) {
                 if(++this.frame > this.state.frames)
@@ -119,6 +121,9 @@ module.exports = {
     attached: function() {
         this.initNewState(this.stateKey);
 
+        this.height = $(this.$el).height();
+        this.width = $(this.$el).width();
+
         if(this.movable) {
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);
@@ -135,6 +140,6 @@ module.exports = {
 
         $.each(this.intervals, function(key) {
             clearInterval(self.intervals[key]);
-        })
+        });
     }
 };

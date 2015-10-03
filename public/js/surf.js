@@ -47,9 +47,29 @@ new Vue({
         'sites': require('./components/sites')
     },
 
-    methods: {},
+    methods: {
+        navigate: function navigate(to) {
+            if (['sites', 'map'].indexOf(to) > -1) this.currentView = to;
+        }
+    },
 
-    ready: function ready() {}
+    ready: function ready() {
+        $(".footer").mouseenter(function () {
+            $(".wrapper").removeClass("small-footer");
+        }).mouseleave(function () {
+            $(".wrapper").addClass("small-footer");
+        });
+
+        this.$on('chat-sent', function (message) {
+            this.$broadcast('chat-sent', message);
+            return false;
+        });
+
+        this.$on('chat-received', function (message) {
+            this.$broadcast('chat-received', message);
+            return false;
+        });
+    }
 });
 
 },{"./components/chat":83,"./components/map":85,"./components/sites":87,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
@@ -11525,7 +11545,9 @@ module.exports = {
             },
             state: null,
             stateKey: 'IDLE_RIGHT',
-            intervals: []
+            intervals: [],
+            height: 0,
+            width: 0
         };
     },
 
@@ -11540,6 +11562,9 @@ module.exports = {
             type: Boolean
         },
         name: {
+            type: String
+        },
+        message: {
             type: String
         },
         onMove: {
@@ -11565,10 +11590,7 @@ module.exports = {
                 return;
             }
 
-            var height = $(this.$el).height();
-            var width = $(this.$el).width();
-
-            $(this.$el).css('background-position', -((this.frame - 1) * width) + 'px ' + -((this.state.line - 1) * height) + 'px');
+            $(this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
             if (!this.state.reverse) {
                 if (++this.frame > this.state.frames) this.frame = 1;
@@ -11597,6 +11619,9 @@ module.exports = {
     attached: function attached() {
         this.initNewState(this.stateKey);
 
+        this.height = $(this.$el).height();
+        this.width = $(this.$el).width();
+
         if (this.movable) {
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);
@@ -11617,7 +11642,7 @@ module.exports = {
 };
 
 },{"./character.template.html":82}],82:[function(require,module,exports){
-module.exports = '<div class="character human">\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
+module.exports = '<div class="character human">\n    <span v-show="message" class="message"><span>{{ message }}</span></span>\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
 },{}],83:[function(require,module,exports){
 "use strict";
 
@@ -11627,8 +11652,9 @@ module.exports = {
 
     data: function data() {
         return {
-            messages: [],
-            message: ""
+            messages: [{ name: "System", text: "Welcome to SurfApocalypse!" }],
+            message: "",
+            channel: "map"
         };
     },
 
@@ -11637,26 +11663,22 @@ module.exports = {
 
             if (!this.message) return;
 
-            socket.emit("chat", { c: "global", m: self.message });
-            self.message = "";
+            this.$dispatch('chat-sent', this.message);
+            socket.emit("chat", { c: this.channel, m: this.message });
+
+            this.addMessage({ c: this.channel, n: window.session_name, m: this.message });
+
+            this.message = "";
         },
 
-        removeOldMessages: function removeOldMessages() {
-            if (self.messages.length > 20) {
-                self.messages.shift();
-            }
-        }
-    },
+        addMessage: function addMessage(data) {
+            var messages = $(this.$$.messages);
 
-    ready: function ready() {
-        self = this;
+            var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-        socket.on('chat', function (data) {
-            var messages = $(self.$$.messages);
+            this.messages.push({ name: data.n, text: data.m });
 
-            var scrolledToBottom = messages.scrollTop() + messages.innerHeight() >= messages.prop('scrollHeight');
-
-            self.messages.push({ name: data.n, text: data.m });
+            var self = this;
 
             if (scrolledToBottom) {
                 setTimeout(function () {
@@ -11665,14 +11687,24 @@ module.exports = {
                     });
                 }, 10);
             }
-        });
 
-        socket.emit("chat", { c: "global", m: "Hey dude how are you today?" });
+            if (data.c == "map" && data.i != null) this.$dispatch('chat-received', { text: data.m, id: data.i });
+        },
+
+        removeOldMessages: function removeOldMessages() {
+            if (this.messages.length > 20) {
+                this.messages.shift();
+            }
+        }
+    },
+
+    ready: function ready() {
+        socket.on('chat', this.addMessage);
     }
 };
 
 },{"./chat.template.html":84}],84:[function(require,module,exports){
-module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">Global</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
+module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">{{ channel | capitalize }}</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
 'use strict';
 
@@ -11687,7 +11719,8 @@ module.exports = {
             characters: [],
             state: 'IDLE_RIGHT',
             name: '',
-            intervals: []
+            intervals: [],
+            message: ''
         };
     },
 
@@ -11839,6 +11872,7 @@ module.exports = {
                 oldData.l = data.l;
                 oldData.r = data.r;
             } else {
+                data['message'] = '';
                 data['state'] = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
                 self.characters.push(data);
             }
@@ -11850,6 +11884,30 @@ module.exports = {
             var char_array_pos = self.getCharArrayPos(id);
 
             if (char_array_pos > -1) self.characters.$remove(0);
+        });
+
+        this.$on('chat-sent', function (message) {
+            self.message = message;
+
+            setTimeout(function () {
+                if (self.message == message) self.message = "";
+            }, 5000);
+        });
+
+        this.$on('chat-received', function (message) {
+            var char_array_pos = self.getCharArrayPos(message.id);
+
+            if (char_array_pos == -1) return;
+
+            self.characters[char_array_pos]['message'] = message.text;
+
+            setTimeout(function () {
+                var char_array_pos = self.getCharArrayPos(message.id);
+
+                if (char_array_pos == -1) return;
+
+                if (self.characters[char_array_pos]['message'] == message.text) self.characters[char_array_pos]['message'] = "";
+            }, 5000);
         });
     },
 
@@ -11863,7 +11921,7 @@ module.exports = {
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 

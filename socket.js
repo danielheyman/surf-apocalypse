@@ -151,7 +151,13 @@ io.on('connection', function (socket)
     socket.on('chat', function (message)
     {
         if(message.c == 'global') {
-            io.emit("chat", {n: socket.name, m: message.m});
+            socket.broadcast.emit("chat", {c: 'global', n: socket.name, m: message.m});
+        }
+        else if(message.c == 'map') {
+            if(socket.current_map == null)
+                return;
+
+            socket.broadcast.to(socket.current_map).emit("chat", {c: 'map', n: socket.name, m: message.m, i: socket.user_id});
         }
     });
 
@@ -160,6 +166,7 @@ io.on('connection', function (socket)
         clearTimeout(map_timeout[socket.user_id]);
 
         socket.join(map.m);
+        socket.current_map = map.m;
 
         socket.broadcast.to(map.m).emit('map_status', {i: socket.user_id, l: map.l, r: map.r, n: socket.name});
 
@@ -167,6 +174,7 @@ io.on('connection', function (socket)
             socket.broadcast.to(map.m).emit('map_leave', socket.user_id);
 
             socket.leave(map.m);
+            socket.current_map = null;
         }, 2000);
     });
 
@@ -175,6 +183,7 @@ io.on('connection', function (socket)
         clearTimeout(map_timeout[socket.user_id]);
         socket.broadcast.to(map.m).emit('map_leave', socket.user_id);
         socket.leave(map.m);
+        socket.current_map = null;
     });
 
 

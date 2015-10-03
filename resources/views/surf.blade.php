@@ -14,7 +14,7 @@
     <body>
         <div id="app">
             <div class="loading">Loading Life...</div>
-            <div class="wrapper">
+            <div class="wrapper small-footer">
                 <div class="top @{{ currentView }}-view">
                     <component is="@{{ currentView }}"></component>
 
@@ -28,7 +28,15 @@
                                 <chat></chat>
                             </div>
                             <div class="right">
-
+                                <ul class="menu">
+                                    <li>Home</li>
+                                    <li v-on="click: navigate('map')">Surf</li>
+                                    <li v-on="click: navigate('sites')">Sites</li>
+                                    <li>Teams</li>
+                                    <li>Items</li>
+                                    <li>Shop</li>
+                                    <li class="coins"><span class="count">1256</span> COINS</li>
+                                </ul>
                             </div>
                         </div>
                     </div>

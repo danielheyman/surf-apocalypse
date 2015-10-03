@@ -9,7 +9,8 @@ module.exports = {
             characters: [],
             state: 'IDLE_RIGHT',
             name: '',
-            intervals: []
+            intervals: [],
+            message: ''
         };
     },
 
@@ -177,6 +178,7 @@ module.exports = {
             }
             else
             {
+                data['message'] = '';
                 data['state'] = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
                 self.characters.push(data);
             }
@@ -192,7 +194,33 @@ module.exports = {
 
         });
 
+        this.$on('chat-sent', function(message) {
+            self.message = message;
 
+            setTimeout(function() {
+                if(self.message == message)
+                    self.message = "";
+            }, 5000);
+        });
+
+        this.$on('chat-received', function(message) {
+            var char_array_pos = self.getCharArrayPos(message.id);
+
+            if(char_array_pos == -1)
+                return;
+
+            self.characters[char_array_pos]['message'] = message.text;
+
+            setTimeout(function() {
+                var char_array_pos = self.getCharArrayPos(message.id);
+
+                if(char_array_pos == -1)
+                    return;
+
+                if(self.characters[char_array_pos]['message'] == message.text)
+                    self.characters[char_array_pos]['message'] = "";
+            }, 5000);
+        });
     },
 
     detached: function() {
@@ -200,6 +228,6 @@ module.exports = {
 
         $.each(this.intervals, function(key) {
             clearInterval(self.intervals[key]);
-        })
+        });
     }
 };

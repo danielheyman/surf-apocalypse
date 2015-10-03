@@ -49,10 +49,27 @@ new Vue({
     },
 
     methods: {
-
+        navigate: function(to) {
+            if(['sites', 'map'].indexOf(to) > -1)
+                this.currentView = to;
+        }
     },
 
     ready: function() {
-        
+        $(".footer").mouseenter(function() {
+            $(".wrapper").removeClass("small-footer");
+        }).mouseleave(function() {
+            $(".wrapper").addClass("small-footer");
+        });
+
+        this.$on('chat-sent', function(message) {
+            this.$broadcast('chat-sent', message);
+            return false;
+        })
+
+        this.$on('chat-received', function(message) {
+            this.$broadcast('chat-received', message);
+            return false;
+        })
     }
 });

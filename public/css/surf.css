@@ -26,6 +26,15 @@ body {
   right: 0;
   z-index: 0; }
 
+.small-footer .top {
+  bottom: 130px; }
+
+.small-footer .bottom {
+  height: 130px; }
+
+.small-footer .footer .chat-menu {
+  display: none; }
+
 .billboard-chain-left, .billboard-chain-right {
   position: absolute;
   top: 0;
@@ -96,7 +105,8 @@ iframe {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   width: 100%;
-  box-shadow: 0 -10px 80px 50px #000; }
+  box-shadow: 0 -10px 80px 50px #000;
+  background-position: 0; }
 
 .character {
   position: absolute;
@@ -114,6 +124,33 @@ iframe {
       border-radius: 3px;
       background: #816A48;
       padding: 0 5px; }
+  .character .message {
+    position: absolute;
+    z-index: 3;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    bottom: 100%; }
+    .character .message span {
+      color: #fff;
+      display: inline-block;
+      border-radius: 3px;
+      background: #816A48;
+      padding: 5px;
+      margin-bottom: 3px;
+      position: relative;
+      box-shadow: 0 0 8px #000;
+      max-width: 100%;
+      word-wrap: break-word; }
+      .character .message span:after {
+        border: solid;
+        border-color: #816A48 transparent;
+        content: "";
+        position: absolute;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 6px 6px 0 6px;
+        bottom: -6px; }
 
 .human {
   width: 127px;
@@ -122,16 +159,16 @@ iframe {
   bottom: 9px; }
 
 .footer .left {
-  width: 650px;
+  width: 600px;
   margin: 0;
   float: left;
   padding: 0; }
 
 .footer .right {
-  width: 550px;
+  width: 600px;
   margin: 0;
   float: left;
-  padding: 0; }
+  padding: 0 0 0 5px; }
 
 .footer .inner {
   width: 1200px;
@@ -158,8 +195,9 @@ iframe {
 
 .footer .chat-menu .form {
   background: url(../../img/surf/message-form.png);
+  background-size: 100% 100%;
   height: 47px;
-  width: 560px;
+  width: 510px;
   float: left;
   padding: 8px 10px;
   box-sizing: border-box;
@@ -179,7 +217,7 @@ iframe {
 
 .footer .chat-menu .form .message {
   height: 30px;
-  width: 455px;
+  width: 405px;
   background: #161414;
   border-radius: 3px;
   display: inline-block;
@@ -200,6 +238,8 @@ iframe {
   text-align: center;
   line-height: 47px;
   cursor: pointer; }
+  .footer .chat-menu .send:hover {
+    background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url(../../img/surf/send-button.png); }
 
 .loading {
   text-align: center;
@@ -350,5 +390,40 @@ iframe {
     margin-bottom: 12px; }
   100% {
     margin-bottom: 5px; } }
+
+ul.menu {
+  list-style: none;
+  display: table;
+  width: 100%;
+  padding: 4px 0 5px;
+  border-radius: 3px;
+  background: url(../../img/surf/menu.png);
+  background-size: 100% 100%; }
+  ul.menu li {
+    display: table-cell;
+    border-right: 2px solid #231F1C;
+    line-height: 35px;
+    color: #896d48;
+    text-align: center;
+    text-transform: capitalize; }
+    ul.menu li:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+      cursor: pointer; }
+    ul.menu li.coins {
+      border-right: none;
+      background-repeat: no-repeat;
+      background-position: right;
+      padding-right: 20px; }
+      ul.menu li.coins .count {
+        color: #ccc; }
+      ul.menu li.coins::after {
+        content: "";
+        width: 40px;
+        height: 32px;
+        background: url(../../img/surf/coins.png);
+        display: inline-block;
+        position: absolute;
+        margin-left: 8px;
+        margin-top: -4px; }
 
 /*# sourceMappingURL=surf.css.map */
