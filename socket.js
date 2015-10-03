@@ -44,7 +44,6 @@ io = require('socket.io')(server);
 offline_timeout = {};
 map_timeout = {};
 users = {};
-locations = {};
 
 server.listen(port, function(){
      console.log('Listening on Port 3000');
@@ -52,8 +51,6 @@ server.listen(port, function(){
 
 io.use(function(socket, next)
 {
-    console.log(next);
-
     var interfaces = os.networkInterfaces();
     var addresses = [];
     for (k in interfaces) {
@@ -162,27 +159,22 @@ io.on('connection', function (socket)
     {
         clearTimeout(map_timeout[socket.user_id]);
 
-        if(!locations[map.m])
-        {
-            locations[map.m] = {};
-        }
+        socket.join(map.m);
 
-        locations[map.m][socket.user_id] = map.l;
+        socket.broadcast.to(map.m).emit('map_status', {i: socket.user_id, l: map.l, r: map.r, n: socket.name});
 
-        var keys = Object.keys(locations[map.m]);
-        for(var x = 0; x < keys.length; x++)
-        {
-            if(keys[x] == socket.user_id)
-                continue;
+        map_timeout[socket.user_id] = setTimeout(function() {
+            socket.broadcast.to(map.m).emit('map_leave', socket.user_id);
 
-            users[keys[x]].socket_info.emit('map_status', {i: socket.user_id, l: map.l, r: map.r, n: socket.name})
-        }
-
-        map_timeout[socket.user_id] = setTimeout(
-        function()
-        {
-            delete locations[map.m][socket.user_id];
+            socket.leave(map.m);
         }, 2000);
+    });
+
+    socket.on('map_leave', function (map)
+    {
+        clearTimeout(map_timeout[socket.user_id]);
+        socket.broadcast.to(map.m).emit('map_leave', socket.user_id);
+        socket.leave(map.m);
     });
 
 

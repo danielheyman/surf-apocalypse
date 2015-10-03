@@ -10,7 +10,7 @@
     </div>
 
     <span v-if="site">
-        <iframe src="{{ site.url }}"></iframe>
+        <iframe src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>
     </span>
 
 </div>

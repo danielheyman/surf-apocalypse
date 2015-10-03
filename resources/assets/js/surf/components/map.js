@@ -23,7 +23,7 @@ module.exports = {
 
         getCharArrayPos: function (id) {
             var keys = Object.keys(this.characters);
-            var char_array_pos = null;
+            var char_array_pos = -1;
             for(var x = 0; x < keys.length; x++)
             {
                 if(id == this.characters[keys[x]].i)
@@ -66,6 +66,8 @@ module.exports = {
             {
                 var self = this;
                 var itemsFound = [];
+
+                socket.emit('map_leave', {m: this.site.id});
 
                 this.site.items.forEach(function(item) {
                     if(!item.pickedUp) return;
@@ -146,7 +148,7 @@ module.exports = {
 
             var char_array_pos = self.getCharArrayPos(data.i);
 
-            if(char_array_pos)
+            if(char_array_pos > -1)
             {
                 var oldData = self.characters[char_array_pos];
                 if(oldData.l != data.l)
@@ -179,6 +181,18 @@ module.exports = {
                 self.characters.push(data);
             }
         });
+
+        socket.on('map_leave', function (id) {
+            if(!self.site) return;
+
+            var char_array_pos = self.getCharArrayPos(id);
+
+            if(char_array_pos > -1)
+                self.characters.$remove(0);
+
+        });
+
+
     },
 
     detached: function() {

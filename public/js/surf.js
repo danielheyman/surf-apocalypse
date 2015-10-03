@@ -11701,7 +11701,7 @@ module.exports = {
 
         getCharArrayPos: function getCharArrayPos(id) {
             var keys = Object.keys(this.characters);
-            var char_array_pos = null;
+            var char_array_pos = -1;
             for (var x = 0; x < keys.length; x++) {
                 if (id == this.characters[keys[x]].i) char_array_pos = keys[x];
             }
@@ -11737,6 +11737,8 @@ module.exports = {
             if (this.charXPercent < 0) this.charXPercent = 0;else if (this.charXPercent > 100) {
                 var self = this;
                 var itemsFound = [];
+
+                socket.emit('map_leave', { m: this.site.id });
 
                 this.site.items.forEach(function (item) {
                     if (!item.pickedUp) return;
@@ -11814,7 +11816,7 @@ module.exports = {
 
             var char_array_pos = self.getCharArrayPos(data.i);
 
-            if (char_array_pos) {
+            if (char_array_pos > -1) {
                 var oldData = self.characters[char_array_pos];
                 if (oldData.l != data.l) {
                     var state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
@@ -11841,6 +11843,14 @@ module.exports = {
                 self.characters.push(data);
             }
         });
+
+        socket.on('map_leave', function (id) {
+            if (!self.site) return;
+
+            var char_array_pos = self.getCharArrayPos(id);
+
+            if (char_array_pos > -1) self.characters.$remove(0);
+        });
     },
 
     detached: function detached() {
@@ -11853,7 +11863,7 @@ module.exports = {
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 
