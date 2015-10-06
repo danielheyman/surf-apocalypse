@@ -38,7 +38,8 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'map'
+        currentView: 'map',
+        notifications: []
     },
 
     components: {
@@ -54,6 +55,8 @@ new Vue({
     },
 
     ready: function ready() {
+        var self = this;
+
         $(".footer").mouseenter(function () {
             $(".wrapper").removeClass("small-footer");
         }).mouseleave(function () {
@@ -67,6 +70,15 @@ new Vue({
 
         this.$on('chat-received', function (message) {
             this.$broadcast('chat-received', message);
+            return false;
+        });
+
+        this.$on('notification', function (message) {
+            self.notifications.push(message);
+            setTimeout(function () {
+                self.notifications.shift();
+            }, 5000);
+
             return false;
         });
     }
@@ -11652,7 +11664,10 @@ module.exports = {
 
     data: function data() {
         return {
-            messages: [{ name: "System", text: "Welcome to SurfApocalypse!" }],
+            messages: [{
+                name: "System",
+                text: "Welcome to SurfApocalypse!"
+            }],
             message: "",
             channel: "map"
         };
@@ -11664,9 +11679,17 @@ module.exports = {
             if (!this.message) return;
 
             this.$dispatch('chat-sent', this.message);
-            socket.emit("chat", { c: this.channel, m: this.message });
 
-            this.addMessage({ c: this.channel, n: window.session_name, m: this.message });
+            socket.emit("chat", {
+                c: this.channel,
+                m: this.message
+            });
+
+            this.addMessage({
+                c: this.channel,
+                n: window.session_name,
+                m: this.message
+            });
 
             this.message = "";
         },
@@ -11676,19 +11699,27 @@ module.exports = {
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-            this.messages.push({ name: data.n, text: data.m });
+            this.messages.push({
+                name: data.n,
+                text: data.m
+            });
 
             var self = this;
 
             if (scrolledToBottom) {
                 setTimeout(function () {
-                    messages.animate({ scrollTop: messages.prop('scrollHeight') - messages.innerHeight() }, 100, function () {
+                    messages.animate({
+                        scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
+                    }, 100, function () {
                         self.removeOldMessages();
                     });
                 }, 10);
             }
 
-            if (data.c == "map" && data.i != null) this.$dispatch('chat-received', { text: data.m, id: data.i });
+            if (data.c == "map" && data.i) this.$dispatch('chat-received', {
+                text: data.m,
+                id: data.i
+            });
         },
 
         removeOldMessages: function removeOldMessages() {
@@ -11729,7 +11760,11 @@ module.exports = {
             if (!this.site) return;
 
             var facingRight = this.state.indexOf('RIGHT') > -1;
-            socket.emit('map_status', { m: this.site.id, l: Math.floor(this.charXPercent * 100) / 100, r: facingRight });
+            socket.emit('map_status', {
+                m: this.site.id,
+                l: Math.floor(this.charXPercent * 100) / 100,
+                r: facingRight
+            });
         },
 
         getCharArrayPos: function getCharArrayPos(id) {
@@ -11762,23 +11797,28 @@ module.exports = {
             if (!this.site) return;
 
             if (state == 'WALK_LEFT') {
-                this.charXPercent -= .7;
+                this.charXPercent -= 0.7;
             } else if (state == 'WALK_RIGHT') {
-                this.charXPercent += .7;
+                this.charXPercent += 0.7;
             }
 
             if (this.charXPercent < 0) this.charXPercent = 0;else if (this.charXPercent > 100) {
                 var self = this;
                 var itemsFound = [];
 
-                socket.emit('map_leave', { m: this.site.id });
+                socket.emit('map_leave', {
+                    m: this.site.id
+                });
 
                 this.site.items.forEach(function (item) {
                     if (!item.pickedUp) return;
                     itemsFound.push(item.id);
                 });
 
-                this.$http.post('/api/map', { 'id': this.site.id, 'items': itemsFound }).success(function (site) {
+                this.$http.post('/api/map', {
+                    'id': this.site.id,
+                    'items': itemsFound
+                }).success(function (site) {
 
                     self.processSite(site);
                 });
@@ -11840,6 +11880,7 @@ module.exports = {
             for (var x = 0; x < self.site.items.length; x++) {
                 if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
                     self.site.items[x].pickedUp = true;
+                    self.$dispatch('notification', "You have gained <span>" + self.site.items[x].name + "s</span> (+" + self.site.items[x].count + ")");
                 }
             }
         });
@@ -11851,11 +11892,13 @@ module.exports = {
 
             if (char_array_pos > -1) {
                 var oldData = self.characters[char_array_pos];
+                var state;
+
                 if (oldData.l != data.l) {
-                    var state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
+                    state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
                     var left = self.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - oldData.l) / .7 * 65;
+                    var time = Math.abs(data.l - oldData.l) / 0.7 * 65;
                     oldData.state = state;
 
                     oldData.el.stop(true).animate({
@@ -11865,15 +11908,15 @@ module.exports = {
                         oldData.state = state;
                     });
                 } else if (oldData.r != data.r) {
-                    var state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                    state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
                     oldData.state = state;
                 }
 
                 oldData.l = data.l;
                 oldData.r = data.r;
             } else {
-                data['message'] = '';
-                data['state'] = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
+                data.message = '';
+                data.state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
                 self.characters.push(data);
             }
         });
@@ -11899,14 +11942,14 @@ module.exports = {
 
             if (char_array_pos == -1) return;
 
-            self.characters[char_array_pos]['message'] = message.text;
+            self.characters[char_array_pos].message = message.text;
 
             setTimeout(function () {
                 var char_array_pos = self.getCharArrayPos(message.id);
 
                 if (char_array_pos == -1) return;
 
-                if (self.characters[char_array_pos]['message'] == message.text) self.characters[char_array_pos]['message'] = "";
+                if (self.characters[char_array_pos].message == message.text) self.characters[char_array_pos].message = "";
             }, 5000);
         });
     },

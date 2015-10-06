@@ -18,6 +18,10 @@
                 <div class="top @{{ currentView }}-view">
                     <component is="@{{ currentView }}"></component>
 
+
+                    <div class="notifications">
+                        <div class="notification" v-repeat="n in notifications"> @{{{ n }}} </div>
+                    </div>
                     <div class="footer-fence"></div>
                 </div>
 
@@ -35,8 +39,12 @@
                                     <li>Teams</li>
                                     <li>Items</li>
                                     <li>Shop</li>
+                                    <li>House</li>
                                     <li class="coins"><span class="count">1256</span> COINS</li>
                                 </ul>
+                                <div class="online">
+                                    Team Members Online <span>(2)</span> | Friends Online <span>(6)</span>
+                                </div>
                             </div>
                         </div>
                     </div>

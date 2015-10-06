@@ -12,7 +12,7 @@ module.exports = {
                 url: '',
                 posting: false
             }
-        }
+        };
     },
 
     validator: {

@@ -3,13 +3,13 @@ var images = [
     '../../img/surf/bg.jpg'
 ];
 
-$.preload(images, 1, function (last) {
+$.preload(images, 1, function(last) {
     if (!last) return;
     if (done) show();
     done = true;
 });
 
-$(".wrapper").preload(function () {
+$(".wrapper").preload(function() {
     if (done) show();
     done = true;
 });
@@ -39,7 +39,8 @@ new Vue({
     el: '#app',
 
     data: {
-        currentView: 'map'
+        currentView: 'map',
+        notifications: []
     },
 
     components: {
@@ -50,12 +51,14 @@ new Vue({
 
     methods: {
         navigate: function(to) {
-            if(['sites', 'map'].indexOf(to) > -1)
+            if (['sites', 'map'].indexOf(to) > -1)
                 this.currentView = to;
         }
     },
 
     ready: function() {
+        var self = this;
+
         $(".footer").mouseenter(function() {
             $(".wrapper").removeClass("small-footer");
         }).mouseleave(function() {
@@ -65,11 +68,20 @@ new Vue({
         this.$on('chat-sent', function(message) {
             this.$broadcast('chat-sent', message);
             return false;
-        })
+        });
 
         this.$on('chat-received', function(message) {
             this.$broadcast('chat-received', message);
             return false;
-        })
+        });
+
+        this.$on('notification', function(message) {
+            self.notifications.push(message);
+            setTimeout(function() {
+                self.notifications.shift();
+            }, 5000);
+
+            return false;
+        });
     }
 });

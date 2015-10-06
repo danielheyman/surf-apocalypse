@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use App\User;
 use App\Website;
 use App\ItemType;
-use App\ItemTypes;
 use Session;
 
 class MapController extends Controller
@@ -35,6 +34,7 @@ class MapController extends Controller
                 $map_items[] = [
                     'id' => $id,
                     'icon' => $item->icon,
+                    'name' => $item->name,
                     'count' => $count,
                 ];
             }
@@ -63,40 +63,18 @@ class MapController extends Controller
         $input = $request->all();
         $currentMap = Session::get('current_map');
 
-        if (!$currentMap || md5($currentMap['id']) != $input['id']) {
-            return $this->getMap();
-        }
+        if ($currentMap && md5($currentMap['id']) == $input['id']) {
+            $site = Website::find($currentMap['id']);
 
-        $site = Website::find($currentMap['id']);
-        if($site)
-        {
-            $site->increment('views_today');
-            $site->increment('views_total');
-        }
-
-        $user = auth()->user();
-
-        foreach ($input['items'] as $item) {
-            if (!isset($currentMap['items'][$item])) {
-                continue;
+            if ($site) {
+                $site->increment('views_today');
+                $site->increment('views_total');
             }
 
-            $item = $currentMap['items'][$item];
-
-            if (!($type = ItemType::where('id', $item['id_real'])->first(['id', 'item_type']))) {
-                continue;
-            }
-
-            if ($type->item_type == ItemTypes::COIN) {
-                $user->increment('coins', $item['count']);
-            } else {
-                if ($update = $user->items()->where('item_type_id', $item['id_real'])->first(['id'])) {
-                    $update->increment('count', $item['count']);
-                } else {
-                    $itemType->items()->create([
-                        'count' => $item['count'],
-                        'owner_id' => $user->team ?: $user,
-                    ]);
+            foreach ($input['items'] as $item) {
+                if (isset($currentMap['items'][$item])) {
+                    $item = $currentMap['items'][$item];
+                    auth()->user()->giveItem($item['id_real'], $item['count']);
                 }
             }
         }

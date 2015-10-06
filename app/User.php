@@ -38,4 +38,24 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return Item::ownedBy($this->team ?: $this);
     }
+
+    public function giveItem($item_type, $count)
+    {
+        if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
+            return;
+        }
+
+        if ($type->item_type == ItemTypes::COIN) {
+            $this->increment('coins', $count);
+        } else {
+            if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
+                $update->increment('count', $count);
+            } else {
+                $type->items()->create([
+                    'count' => $count,
+                    'owner_id' => $this->team ?: $this,
+                ]);
+            }
+        }
+    }
 }

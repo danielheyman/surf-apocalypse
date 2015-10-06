@@ -4,23 +4,32 @@ module.exports = {
 
     data: function() {
         return {
-            messages: [
-                { name: "System", text: "Welcome to SurfApocalypse!"}
-            ],
+            messages: [{
+                name: "System",
+                text: "Welcome to SurfApocalypse!"
+            }],
             message: "",
             channel: "map"
-        }
+        };
     },
 
     methods: {
         sendMessage: function() {
 
-            if(!this.message) return;
+            if (!this.message) return;
 
             this.$dispatch('chat-sent', this.message);
-            socket.emit("chat", {c: this.channel, m: this.message});
 
-            this.addMessage({c: this.channel, n: window.session_name, m: this.message});
+            socket.emit("chat", {
+                c: this.channel,
+                m: this.message
+            });
+
+            this.addMessage({
+                c: this.channel,
+                n: window.session_name,
+                m: this.message
+            });
 
             this.message = "";
         },
@@ -30,22 +39,32 @@ module.exports = {
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-            this.messages.push({name: data.n, text: data.m});
+            this.messages.push({
+                name: data.n,
+                text: data.m
+            });
 
             var self = this;
 
-            if(scrolledToBottom) {
+            if (scrolledToBottom) {
                 setTimeout(function() {
-                    messages.animate({ scrollTop: messages.prop('scrollHeight') - messages.innerHeight()}, 100, function() { self.removeOldMessages(); });
+                    messages.animate({
+                        scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
+                    }, 100, function() {
+                        self.removeOldMessages();
+                    });
                 }, 10);
             }
 
-            if(data.c == "map" && data.i != null)
-                this.$dispatch('chat-received', {text: data.m, id: data.i});
+            if (data.c == "map" && data.i)
+                this.$dispatch('chat-received', {
+                    text: data.m,
+                    id: data.i
+                });
         },
 
         removeOldMessages: function() {
-            if(this.messages.length > 20) {
+            if (this.messages.length > 20) {
                 this.messages.shift();
             }
         }
