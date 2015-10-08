@@ -11766,7 +11766,7 @@ module.exports = {
 
     methods: {
         sendStatus: function sendStatus() {
-            if (!this.site || !siteLoaded) return;
+            if (!this.site || !this.siteLoaded) return;
 
             var facingRight = this.state.indexOf('RIGHT') > -1;
             socket.emit('map_status', {
