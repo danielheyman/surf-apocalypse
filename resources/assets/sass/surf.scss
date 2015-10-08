@@ -165,6 +165,10 @@ iframe {
             color: #fff;
             border-radius: 3px;
             background: #816a48;
+
+            &.highlight {
+                background: #006888;
+            }
         }
     }
 

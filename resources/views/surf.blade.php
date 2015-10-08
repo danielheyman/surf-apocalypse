@@ -9,6 +9,15 @@
 
         <link href="{{ elixir('css/global.css') }}" rel="stylesheet">
         <link href="{{ elixir('css/surf.css') }}" rel="stylesheet">
+
+        <!-- Scripts -->
+        <script type="text/javascript">
+            window.session_name = '{{ auth()->user()->name }}';
+            window.session_coins = {{ auth()->user()->coins }};
+        </script>
+        <script src="{{ elixir('js/global.js') }}"></script>
+        <script src="{{ elixir('js/surfv.js') }}"></script>
+        <script src="{{ elixir('js/surf.js') }}"></script>
     </head>
 
     <body id="app" v-class="bg: !loading">
@@ -54,16 +63,6 @@
                 </div>
             </div>
         </div>
-
-
-        <!-- Scripts -->
-        <script type="text/javascript">
-            window.session_name = '{{ auth()->user()->name }}';
-            window.session_coins = {{ auth()->user()->coins }};
-        </script>
-        <script src="{{ elixir('js/global.js') }}"></script>
-        <script src="{{ elixir('js/surfv.js') }}"></script>
-        <script src="{{ elixir('js/surf.js') }}"></script>
     </body>
 
 </html>

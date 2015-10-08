@@ -136,6 +136,8 @@ iframe {
       color: #fff;
       border-radius: 3px;
       background: #816a48; }
+      .character .name span.highlight {
+        background: #006888; }
   .character .message {
     position: absolute;
     z-index: 3;

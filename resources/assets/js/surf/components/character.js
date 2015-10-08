@@ -50,6 +50,9 @@ module.exports = {
         movable: {
             type: Boolean
         },
+        highlight: {
+            type: Boolean
+        },
         name: {
             type: String
         },

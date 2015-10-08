@@ -14,77 +14,79 @@ window.socket = socket;
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
-new Vue({
-    el: '#app',
+$(document).ready(function () {
+    new Vue({
+        el: '#app',
 
-    data: {
-        currentView: 'map',
-        loading: true,
-        notifications: [],
-        coins: 0
-    },
+        data: {
+            currentView: 'map',
+            loading: true,
+            notifications: [],
+            coins: 0
+        },
 
-    components: {
-        'chat': require('./components/chat'),
-        'map': require('./components/map'),
-        'sites': require('./components/sites')
-    },
+        components: {
+            'chat': require('./components/chat'),
+            'map': require('./components/map'),
+            'sites': require('./components/sites')
+        },
 
-    methods: {
-        navigate: function navigate(to) {
-            if (['sites', 'map'].indexOf(to) > -1) this.currentView = to;
+        methods: {
+            navigate: function navigate(to) {
+                if (['sites', 'map'].indexOf(to) > -1) this.currentView = to;
+            }
+        },
+
+        ready: function ready() {
+            var self = this;
+
+            this.coins = window.session_coins;
+
+            var doneLoading = false;
+
+            var images = ['../../img/surf/bg.jpg', '../../img/surf/bill-bg.jpg', '../../img/surf/bill-bg2.jpg'];
+
+            $.preload(images, 1, function (last) {
+                if (!last) return;
+                if (doneLoading) self.loading = false;
+                doneLoading = true;
+            });
+
+            $(".wrapper").preload(function () {
+                if (doneLoading) self.loading = false;
+                doneLoading = true;
+            });
+
+            socket.on('App\\Events\\UpdatedCoins', function (data) {
+                self.coins = data.coins;
+            });
+
+            $(".footer").mouseenter(function () {
+                $(".wrapper").removeClass("small-footer");
+            }).mouseleave(function () {
+                $(".wrapper").addClass("small-footer");
+            });
+
+            this.$on('chat-sent', function (message) {
+                this.$broadcast('chat-sent', message);
+                return false;
+            });
+
+            this.$on('chat-received', function (message) {
+                this.$broadcast('chat-received', message);
+                return false;
+            });
+
+            this.$on('notification', function (message) {
+                self.notifications.push(message);
+                setTimeout(function () {
+                    self.notifications.shift();
+                }, 5000);
+
+                return false;
+            });
         }
-    },
-
-    ready: function ready() {
-        var self = this;
-
-        this.coins = window.session_coins;
-
-        var doneLoading = false;
-
-        var images = ['../../img/surf/bg.jpg', '../../img/surf/bill-bg.jpg', '../../img/surf/bill-bg2.jpg'];
-
-        $.preload(images, 1, function (last) {
-            if (!last) return;
-            if (doneLoading) self.loading = false;
-            doneLoading = true;
-        });
-
-        $(".wrapper").preload(function () {
-            if (doneLoading) self.loading = false;
-            doneLoading = true;
-        });
-
-        socket.on('App\\Events\\UpdatedCoins', function (data) {
-            self.coins = data.coins;
-        });
-
-        $(".footer").mouseenter(function () {
-            $(".wrapper").removeClass("small-footer");
-        }).mouseleave(function () {
-            $(".wrapper").addClass("small-footer");
-        });
-
-        this.$on('chat-sent', function (message) {
-            this.$broadcast('chat-sent', message);
-            return false;
-        });
-
-        this.$on('chat-received', function (message) {
-            this.$broadcast('chat-received', message);
-            return false;
-        });
-
-        this.$on('notification', function (message) {
-            self.notifications.push(message);
-            setTimeout(function () {
-                self.notifications.shift();
-            }, 5000);
-
-            return false;
-        });
-    }
+    });
 });
 
 },{"./components/chat":83,"./components/map":85,"./components/sites":87,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
@@ -11576,6 +11578,9 @@ module.exports = {
         movable: {
             type: Boolean
         },
+        highlight: {
+            type: Boolean
+        },
         name: {
             type: String
         },
@@ -11657,7 +11662,7 @@ module.exports = {
 };
 
 },{"./character.template.html":82}],82:[function(require,module,exports){
-module.exports = '<div class="character human">\n    <span v-show="message" class="message"><span>{{ message }}</span></span>\n    <span class="name"><span>{{ name }}</span></span>\n</div>\n';
+module.exports = '<div class="character human">\n    <span v-show="message" class="message"><span>{{ message }}</span></span>\n    <span class="name"><span v-class="highlight: highlight">{{ name }}</span></span>\n</div>\n';
 },{}],83:[function(require,module,exports){
 "use strict";
 
@@ -11761,7 +11766,7 @@ module.exports = {
 
     methods: {
         sendStatus: function sendStatus() {
-            if (!this.site) return;
+            if (!this.site || !siteLoaded) return;
 
             var facingRight = this.state.indexOf('RIGHT') > -1;
             socket.emit('map_status', {
@@ -11830,6 +11835,7 @@ module.exports = {
                 this.site = null;
                 this.siteLoaded = false;
                 this.charXPercent = 5;
+                this.characters = [];
 
                 return;
             }
@@ -11973,7 +11979,7 @@ module.exports = {
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<div v-if="site && siteLoaded">\n    <character v-el="character" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n    <div class="characters">\n        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <div class="items">\n        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n    </div>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<div v-if="site && siteLoaded">\n    <div class="characters">\n        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <character v-el="character" highlight="true" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n    <div class="items">\n        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n    </div>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 
