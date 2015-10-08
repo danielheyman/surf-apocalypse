@@ -39,7 +39,8 @@ new Vue({
 
     data: {
         currentView: 'map',
-        notifications: []
+        notifications: [],
+        coins: 0
     },
 
     components: {
@@ -56,6 +57,12 @@ new Vue({
 
     ready: function ready() {
         var self = this;
+
+        this.coins = window.session_coins;
+
+        socket.on("App\\Events\\UpdatedCoins", function (data) {
+            self.coins = data.coins;
+        });
 
         $(".footer").mouseenter(function () {
             $(".wrapper").removeClass("small-footer");
@@ -11747,6 +11754,7 @@ module.exports = {
         return {
             charXPercent: 5,
             site: null,
+            siteLoaded: false,
             characters: [],
             state: 'IDLE_RIGHT',
             name: '',
@@ -11824,6 +11832,7 @@ module.exports = {
                 });
 
                 this.site = null;
+                this.siteLoaded = false;
                 this.charXPercent = 5;
 
                 return;
@@ -11843,6 +11852,10 @@ module.exports = {
             }
 
             this.site = site;
+        },
+
+        loadedSite: function loadedSite() {
+            this.siteLoaded = true;
         }
     },
 
@@ -11964,7 +11977,7 @@ module.exports = {
 };
 
 },{"./character.js":81,"./map.template.html":86}],86:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<character v-el="character" v-if="site" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n<div class="characters">\n    <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n</div>\n<div class="items" v-if="site">\n    <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n<div v-if="site && siteLoaded">\n    <character v-el="character" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>\n    <div class="characters">\n        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <div class="items">\n        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>\n    </div>\n</div>\n';
 },{}],87:[function(require,module,exports){
 'use strict';
 

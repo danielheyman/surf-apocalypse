@@ -6,6 +6,7 @@ module.exports = {
         return {
             charXPercent: 5,
             site: null,
+            siteLoaded: false,
             characters: [],
             state: 'IDLE_RIGHT',
             name: '',
@@ -87,6 +88,7 @@ module.exports = {
                 });
 
                 this.site = null;
+                this.siteLoaded = false;
                 this.charXPercent = 5;
 
                 return;
@@ -106,6 +108,10 @@ module.exports = {
             }
 
             this.site = site;
+        },
+
+        loadedSite: function() {
+            this.siteLoaded = true;
         }
     },
 

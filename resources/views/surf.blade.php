@@ -40,7 +40,7 @@
                                     <li>Items</li>
                                     <li>Shop</li>
                                     <li>House</li>
-                                    <li class="coins"><span class="count">1256</span> COINS</li>
+                                    <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                                 </ul>
                                 <div class="online">
                                     Team Members Online <span>(2)</span> | Friends Online <span>(6)</span>
@@ -55,7 +55,8 @@
 
         <!-- Scripts -->
         <script type="text/javascript">
-            window.session_name = '{{ Auth::user()->name }}';
+            window.session_name = '{{ auth()->user()->name }}';
+            window.session_coins = {{ auth()->user()->coins }};
         </script>
         <script src="{{ elixir('js/global.js') }}"></script>
         <script src="{{ elixir('js/surfv.js') }}"></script>

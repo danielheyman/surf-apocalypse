@@ -40,7 +40,8 @@ new Vue({
 
     data: {
         currentView: 'map',
-        notifications: []
+        notifications: [],
+        coins: 0
     },
 
     components: {
@@ -58,6 +59,12 @@ new Vue({
 
     ready: function() {
         var self = this;
+
+        this.coins = window.session_coins;
+
+        socket.on('App\\Events\\UpdatedCoins', function(data) {
+            self.coins = data.coins;
+        });
 
         $(".footer").mouseenter(function() {
             $(".wrapper").removeClass("small-footer");

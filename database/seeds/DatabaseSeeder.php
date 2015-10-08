@@ -57,8 +57,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $website = $user->websites()->create([
-            'name' => 'My first website',
-            'url' => 'http://clicktrackprofit.com',
+            'name' => 'My Blank website',
+            'url' => 'http://www.this-page-intentionally-left-blank.org/',
         ]);
 
         App\ItemType::create([

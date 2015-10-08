@@ -45,10 +45,3 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
     Route::get('map', 'MapController@getMap');
     Route::post('map', 'MapController@postMap');
 });
-
-
-Route::get('fire', function () {
-    // this fires the event
-    event(new App\Events\SentGlobalMessage());
-    return "event fired";
-});

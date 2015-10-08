@@ -106,9 +106,13 @@ redis.subscribe('global', function(err, count) {
 });
 
 redis.on('message', function(channel, message) {
-    console.log('Message Recieved: ' + message);
     message = JSON.parse(message);
-    io.emit(channel + ':' + message.event, message.data);
+    var user_id = message.data.data.user_id;
+    if (user_id) {
+        if (users[user_id])
+            users[user_id].socket_info.emit(message.event, message.data.data);
+    } else
+        io.emit(message.event, message.data.data);
 });
 
 io.on('connection', function(socket) {

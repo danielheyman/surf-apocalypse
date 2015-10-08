@@ -6,7 +6,7 @@ use App\Events\Event;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class SentGlobalMessage extends Event implements ShouldBroadcast
+class UpdatedCoins extends Event implements ShouldBroadcast
 {
     use SerializesModels;
 
@@ -17,10 +17,11 @@ class SentGlobalMessage extends Event implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($user)
     {
         $this->data = array(
-            'power'=> '10'
+            'user_id' => $user->id,
+            'coins'=> $user->coins
         );
     }
 

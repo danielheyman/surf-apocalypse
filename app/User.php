@@ -58,4 +58,28 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
             }
         }
     }
+
+    public function syncOriginal()
+    {
+        $this->syncCoins();
+
+        parent::syncOriginal();
+    }
+
+    public function syncOriginalAttribute($attribute)
+    {
+        if($attribute == "coins")
+            $this->syncCoins();
+
+        parent::syncOriginalAttribute($attribute);
+    }
+
+    public function syncCoins()
+    {
+        if(!$this->getOriginal('coins'))
+            return;
+
+        if($this->original['coins'] != $this->attributes['coins'])
+            event(new \App\Events\UpdatedCoins($this));
+    }
 }
