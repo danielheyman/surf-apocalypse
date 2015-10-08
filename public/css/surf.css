@@ -257,13 +257,15 @@ iframe {
       .footer .chat-menu .send:hover {
         background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("../../img/surf/send-button.png"); }
 
-.loading {
-  font-size: 40px;
-  margin-top: 200px;
-  text-align: center; }
-
-.wrapper {
-  display: none; }
+.big-loader {
+  background: #afa09f;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0; }
+  .big-loader .loader p {
+    font-size: 30px; }
 
 .loader {
   position: absolute;

@@ -1,27 +1,3 @@
-var done = false;
-var images = [
-    '../../img/surf/bg.jpg'
-];
-
-$.preload(images, 1, function(last) {
-    if (!last) return;
-    if (done) show();
-    done = true;
-});
-
-$(".wrapper").preload(function() {
-    if (done) show();
-    done = true;
-});
-
-function show() {
-    $(".loading").hide();
-    $("body").addClass("bg");
-    $(".wrapper").show();
-}
-
-
-
 var Vue = require('vue');
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
@@ -40,6 +16,7 @@ new Vue({
 
     data: {
         currentView: 'map',
+        loading: true,
         notifications: [],
         coins: 0
     },
@@ -61,6 +38,25 @@ new Vue({
         var self = this;
 
         this.coins = window.session_coins;
+
+        var doneLoading = false;
+
+        var images = [
+            '../../img/surf/bg.jpg',
+            '../../img/surf/bill-bg.jpg',
+            '../../img/surf/bill-bg2.jpg'
+        ];
+
+        $.preload(images, 1, function(last) {
+            if (!last) return;
+            if (doneLoading) self.loading = false;
+            doneLoading = true;
+        });
+
+        $(".wrapper").preload(function() {
+            if (doneLoading) self.loading = false;
+            doneLoading = true;
+        });
 
         socket.on('App\\Events\\UpdatedCoins', function(data) {
             self.coins = data.coins;
