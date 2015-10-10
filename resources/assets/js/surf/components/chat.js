@@ -16,8 +16,8 @@ module.exports = {
             },
             message: '',
             channels: ['global', 'map'],
-            channel: 'global',
-            channelPicker: false
+            unseen: {'global': false, 'map': false},
+            channel: 'global'
         };
     },
 
@@ -26,7 +26,7 @@ module.exports = {
 
             if (!this.message) return;
 
-            if(this.channel == 'map')
+            if (this.channel == 'map')
                 this.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
@@ -55,6 +55,9 @@ module.exports = {
 
             var self = this;
 
+            if(data.c != this.channel)
+                this.unseen[data.c] = true;
+
             if (scrolledToBottom && data.c == this.channel) {
                 setTimeout(function() {
                     messages.animate({
@@ -74,29 +77,27 @@ module.exports = {
         },
 
         removeOldMessages: function(channel) {
-            if(this.messages[channel].length > 20) {
+            if (this.messages[channel].length > 20) {
                 this.messages[channel] = this.messages[channel].slice(-20);
             }
-        },
-
-        toggleChannels: function() {
-            this.channelPicker = !this.channelPicker;
         },
 
         toggleChannel: function(channel) {
             this.channel = channel;
 
+            this.unseen[channel] = false;
+
             var messages = $(this.$$.messages);
 
-            this.$nextTick(function () {
+            this.$nextTick(function() {
                 messages.animate({
                     scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                 }, 100);
             });
         },
 
-        notCurrentChannel: function(channel) {
-            return this.channel != channel;
+        currentChannel: function(channel) {
+            return this.channel == channel;
         }
     },
 

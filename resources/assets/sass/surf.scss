@@ -154,7 +154,7 @@ iframe {
     .name {
         position: absolute;
         z-index: 3;
-        bottom: -19px;
+        bottom: -18px;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -165,6 +165,7 @@ iframe {
             color: #fff;
             border-radius: 3px;
             background: #816a48;
+            line-height: 18px;
 
             &.highlight {
                 background: #006888;
@@ -241,16 +242,20 @@ iframe {
 
     .inner {
         width: 1200px;
-        margin: 15px auto auto;
+        margin: 10px auto auto;
     }
 
     .messages {
-        overflow: auto;
-        height: 100px;
-        padding: 10px;
+        height: 90px;
+        padding: 5px 10px;
         border: 1px solid #231b0f;
         border-radius: 5px;
         background: #000;
+
+        .wrap {
+            max-height: 100%;
+            overflow: auto;
+        }
 
         .message {
             line-height: 18px;
@@ -275,8 +280,47 @@ iframe {
         }
     }
 
+    .channel-picker {
+        list-style: none;
+        padding: 0;
+        margin: 5px 0 0;
+
+        li {
+            display: inline-block;
+            width: 75px;
+            color: #896d48;
+            text-align: center;
+            margin-right: 8px;
+            background: url("../../img/surf/send-button.png");
+            background-size: 100% 100%;
+            border-radius: 3px;
+
+            &.current {
+                background: linear-gradient(rgba(50, 61, 128, .3), rgba(50, 61, 128, .3)), url("../../img/surf/send-button.png");
+                background-size: 100% 100%;
+            }
+
+            &.unseen {
+                -webkit-animation: channel-blink 1s step-end infinite;
+                -moz-animation: channel-blink 1s step-end infinite;
+                -ms-animation: channel-blink 1s step-end infinite;
+                animation: channel-blink 1s step-end infinite;
+                background-size: 100% 100%;
+            }
+
+            &:not(.current) {
+                cursor: pointer;
+            }
+
+            &:not(.current):hover {
+                background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), url("../../img/surf/send-button.png");
+                background-size: 100% 100%;
+            }
+        }
+    }
+
     .chat-menu {
-        margin-top: 5px;
+        margin-top: 6px;
 
         .form {
             float: left;
@@ -284,63 +328,15 @@ iframe {
             -moz-box-sizing: border-box;
             box-sizing: border-box;
             width: 510px;
-            height: 47px;
-            padding: 8px 10px;
+            height: 42px;
+            padding: 7px 8px;
             background: url("../../img/surf/message-form.png");
             background-size: 100% 100%;
 
-            .type {
-                line-height: 30px;
-                display: inline-block;
-                width: 75px;
-                height: 30px;
-                text-align: center;
-                color: #896d48;
-                border-radius: 3px;
-                background: #161414;
-                box-shadow: inset 2px 2px 6px #000;
-                cursor: pointer;
-                position: relative;
-
-                &:hover {
-                    background: #332C2A;
-                }
-
-                ul {
-                    position: absolute;
-                    bottom: 100%;
-                    list-style: none;
-                    color: #896d48;
-                    border-radius: 3px;
-                    background: #161414;
-                    box-shadow: 2px 2px 6px #000;
-                    display: inline-block;
-                    padding: 0;
-                    left: -1px;
-                    margin-bottom: 6px;
-                    width: 75px;
-                    overflow: hidden;
-
-
-                    li {
-                        border-bottom: 1px solid #2F2927;
-                    }
-
-                    li:hover {
-                        background: #332C2A;
-                    }
-
-                    li:last-child {
-                        border-bottom: 0;
-                    }
-                }
-            }
-
             .message {
                 display: inline-block;
-                float: right;
-                width: 405px;
-                height: 30px;
+                width: 100%;
+                height: 28px;
                 padding-top: 2px;
                 padding-left: 10px;
                 color: #896d48;
@@ -349,24 +345,35 @@ iframe {
                 outline: 0;
                 background: #161414;
                 box-shadow: inset 2px 2px 6px #000;
+
+                &::-webkit-input-placeholder { color:#896d48; }
+                &::-moz-placeholder { color:#896d48; }
+                &:-ms-input-placeholder { color:#896d48; }
+                &:-moz-placeholder { color:#896d48; }
             }
         }
 
         .send {
-            line-height: 47px;
+            line-height: 42px;
             float: right;
             width: 80px;
-            height: 47px;
+            height: 42px;
             cursor: pointer;
             text-align: center;
             color: #896d48;
             background: url("../../img/surf/send-button.png");
+            background-size: 100% 100%;
 
             &:hover {
                 background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), url("../../img/surf/send-button.png");
             }
         }
     }
+}
+
+@keyframes channel-blink {
+	0% {background: linear-gradient(rgba(138, 36, 36, .3), rgba(138, 36, 36, .3)), url("../../img/surf/send-button.png");}
+	50% {background: linear-gradient(rgba(138, 36, 36, .6), rgba(138, 36, 36, .6)), url("../../img/surf/send-button.png");}
 }
 
 .big-loader {

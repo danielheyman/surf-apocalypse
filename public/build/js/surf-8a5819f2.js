@@ -11681,8 +11681,8 @@ module.exports = {
             },
             message: '',
             channels: ['global', 'map'],
-            channel: 'global',
-            channelPicker: false
+            unseen: { 'global': false, 'map': false },
+            channel: 'global'
         };
     },
 
@@ -11719,6 +11719,8 @@ module.exports = {
 
             var self = this;
 
+            if (data.c != this.channel) this.unseen[data.c] = true;
+
             if (scrolledToBottom && data.c == this.channel) {
                 setTimeout(function () {
                     messages.animate({
@@ -11743,12 +11745,10 @@ module.exports = {
             }
         },
 
-        toggleChannels: function toggleChannels() {
-            this.channelPicker = !this.channelPicker;
-        },
-
         toggleChannel: function toggleChannel(channel) {
             this.channel = channel;
+
+            this.unseen[channel] = false;
 
             var messages = $(this.$$.messages);
 
@@ -11759,8 +11759,8 @@ module.exports = {
             });
         },
 
-        notCurrentChannel: function notCurrentChannel(channel) {
-            return this.channel != channel;
+        currentChannel: function currentChannel(channel) {
+            return this.channel == channel;
         }
     },
 
@@ -11770,7 +11770,7 @@ module.exports = {
 };
 
 },{"./chat.template.html":84}],84:[function(require,module,exports){
-module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages[channel]">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type" v-on="click: toggleChannels">\n            <ul v-show="channelPicker">\n                <li v-repeat="channels" v-on="click: toggleChannel($value)" v-show="notCurrentChannel($value)">\n                    {{ $value | capitalize }}\n                </li>\n            </ul>\n            {{ channel | capitalize }}\n        </div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
+module.exports = '<div class="messages">\n    <div class="wrap" v-el="messages">\n        <div class="message" v-repeat="messages[channel]">\n            <span>{{ name }}:</span>{{ text }}\n        </div>\n    </div>\n</div>\n<ul class="channel-picker">\n    <li v-repeat="channels" v-on="click: toggleChannel($value)" v-class="current: currentChannel($value), unseen: unseen[$value]">\n        {{ $value | capitalize }}\n    </li>\n</ul>\n<div class="chat-menu">\n    <div class="form">\n        <input placeholder="Your message" type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
 'use strict';
 
