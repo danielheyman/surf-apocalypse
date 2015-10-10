@@ -4,12 +4,20 @@ module.exports = {
 
     data: function() {
         return {
-            messages: [{
-                name: "System",
-                text: "Welcome to SurfApocalypse!"
-            }],
-            message: "",
-            channel: "map"
+            messages: {
+                "global": [{
+                    name: "System",
+                    text: "Welcome to SurfApocalypse! The global chat will be seen by all users online."
+                }],
+                "map": [{
+                    name: "System",
+                    text: "The map chat will only be seen by users surfing the same map."
+                }]
+            },
+            message: '',
+            channels: ['global', 'map'],
+            channel: 'global',
+            channelPicker: false
         };
     },
 
@@ -18,7 +26,8 @@ module.exports = {
 
             if (!this.message) return;
 
-            this.$dispatch('chat-sent', this.message);
+            if(this.channel == 'map')
+                this.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
                 c: this.channel,
@@ -39,34 +48,50 @@ module.exports = {
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-            this.messages.push({
+            this.messages[data.c].push({
                 name: data.n,
                 text: data.m
             });
 
             var self = this;
 
-            if (scrolledToBottom) {
+            if (scrolledToBottom && data.c == this.channel) {
                 setTimeout(function() {
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                     }, 100, function() {
-                        self.removeOldMessages();
+                        self.removeOldMessages(data.c);
                     });
                 }, 10);
             }
 
-            if (data.c == "map" && data.i)
+            if (data.c == "map" && data.i) {
                 this.$dispatch('chat-received', {
                     text: data.m,
                     id: data.i
                 });
+            }
         },
 
-        removeOldMessages: function() {
-            if (this.messages.length > 20) {
-                this.messages.shift();
+        removeOldMessages: function(channel) {
+            if(this.messages[channel].length > 20) {
+                this.messages[channel] = this.messages[channel].slice(-20);
             }
+        },
+
+        toggleChannels: function() {
+            this.channelPicker = !this.channelPicker;
+        },
+
+        toggleChannel: function(channel) {
+            this.channel = channel;
+
+            this.$nextTick(function () {
+                console.log(messages.prop('scrollHeight') - messages.innerHeight());
+                messages.animate({
+                    scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
+                }, 100);
+            });
         }
     },
 

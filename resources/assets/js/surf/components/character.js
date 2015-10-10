@@ -35,8 +35,8 @@ module.exports = {
             state: null,
             stateKey: 'IDLE_RIGHT',
             intervals: [],
-            height: 0,
-            width: 0
+            height: 127,
+            width: 127
         };
     },
 
@@ -123,9 +123,6 @@ module.exports = {
 
     attached: function() {
         this.initNewState(this.stateKey);
-
-        this.height = $(this.$el).height();
-        this.width = $(this.$el).width();
 
         if (this.movable) {
             $(document).on('keydown', this.keyDownListener);

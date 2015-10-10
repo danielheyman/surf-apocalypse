@@ -1,11 +1,14 @@
 <div class="messages" v-el="messages">
-    <div class="message" v-repeat="messages">
+    <div class="message" v-repeat="messages[channel]">
         <span>{{ name }}:</span>{{ text }}
     </div>
 </div>
 <div class="chat-menu">
     <div class="form">
-        <div class="type">{{ channel | capitalize }}</div>
+        <div class="type" v-on="click: toggleChannels">
+            <ul v-show="channelPicker"><li v-repeat="c in channels" v-on="click: toggleChannel(c)">{{ c | capitalize }}</li></ul>
+            {{ channel | capitalize }}
+        </div>
         <input type="text" class="message" v-on="keyup: sendMessage | key 'enter'" v-model="message"/>
     </div>
     <div class="send" v-on="click: sendMessage">Send</div>

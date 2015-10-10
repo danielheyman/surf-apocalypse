@@ -110,7 +110,7 @@ redis.on('message', function(channel, message) {
     var user_id = message.data.data.user_id;
     if (user_id) {
         if (users[user_id])
-            users[user_id].socket_info.emit(message.event, message.data.data);
+            users[user_id].socket_info.emit(message.event, message.data.data.data);
     } else
         io.emit(message.event, message.data.data);
 });

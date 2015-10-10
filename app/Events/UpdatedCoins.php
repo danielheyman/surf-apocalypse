@@ -21,7 +21,9 @@ class UpdatedCoins extends Event implements ShouldBroadcast
     {
         $this->data = array(
             'user_id' => $user->id,
-            'coins'=> $user->coins
+            'data' => array(
+                'coins'=> $user->coins
+            )
         );
     }
 

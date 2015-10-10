@@ -11563,8 +11563,8 @@ module.exports = {
             state: null,
             stateKey: 'IDLE_RIGHT',
             intervals: [],
-            height: 0,
-            width: 0
+            height: 127,
+            width: 127
         };
     },
 
@@ -11639,9 +11639,6 @@ module.exports = {
     attached: function attached() {
         this.initNewState(this.stateKey);
 
-        this.height = $(this.$el).height();
-        this.width = $(this.$el).width();
-
         if (this.movable) {
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);
@@ -11672,12 +11669,20 @@ module.exports = {
 
     data: function data() {
         return {
-            messages: [{
-                name: "System",
-                text: "Welcome to SurfApocalypse!"
-            }],
-            message: "",
-            channel: "map"
+            messages: {
+                "global": [{
+                    name: "System",
+                    text: "Welcome to SurfApocalypse! The global chat will be seen by all users online."
+                }],
+                "map": [{
+                    name: "System",
+                    text: "The map chat will only be seen by users surfing the same map."
+                }]
+            },
+            message: '',
+            channels: ['global', 'map'],
+            channel: 'global',
+            channelPicker: false
         };
     },
 
@@ -11686,7 +11691,7 @@ module.exports = {
 
             if (!this.message) return;
 
-            this.$dispatch('chat-sent', this.message);
+            if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
                 c: this.channel,
@@ -11707,33 +11712,50 @@ module.exports = {
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
-            this.messages.push({
+            this.messages[data.c].push({
                 name: data.n,
                 text: data.m
             });
 
             var self = this;
 
-            if (scrolledToBottom) {
+            if (scrolledToBottom && data.c == this.channel) {
                 setTimeout(function () {
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                     }, 100, function () {
-                        self.removeOldMessages();
+                        self.removeOldMessages(data.c);
                     });
                 }, 10);
             }
 
-            if (data.c == "map" && data.i) this.$dispatch('chat-received', {
-                text: data.m,
-                id: data.i
-            });
+            if (data.c == "map" && data.i) {
+                this.$dispatch('chat-received', {
+                    text: data.m,
+                    id: data.i
+                });
+            }
         },
 
-        removeOldMessages: function removeOldMessages() {
-            if (this.messages.length > 20) {
-                this.messages.shift();
+        removeOldMessages: function removeOldMessages(channel) {
+            if (this.messages[channel].length > 20) {
+                this.messages[channel] = this.messages[channel].slice(-20);
             }
+        },
+
+        toggleChannels: function toggleChannels() {
+            this.channelPicker = !this.channelPicker;
+        },
+
+        toggleChannel: function toggleChannel(channel) {
+            this.channel = channel;
+
+            this.$nextTick(function () {
+                console.log(messages.prop('scrollHeight') - messages.innerHeight());
+                messages.animate({
+                    scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
+                }, 100);
+            });
         }
     },
 
@@ -11743,7 +11765,7 @@ module.exports = {
 };
 
 },{"./chat.template.html":84}],84:[function(require,module,exports){
-module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type">{{ channel | capitalize }}</div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
+module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages[channel]">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type" v-on="click: toggleChannels">\n            <ul v-show="channelPicker"><li v-repeat="c in channels" v-on="click: toggleChannel(c)">{{ c | capitalize }}</li></ul>\n            {{ channel | capitalize }}\n        </div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
 'use strict';
 
@@ -11754,6 +11776,7 @@ module.exports = {
     data: function data() {
         return {
             charXPercent: 5,
+            walkingSpeed: 0.8,
             site: null,
             siteLoaded: false,
             characters: [],
@@ -11806,9 +11829,9 @@ module.exports = {
             if (!this.site) return;
 
             if (state == 'WALK_LEFT') {
-                this.charXPercent -= 0.7;
+                this.charXPercent -= this.walkingSpeed;
             } else if (state == 'WALK_RIGHT') {
-                this.charXPercent += 0.7;
+                this.charXPercent += this.walkingSpeed;
             }
 
             if (this.charXPercent < 0) this.charXPercent = 0;else if (this.charXPercent > 100) {
@@ -11893,7 +11916,7 @@ module.exports = {
             var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
 
             for (var x = 0; x < self.site.items.length; x++) {
-                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
+                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {
                     self.site.items[x].pickedUp = true;
                     self.$dispatch('notification', "You have gained <span>" + self.site.items[x].name + "s</span> (+" + self.site.items[x].count + ")");
                 }
@@ -11913,7 +11936,7 @@ module.exports = {
                     state = data.l > oldData.l ? "WALK_RIGHT" : "WALK_LEFT";
                     var left = self.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - oldData.l) / 0.7 * 65;
+                    var time = Math.abs(data.l - oldData.l) / self.walkingSpeed * 65;
                     oldData.state = state;
 
                     oldData.el.stop(true).animate({

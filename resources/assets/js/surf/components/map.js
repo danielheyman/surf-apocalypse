@@ -5,6 +5,7 @@ module.exports = {
     data: function() {
         return {
             charXPercent: 5,
+            walkingSpeed: 0.8,
             site: null,
             siteLoaded: false,
             characters: [],
@@ -59,9 +60,9 @@ module.exports = {
                 return;
 
             if (state == 'WALK_LEFT') {
-                this.charXPercent -= 0.7;
+                this.charXPercent -= this.walkingSpeed;
             } else if (state == 'WALK_RIGHT') {
-                this.charXPercent += 0.7;
+                this.charXPercent += this.walkingSpeed;
             }
 
             if (this.charXPercent < 0)
@@ -148,7 +149,7 @@ module.exports = {
             var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
 
             for (var x = 0; x < self.site.items.length; x++) {
-                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30) {
+                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {
                     self.site.items[x].pickedUp = true;
                     self.$dispatch('notification', "You have gained <span>" + self.site.items[x].name + "s</span> (+" + self.site.items[x].count + ")");
                 }
@@ -168,7 +169,7 @@ module.exports = {
                     state = (data.l > oldData.l) ? "WALK_RIGHT" : "WALK_LEFT";
                     var left = self.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - oldData.l) / 0.7 * 65;
+                    var time = Math.abs(data.l - oldData.l) / self.walkingSpeed * 65;
                     oldData.state = state;
 
                     oldData.el.stop(true).animate({
