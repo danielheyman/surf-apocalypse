@@ -11750,12 +11750,17 @@ module.exports = {
         toggleChannel: function toggleChannel(channel) {
             this.channel = channel;
 
+            var messages = $(this.$$.messages);
+
             this.$nextTick(function () {
-                console.log(messages.prop('scrollHeight') - messages.innerHeight());
                 messages.animate({
                     scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                 }, 100);
             });
+        },
+
+        notCurrentChannel: function notCurrentChannel(channel) {
+            return this.channel != channel;
         }
     },
 
@@ -11765,7 +11770,7 @@ module.exports = {
 };
 
 },{"./chat.template.html":84}],84:[function(require,module,exports){
-module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages[channel]">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type" v-on="click: toggleChannels">\n            <ul v-show="channelPicker"><li v-repeat="c in channels" v-on="click: toggleChannel(c)">{{ c | capitalize }}</li></ul>\n            {{ channel | capitalize }}\n        </div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
+module.exports = '<div class="messages" v-el="messages">\n    <div class="message" v-repeat="messages[channel]">\n        <span>{{ name }}:</span>{{ text }}\n    </div>\n</div>\n<div class="chat-menu">\n    <div class="form">\n        <div class="type" v-on="click: toggleChannels">\n            <ul v-show="channelPicker">\n                <li v-repeat="channels" v-on="click: toggleChannel($value)" v-show="notCurrentChannel($value)">\n                    {{ $value | capitalize }}\n                </li>\n            </ul>\n            {{ channel | capitalize }}\n        </div>\n        <input type="text" class="message" v-on="keyup: sendMessage | key \'enter\'" v-model="message"/>\n    </div>\n    <div class="send" v-on="click: sendMessage">Send</div>\n</div>\n';
 },{}],85:[function(require,module,exports){
 'use strict';
 

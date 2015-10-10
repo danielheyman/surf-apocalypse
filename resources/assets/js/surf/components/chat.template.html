@@ -6,7 +6,11 @@
 <div class="chat-menu">
     <div class="form">
         <div class="type" v-on="click: toggleChannels">
-            <ul v-show="channelPicker"><li v-repeat="c in channels" v-on="click: toggleChannel(c)">{{ c | capitalize }}</li></ul>
+            <ul v-show="channelPicker">
+                <li v-repeat="channels" v-on="click: toggleChannel($value)" v-show="notCurrentChannel($value)">
+                    {{ $value | capitalize }}
+                </li>
+            </ul>
             {{ channel | capitalize }}
         </div>
         <input type="text" class="message" v-on="keyup: sendMessage | key 'enter'" v-model="message"/>

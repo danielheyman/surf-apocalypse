@@ -86,12 +86,17 @@ module.exports = {
         toggleChannel: function(channel) {
             this.channel = channel;
 
+            var messages = $(this.$$.messages);
+
             this.$nextTick(function () {
-                console.log(messages.prop('scrollHeight') - messages.innerHeight());
                 messages.animate({
                     scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                 }, 100);
             });
+        },
+
+        notCurrentChannel: function(channel) {
+            return this.channel != channel;
         }
     },
 
