@@ -51,7 +51,7 @@ class MapController extends Controller
 
         $map = $site->toArray();
         $map['items'] = $map_items;
-        $map['id'] = md5($ids['id']);
+        $map['id'] = md5(auth()->user()->human + $ids['id']);
 
         Session::put('current_map', $ids);
 

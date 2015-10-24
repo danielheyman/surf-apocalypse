@@ -27,7 +27,7 @@
                 <p>LOADING TOOLS</p>
             </div>
         </div>
-        <div v-show="!loading" class="wrapper small-footer">
+        <div v-show="!loading" v-el="main" class="wrapper small-footer hidden">
             <div class="top @{{ currentView }}-view">
                 <component is="@{{ currentView }}"></component>
 
@@ -41,7 +41,7 @@
             <div class="bottom">
                 <div class="footer">
                     <div class="inner">
-                        <div class="left" id="chat">
+                        <div class="left">
                             <chat></chat>
                         </div>
                         <div class="right">

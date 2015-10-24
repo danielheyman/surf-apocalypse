@@ -486,4 +486,7 @@ iframe {
         content: '';
         background: url("../../img/surf/coins.png"); }
 
+.hidden {
+  display: none; }
+
 /*# sourceMappingURL=surf.css.map */

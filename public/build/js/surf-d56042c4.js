@@ -38,6 +38,8 @@ $(document).ready(function () {
         },
 
         ready: function ready() {
+            $(this.$$.main).removeClass('hidden');
+
             var self = this;
 
             this.coins = window.session_coins;
