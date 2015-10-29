@@ -34,22 +34,27 @@ class DatabaseSeeder extends Seeder
         DB::statement('ALTER SEQUENCE users_id_seq RESTART;');
         DB::statement('ALTER SEQUENCE websites_id_seq RESTART;');
 
-        $team = App\Team::create([
-            'name' => 'Team Awesome',
-        ]);
-
         $user = App\User::create([
             'name' => 'Daniel Heyman',
             'email' => 'daniel.heyman@gmail.com',
             'password' => 'Daniel',
             'human' => true,
             'confirmation_code' => null,
-            'team_id' => $team->id ?: null,
         ]);
+
+        $team = App\Team::create([
+            'name' => 'Team Awesome',
+            'description' => '',
+            'user_count' => 2,
+            'owner_id' => $user->id
+        ]);
+
+        $user->team_id = $team->id;
+        $user->save();
 
         App\User::create([
             'name' => 'Test Dude',
-            'email' => 'test@dude.com',
+            'email' => 'heymandan@gmail.com',
             'password' => 'test',
             'human' => true,
             'confirmation_code' => null,

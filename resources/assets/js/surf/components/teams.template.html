@@ -1,0 +1,106 @@
+<div class="billboard-chain-left"></div>
+<div class="billboard-chain-right"></div>
+<div class="billboard"></div>
+<div class="billboard-shadow"></div>
+<div class="billboard-sign"></div>
+<div class="frame-wrapper">
+    <div class="loader" v-show="!teams">
+        <div class="ball"></div>
+        <p>LOADING TEAMS</p>
+    </div>
+
+    <div v-el="content" class="content" v-show="teams">
+        <h1>TEAMS</h1>
+
+        <span v-if="!viewTeam.active">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <h4>Teams are pretty snazzy, but what are they exactly?</h4>
+                    <ul>
+                        <li>Joining a team puts you at a great advantage.</li>
+                        <li>All coins and other materials will be shared among the team.</li>
+                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>
+                        <li>As a human, you will be sharing and building upon a mutual house.</li>
+                        <li>A maximum of four players per team.</li>
+                        <li>Good luck and fight together!</li>
+                    </ul>
+
+                    <h4>Warnings</h4>
+                    <ul>
+                        <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>
+                        <li>Should you choose to leave a team, you will have to start over without any supplies.</li>
+                        <li>Can be very addicting :)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th># of Players</th>
+                        <th>Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-if="myTeam">
+                        <td>{{ myTeam.name }} (Member)</td>
+                        <td>{{ myTeam.user_count }} of 4</td>
+                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>
+                    </tr>
+                    <tr v-repeat="team: teams | notMine">
+                        <td>{{ team.name }}</td>
+                        <td>{{ team.user_count }} of 4</td>
+                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </span>
+
+        <div class="panel panel-default" v-show="viewTeam.active">
+            <div class="panel-body">
+                <div class="loader-inner" v-show="!viewTeam.data">
+                    <div class="ball"></div>
+                    <p>LOADING TEAM</p>
+                </div>
+
+                <div v-if="viewTeam.data">
+                    <h4>
+                        {{ viewTeam.data.team.name }}:
+                        <span v-if="viewTeam.data.team.member">
+                            <span v-if="!isOwner">
+                                You're a member. (<a href="#">Leave Team</a>)
+                            </span>
+                            <span v-if="isOwner">
+                                You're the owner. (<a href="#">Destroy Team</a>)
+                            </span>
+                        </span>
+                        <span v-if="!viewTeam.data.team.member">
+                            Not yet a member. (<a href="#">Join Team</a>)
+                        </span>
+                    </h4>
+                    <br>
+
+                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>
+                    <br><br>
+
+                    <h4>Members:</h4>
+                    <div class="media" v-repeat="user: viewTeam.data.users">
+                        <div class="media-left">
+                            <a href="#">
+                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            <h4 class="media-heading">{{ user.name }}</h4>
+                            {{ user.id == viewTeam.data.team.owner_id ? 'Team Founder' : ''}}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>

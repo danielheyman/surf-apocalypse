@@ -42,6 +42,14 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
     Route::delete('sites/{id}', 'SiteController@deleteSite');
     Route::post('sites/new', 'SiteController@addSite');
 
+    Route::get('teams', 'TeamController@getTeams');
+    Route::get('teams/{id}', 'TeamController@getTeam');
+    Route::post('teams/join', 'TeamController@joinTeam');
+    Route::post('teams/leave', 'TeamController@leaveTeam');
+    Route::delete('teams', 'TeamController@deleteTeam');
+    Route::post('teams/new', 'TeamController@newTeam');
+    Route::put('teams/description', 'TeamController@updateDesc');
+
     Route::get('map', 'MapController@getMap');
     Route::post('map', 'MapController@postMap');
 });

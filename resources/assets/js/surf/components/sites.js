@@ -62,8 +62,8 @@ module.exports = {
 
         cancelAdd: function() {
             this.newSite.active = false;
-            self.newSite.name = '';
-            self.newSite.url = '';
+            this.newSite.name = '';
+            this.newSite.url = '';
         },
 
         confirmAdd: function() {

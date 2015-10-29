@@ -7,11 +7,11 @@ module.exports = {
             messages: {
                 "global": [{
                     name: "System",
-                    text: "Welcome to SurfApocalypse! The global chat will be seen by all users online."
+                    text: "Welcome to SurfApocalypse! The global chat will be seen by all players online."
                 }],
                 "map": [{
                     name: "System",
-                    text: "The map chat will only be seen by users surfing the same map."
+                    text: "The map chat will only be seen by players surfing the same map."
                 }]
             },
             message: '',

@@ -39,6 +39,25 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return Item::ownedBy($this->team ?: $this);
     }
 
+    public function changeCoins($change)
+    {
+        $team = $this->team;
+
+        if ($change > 0) {
+            if ($team) {
+                $team->increment('coins', $change);
+            } else {
+                $this->increment('coins', $change);
+            }
+        } elseif ($change < 0) {
+            if ($team) {
+                $team->decrement('coins', $change * -1);
+            } else {
+                $this->decrement('coins', $change * -1);
+            }
+        }
+    }
+
     public function giveItem($item_type, $count)
     {
         if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
@@ -46,7 +65,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         }
 
         if ($type->item_type == ItemTypes::COIN) {
-            $this->increment('coins', $count);
+            $this->changeCoins($count);
         } else {
             if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
                 $update->increment('count', $count);
@@ -68,18 +87,21 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function syncOriginalAttribute($attribute)
     {
-        if($attribute == "coins")
+        if ($attribute == 'coins') {
             $this->syncCoins();
+        }
 
         parent::syncOriginalAttribute($attribute);
     }
 
     public function syncCoins()
     {
-        if(!$this->getOriginal('coins'))
+        if (!$this->getOriginal('coins')) {
             return;
+        }
 
-        if($this->original['coins'] != $this->attributes['coins'])
+        if ($this->original['coins'] != $this->coins) {
             event(new \App\Events\UpdatedCoins($this));
+        }
     }
 }

@@ -380,7 +380,7 @@ iframe {
     -webkit-transform: translateX(0) scale(1);
     transform: translateX(0) scale(1); } }
 
-.sites-view h1 {
+.content h1 {
   padding-top: 0;
   padding-bottom: 30px;
   text-align: center;
@@ -388,18 +388,18 @@ iframe {
   color: #ececec;
   text-shadow: 0 0 10px #606060; }
 
-.sites-view .table {
+.content .table {
   overflow: hidden;
   border-radius: 3px;
   box-shadow: 0 0 10px #606060; }
 
-.sites-view .table-striped > tbody > tr:nth-of-type(even) {
+.content .table-striped > tbody > tr:nth-of-type(even) {
   background: #eee; }
 
-.sites-view .table-striped > thead > tr {
+.content .table-striped > thead > tr {
   background: #adadad; }
 
-.sites-view .frame-wrapper {
+.content .frame-wrapper {
   overflow: auto;
   margin-top: 40px;
   margin-bottom: 90px;

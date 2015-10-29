@@ -12,11 +12,12 @@ window.socket = socket;
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 $(document).ready(function() {
+
     new Vue({
         el: '#app',
 
         data: {
-            currentView: 'map',
+            currentView: 'teams',
             loading: true,
             notifications: [],
             coins: 0
@@ -25,13 +26,13 @@ $(document).ready(function() {
         components: {
             'chat': require('./components/chat'),
             'map': require('./components/map'),
-            'sites': require('./components/sites')
+            'sites': require('./components/sites'),
+            'teams': require('./components/teams')
         },
 
         methods: {
             navigate: function(to) {
-                if (['sites', 'map'].indexOf(to) > -1)
-                    this.currentView = to;
+                this.currentView = to;
             }
         },
 

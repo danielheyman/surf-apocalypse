@@ -47,11 +47,11 @@ class MapController extends Controller
 
         $site = $user->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url']);
 
-        $ids['id'] = $site->id;
+        $ids['id'] = auth()->user()->human + $site->id;
 
         $map = $site->toArray();
         $map['items'] = $map_items;
-        $map['id'] = md5(auth()->user()->human + $ids['id']);
+        $map['id'] = md5($ids['id']);
 
         Session::put('current_map', $ids);
 

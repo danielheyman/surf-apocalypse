@@ -15,11 +15,12 @@ window.socket = socket;
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 $(document).ready(function () {
+
     new Vue({
         el: '#app',
 
         data: {
-            currentView: 'map',
+            currentView: 'teams',
             loading: true,
             notifications: [],
             coins: 0
@@ -28,12 +29,13 @@ $(document).ready(function () {
         components: {
             'chat': require('./components/chat'),
             'map': require('./components/map'),
-            'sites': require('./components/sites')
+            'sites': require('./components/sites'),
+            'teams': require('./components/teams')
         },
 
         methods: {
             navigate: function navigate(to) {
-                if (['sites', 'map'].indexOf(to) > -1) this.currentView = to;
+                this.currentView = to;
             }
         },
 
@@ -91,7 +93,7 @@ $(document).ready(function () {
     });
 });
 
-},{"./components/chat":83,"./components/map":85,"./components/sites":87,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
+},{"./components/chat":83,"./components/map":85,"./components/sites":87,"./components/teams":89,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -11674,11 +11676,11 @@ module.exports = {
             messages: {
                 "global": [{
                     name: "System",
-                    text: "Welcome to SurfApocalypse! The global chat will be seen by all users online."
+                    text: "Welcome to SurfApocalypse! The global chat will be seen by all players online."
                 }],
                 "map": [{
                     name: "System",
-                    text: "The map chat will only be seen by users surfing the same map."
+                    text: "The map chat will only be seen by players surfing the same map."
                 }]
             },
             message: '',
@@ -12078,8 +12080,8 @@ module.exports = {
 
         cancelAdd: function cancelAdd() {
             this.newSite.active = false;
-            self.newSite.name = '';
-            self.newSite.url = '';
+            this.newSite.name = '';
+            this.newSite.url = '';
         },
 
         confirmAdd: function confirmAdd() {
@@ -12111,5 +12113,83 @@ module.exports = {
 };
 
 },{"./sites.template.html":88}],88:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Views Today</th>\n                    <th>Total Views</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td>{{ site.views_today }}</td>\n                    <td>{{ site.views_total }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="6">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <h1>YOUR SITES</h1>\n\n        <table class="table table-striped" v-if="!delete && !newSite.active">\n            <thead>\n                <tr>\n                    <th>Name</th>\n                    <th>URL</th>\n                    <th>Views Today</th>\n                    <th>Total Views</th>\n                    <th>Enabled</th>\n                    <th>Delete</th>\n                </tr>\n            </thead>\n            <tbody>\n                <tr v-repeat="site: sites">\n                    <td>{{ site.name }}</td>\n                    <td>{{ site.url }}</td>\n                    <td>{{ site.views_today }}</td>\n                    <td>{{ site.views_total }}</td>\n                    <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                    <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                </tr>\n                <tr v-show="noSites">\n                    <td colspan="6">You have no sites.</td>\n                </tr>\n            </tbody>\n        </table>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active && !delete">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <br>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
+},{}],89:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+
+    template: require('./teams.template.html'),
+
+    data: function data() {
+        return {
+            teams: null,
+            myTeam: null,
+            viewTeam: {
+                active: false,
+                data: null,
+                destroy: false,
+                destroying: false,
+                leave: false,
+                leaving: false,
+                join: false,
+                joining: false
+            }
+        };
+    },
+
+    filters: {
+        notMine: function notMine(teams) {
+            var self = this;
+
+            if (!this.myTeam) return teams;
+
+            return teams.filter(function (team) {
+                return team.id != self.myTeam.id;
+            });
+        }
+    },
+
+    methods: {
+        openTeam: function openTeam(e, team) {
+            var self = this;
+
+            e.preventDefault();
+
+            this.viewTeam.active = true;
+
+            this.$http.get('/api/teams/' + team.id).success(function (data) {
+
+                self.viewTeam.data = data;
+            }).error(function () {});
+        },
+
+        backToList: function backToList() {
+            this.viewTeam.active = false;
+            this.viewTeam.data = null;
+        },
+
+        isOwner: function isOwner() {
+            return window.session_id == this.viewTeam.data.team.owner_id;
+        }
+    },
+
+    ready: function ready() {
+        var self = this;
+
+        this.$http.get('/api/teams').success(function (data) {
+
+            self.teams = data.teams;
+
+            if (data.my_team) {
+                $.each(data.teams, function (team) {
+                    if (data.teams[team].id == data.my_team) self.myTeam = data.teams[team];
+                });
+            }
+        }).error(function () {});
+    }
+};
+
+},{"./teams.template.html":90}],90:[function(require,module,exports){
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!teams">\n        <div class="ball"></div>\n        <p>LOADING TEAMS</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="teams">\n        <h1>TEAMS</h1>\n\n        <span v-if="!viewTeam.active">\n            <div class="panel panel-default">\n                <div class="panel-body">\n                    <h4>Teams are pretty snazzy, but what are they exactly?</h4>\n                    <ul>\n                        <li>Joining a team puts you at a great advantage.</li>\n                        <li>All coins and other materials will be shared among the team.</li>\n                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>\n                        <li>As a human, you will be sharing and building upon a mutual house.</li>\n                        <li>A maximum of four players per team.</li>\n                        <li>Good luck and fight together!</li>\n                    </ul>\n\n                    <h4>Warnings</h4>\n                    <ul>\n                        <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>\n                        <li>Should you choose to leave a team, you will have to start over without any supplies.</li>\n                        <li>Can be very addicting :)</li>\n                    </ul>\n                </div>\n            </div>\n\n            <table class="table table-striped">\n                <thead>\n                    <tr>\n                        <th>Team Name</th>\n                        <th># of Players</th>\n                        <th>Info</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-if="myTeam">\n                        <td>{{ myTeam.name }} (Member)</td>\n                        <td>{{ myTeam.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>\n                    </tr>\n                    <tr v-repeat="team: teams | notMine">\n                        <td>{{ team.name }}</td>\n                        <td>{{ team.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>\n                    </tr>\n                </tbody>\n            </table>\n        </span>\n\n        <div class="panel panel-default" v-show="viewTeam.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="!viewTeam.data">\n                    <div class="ball"></div>\n                    <p>LOADING TEAM</p>\n                </div>\n\n                <div v-if="viewTeam.data">\n                    <h4>\n                        {{ viewTeam.data.team.name }}:\n                        <span v-if="viewTeam.data.team.member">\n                            <span v-if="!isOwner">\n                                You\'re a member. (<a href="#">Leave Team</a>)\n                            </span>\n                            <span v-if="isOwner">\n                                You\'re the owner. (<a href="#">Destroy Team</a>)\n                            </span>\n                        </span>\n                        <span v-if="!viewTeam.data.team.member">\n                            Not yet a member. (<a href="#">Join Team</a>)\n                        </span>\n                    </h4>\n                    <br>\n\n                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>\n                    <br><br>\n\n                    <h4>Members:</h4>\n                    <div class="media" v-repeat="user: viewTeam.data.users">\n                        <div class="media-left">\n                            <a href="#">\n                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">\n                            </a>\n                        </div>\n                        <div class="media-body">\n                            <h4 class="media-heading">{{ user.name }}</h4>\n                            {{ user.id == viewTeam.data.team.owner_id ? \'Team Founder\' : \'\'}}\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n        </div>\n\n\n    </div>\n</div>\n';
 },{}]},{},[1]);

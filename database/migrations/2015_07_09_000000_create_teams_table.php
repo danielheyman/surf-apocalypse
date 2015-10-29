@@ -13,7 +13,12 @@ class CreateTeamsTable extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->text('description');
+            $table->smallInteger('user_count')->unsigned()->default(0);
+            $table->decimal('coins', 10, 2)->unsigned()->default(0);
             $table->timestamps();
+
+            $table->integer('owner_id')->unsigned();
         });
     }
 

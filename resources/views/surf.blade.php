@@ -12,6 +12,7 @@
 
         <!-- Scripts -->
         <script type="text/javascript">
+            window.session_id = '{{ auth()->user()->id }}';
             window.session_name = '{{ auth()->user()->name }}';
             window.session_coins = {{ auth()->user()->coins }};
         </script>
@@ -49,7 +50,7 @@
                                 <li>Home</li>
                                 <li v-on="click: navigate('map')">Surf</li>
                                 <li v-on="click: navigate('sites')">Sites</li>
-                                <li>Teams</li>
+                                <li v-on="click: navigate('teams')">Teams</li>
                                 <li>Items</li>
                                 <li>Shop</li>
                                 <li>House</li>
