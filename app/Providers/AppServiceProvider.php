@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Website;
+use App\Team;
 use App\User;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +25,15 @@ class AppServiceProvider extends ServiceProvider
         Website::deleted(function ($site) {
             $site->updateUserSiteCount();
         });
+
+        User::deleting(function ($user) {
+            $user->onDelete();
+        });
+
+        Team::deleting(function ($team) {
+            $team->onDelete();
+        });
+
     }
 
     /**

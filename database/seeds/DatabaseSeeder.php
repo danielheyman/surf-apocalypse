@@ -49,10 +49,10 @@ class DatabaseSeeder extends Seeder
             'owner_id' => $user->id
         ]);
 
-        $user->team_id = $team->id;
+        $user->team()->associate($team);
         $user->save();
 
-        App\User::create([
+        $user2 = App\User::create([
             'name' => 'Test Dude',
             'email' => 'heymandan@gmail.com',
             'password' => 'test',
@@ -92,9 +92,7 @@ class DatabaseSeeder extends Seeder
             'owner_id' => $team ?: $user,
         ]);
 
-        $house = App\House::create([
-            'owner_id' => $team ?: $user,
-        ]);
+        $house = $user->createHouse();
 
         $house->items()->create([
             'loc_x' => 0,

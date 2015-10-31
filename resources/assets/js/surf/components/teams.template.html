@@ -29,6 +29,7 @@
                     <ul>
                         <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>
                         <li>Should you choose to leave a team, you will have to start over without any supplies.</li>
+                        <li>As a human, leaving a team, will force you to build a new house.</li>
                         <li>Can be very addicting :)</li>
                     </ul>
                 </div>
@@ -57,14 +58,14 @@
             </table>
         </span>
 
-        <div class="panel panel-default" v-show="viewTeam.active">
+        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy">
             <div class="panel-body">
-                <div class="loader-inner" v-show="!viewTeam.data">
+                <div class="loader-inner" v-show="!viewTeam.data || viewTeam.loadingMessage">
                     <div class="ball"></div>
-                    <p>LOADING TEAM</p>
+                    <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : 'LOADING TEAM' }}</p>
                 </div>
 
-                <div v-if="viewTeam.data">
+                <div v-if="viewTeam.data && !viewTeam.loadingMessage">
                     <h4>
                         {{ viewTeam.data.team.name }}:
                         <span v-if="viewTeam.data.team.member">
@@ -72,7 +73,7 @@
                                 You're a member. (<a href="#">Leave Team</a>)
                             </span>
                             <span v-if="isOwner">
-                                You're the owner. (<a href="#">Destroy Team</a>)
+                                You're the owner. (<a href="#" v-on="click: destroyTeam($event)">Destroy Team</a>)
                             </span>
                         </span>
                         <span v-if="!viewTeam.data.team.member">
@@ -99,6 +100,15 @@
                 </div>
 
             </div>
+        </div>
+
+        <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">
+              <p>Caution! Are you sure you want to destroy team '{{ viewTeam.data.team.name }}'? </p>
+              <p>Doing so will force all the team members, including you, to start over.</p>
+              <p>You will all lose your items, coins, and house.</p>
+              <br>
+              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDestroy">Yes, Destroy Me</button>
+              <button type="button" class="btn btn-default" v-on="click: cancelDestroy">Cancel</button>
         </div>
 
 

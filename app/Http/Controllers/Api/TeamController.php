@@ -38,7 +38,7 @@ class TeamController extends Controller
             unset($user->email);
         }
 
-        $data['team']->member = (auth()->user()->team_id = $team->id);
+        $data['team']->member = (auth()->user()->team_id == $team->id);
 
         return $data;
     }
@@ -52,9 +52,14 @@ class TeamController extends Controller
 
         $user = User::findOrFail($request->input('user'));
 
+        $this->joinTeamFromInput($team, $user);
+    }
+
+    public function joinTeamFromInput($team, $user)
+    {
         $items = $user->items()->get();
 
-        $user->team = $team->id;
+        $user->team()->associate($team);
         $user->save();
 
         foreach($items as $item) {
@@ -72,9 +77,7 @@ class TeamController extends Controller
         if(!$user->team)
             return;
 
-        $user->team = null;
-        $user->coins = 0;
-        $user->save();
+        $user->leaveTeam();
     }
 
     public function deleteTeam(Request $request)
@@ -83,10 +86,6 @@ class TeamController extends Controller
 
         if(!($team = $user->team) || $user->id != $team->owner_id)
             return;
-
-        foreach($team->users as $user) {
-            $user->coins = 0;
-        }
 
         $team->delete();
     }
@@ -107,8 +106,11 @@ class TeamController extends Controller
             'owner_id' => $user->id
         ]);
 
-        $user->team_id = $team->id;
-        $user->save();
+        $house = $user->house;
+        $house->owner_id = $team;
+        $house->save();
+
+        $this->joinTeamFromInput($user, $team);
     }
 
     public function updateDesc(Request $request)

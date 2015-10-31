@@ -12126,14 +12126,13 @@ module.exports = {
             teams: null,
             myTeam: null,
             viewTeam: {
+                team: null,
                 active: false,
                 data: null,
                 destroy: false,
-                destroying: false,
                 leave: false,
-                leaving: false,
                 join: false,
-                joining: false
+                loadingMessage: ""
             }
         };
     },
@@ -12157,6 +12156,7 @@ module.exports = {
             e.preventDefault();
 
             this.viewTeam.active = true;
+            this.viewTeam.team = team;
 
             this.$http.get('/api/teams/' + team.id).success(function (data) {
 
@@ -12166,11 +12166,37 @@ module.exports = {
 
         backToList: function backToList() {
             this.viewTeam.active = false;
+            this.viewTeam.team = null;
             this.viewTeam.data = null;
         },
 
         isOwner: function isOwner() {
             return window.session_id == this.viewTeam.data.team.owner_id;
+        },
+
+        destroyTeam: function destroyTeam(e) {
+            e.preventDefault();
+
+            this.viewTeam.destroy = true;
+        },
+
+        cancelDestroy: function cancelDestroy() {
+            this.viewTeam.destroy = false;
+        },
+
+        confirmDestroy: function confirmDestroy() {
+            this.cancelDestroy();
+            this.viewTeam.loadingMessage = "DESTROYING TEAM";
+
+            var self = this;
+
+            this.$http['delete']('/api/teams').success(function () {
+
+                self.viewTeam.loadingMessage = "";
+                self.teams.$remove(self.viewTeam.team);
+                self.myTeam = null;
+                self.backToList();
+            });
         }
     },
 
@@ -12191,5 +12217,5 @@ module.exports = {
 };
 
 },{"./teams.template.html":90}],90:[function(require,module,exports){
-module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!teams">\n        <div class="ball"></div>\n        <p>LOADING TEAMS</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="teams">\n        <h1>TEAMS</h1>\n\n        <span v-if="!viewTeam.active">\n            <div class="panel panel-default">\n                <div class="panel-body">\n                    <h4>Teams are pretty snazzy, but what are they exactly?</h4>\n                    <ul>\n                        <li>Joining a team puts you at a great advantage.</li>\n                        <li>All coins and other materials will be shared among the team.</li>\n                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>\n                        <li>As a human, you will be sharing and building upon a mutual house.</li>\n                        <li>A maximum of four players per team.</li>\n                        <li>Good luck and fight together!</li>\n                    </ul>\n\n                    <h4>Warnings</h4>\n                    <ul>\n                        <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>\n                        <li>Should you choose to leave a team, you will have to start over without any supplies.</li>\n                        <li>Can be very addicting :)</li>\n                    </ul>\n                </div>\n            </div>\n\n            <table class="table table-striped">\n                <thead>\n                    <tr>\n                        <th>Team Name</th>\n                        <th># of Players</th>\n                        <th>Info</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-if="myTeam">\n                        <td>{{ myTeam.name }} (Member)</td>\n                        <td>{{ myTeam.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>\n                    </tr>\n                    <tr v-repeat="team: teams | notMine">\n                        <td>{{ team.name }}</td>\n                        <td>{{ team.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>\n                    </tr>\n                </tbody>\n            </table>\n        </span>\n\n        <div class="panel panel-default" v-show="viewTeam.active">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="!viewTeam.data">\n                    <div class="ball"></div>\n                    <p>LOADING TEAM</p>\n                </div>\n\n                <div v-if="viewTeam.data">\n                    <h4>\n                        {{ viewTeam.data.team.name }}:\n                        <span v-if="viewTeam.data.team.member">\n                            <span v-if="!isOwner">\n                                You\'re a member. (<a href="#">Leave Team</a>)\n                            </span>\n                            <span v-if="isOwner">\n                                You\'re the owner. (<a href="#">Destroy Team</a>)\n                            </span>\n                        </span>\n                        <span v-if="!viewTeam.data.team.member">\n                            Not yet a member. (<a href="#">Join Team</a>)\n                        </span>\n                    </h4>\n                    <br>\n\n                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>\n                    <br><br>\n\n                    <h4>Members:</h4>\n                    <div class="media" v-repeat="user: viewTeam.data.users">\n                        <div class="media-left">\n                            <a href="#">\n                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">\n                            </a>\n                        </div>\n                        <div class="media-body">\n                            <h4 class="media-heading">{{ user.name }}</h4>\n                            {{ user.id == viewTeam.data.team.owner_id ? \'Team Founder\' : \'\'}}\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n        </div>\n\n\n    </div>\n</div>\n';
+module.exports = '<div class="billboard-chain-left"></div>\n<div class="billboard-chain-right"></div>\n<div class="billboard"></div>\n<div class="billboard-shadow"></div>\n<div class="billboard-sign"></div>\n<div class="frame-wrapper">\n    <div class="loader" v-show="!teams">\n        <div class="ball"></div>\n        <p>LOADING TEAMS</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="teams">\n        <h1>TEAMS</h1>\n\n        <span v-if="!viewTeam.active">\n            <div class="panel panel-default">\n                <div class="panel-body">\n                    <h4>Teams are pretty snazzy, but what are they exactly?</h4>\n                    <ul>\n                        <li>Joining a team puts you at a great advantage.</li>\n                        <li>All coins and other materials will be shared among the team.</li>\n                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>\n                        <li>As a human, you will be sharing and building upon a mutual house.</li>\n                        <li>A maximum of four players per team.</li>\n                        <li>Good luck and fight together!</li>\n                    </ul>\n\n                    <h4>Warnings</h4>\n                    <ul>\n                        <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>\n                        <li>Should you choose to leave a team, you will have to start over without any supplies.</li>\n                        <li>As a human, leaving a team, will force you to build a new house.</li>\n                        <li>Can be very addicting :)</li>\n                    </ul>\n                </div>\n            </div>\n\n            <table class="table table-striped">\n                <thead>\n                    <tr>\n                        <th>Team Name</th>\n                        <th># of Players</th>\n                        <th>Info</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-if="myTeam">\n                        <td>{{ myTeam.name }} (Member)</td>\n                        <td>{{ myTeam.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>\n                    </tr>\n                    <tr v-repeat="team: teams | notMine">\n                        <td>{{ team.name }}</td>\n                        <td>{{ team.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>\n                    </tr>\n                </tbody>\n            </table>\n        </span>\n\n        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy">\n            <div class="panel-body">\n                <div class="loader-inner" v-show="!viewTeam.data || viewTeam.loadingMessage">\n                    <div class="ball"></div>\n                    <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : \'LOADING TEAM\' }}</p>\n                </div>\n\n                <div v-if="viewTeam.data && !viewTeam.loadingMessage">\n                    <h4>\n                        {{ viewTeam.data.team.name }}:\n                        <span v-if="viewTeam.data.team.member">\n                            <span v-if="!isOwner">\n                                You\'re a member. (<a href="#">Leave Team</a>)\n                            </span>\n                            <span v-if="isOwner">\n                                You\'re the owner. (<a href="#" v-on="click: destroyTeam($event)">Destroy Team</a>)\n                            </span>\n                        </span>\n                        <span v-if="!viewTeam.data.team.member">\n                            Not yet a member. (<a href="#">Join Team</a>)\n                        </span>\n                    </h4>\n                    <br>\n\n                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>\n                    <br><br>\n\n                    <h4>Members:</h4>\n                    <div class="media" v-repeat="user: viewTeam.data.users">\n                        <div class="media-left">\n                            <a href="#">\n                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">\n                            </a>\n                        </div>\n                        <div class="media-body">\n                            <h4 class="media-heading">{{ user.name }}</h4>\n                            {{ user.id == viewTeam.data.team.owner_id ? \'Team Founder\' : \'\'}}\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">\n              <p>Caution! Are you sure you want to destroy team \'{{ viewTeam.data.team.name }}\'? </p>\n              <p>Doing so will force all the team members, including you, to start over.</p>\n              <p>You will all lose your items, coins, and house.</p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDestroy">Yes, Destroy Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDestroy">Cancel</button>\n        </div>\n\n\n    </div>\n</div>\n';
 },{}]},{},[1]);

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Team extends Model
 {
+    protected $fillable = ['name', 'description', 'user_count', 'owner_id'];
+
     public function users()
     {
         return $this->hasMany('App\User');
@@ -19,6 +21,15 @@ class Team extends Model
     public function items()
     {
         return Item::ownedBy($this)->get();
+    }
+
+    public function onDelete()
+    {
+        $this->house()->delete();
+
+        foreach($this->users as $user) {
+            $user->leaveTeam();
+        }
     }
 
     public function syncOriginal()

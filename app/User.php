@@ -39,22 +39,43 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return Item::ownedBy($this->team ?: $this);
     }
 
-    public function changeCoins($change)
+    public function createHouse()
+    {
+        if($this->house())
+            return;
+
+        return House::create([
+            'owner_id' => $this->team ?: $this
+        ]);
+    }
+
+    public function leaveTeam()
+    {
+        $this->team()->dissociate();
+        $this->coins = 0;
+        $this->save();
+
+        $this->createHouse();
+    }
+
+    public function onDelete()
+    {
+        if(!$this->team) {
+            $this->team->delete();
+            return;
+        }
+
+        $this->house()->delete();
+    }
+
+    public function giveCoins($change)
     {
         $team = $this->team;
 
-        if ($change > 0) {
-            if ($team) {
-                $team->increment('coins', $change);
-            } else {
-                $this->increment('coins', $change);
-            }
-        } elseif ($change < 0) {
-            if ($team) {
-                $team->decrement('coins', $change * -1);
-            } else {
-                $this->decrement('coins', $change * -1);
-            }
+        if ($team) {
+            $team->increment('coins', $change);
+        } else {
+            $this->increment('coins', $change);
         }
     }
 
@@ -65,7 +86,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         }
 
         if ($type->item_type == ItemTypes::COIN) {
-            $this->changeCoins($count);
+            $this->giveCoins($count);
         } else {
             if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
                 $update->increment('count', $count);

@@ -7,14 +7,13 @@ module.exports = {
             teams: null,
             myTeam: null,
             viewTeam: {
+                team: null,
                 active: false,
                 data: null,
                 destroy: false,
-                destroying: false,
                 leave: false,
-                leaving: false,
                 join: false,
-                joining: false
+                loadingMessage: ""
             }
         };
     },
@@ -39,6 +38,7 @@ module.exports = {
             e.preventDefault();
 
             this.viewTeam.active = true;
+            this.viewTeam.team = team;
 
             this.$http.get('/api/teams/' + team.id).success(function(data) {
 
@@ -51,11 +51,37 @@ module.exports = {
 
         backToList: function() {
             this.viewTeam.active = false;
+            this.viewTeam.team = null;
             this.viewTeam.data = null;
         },
 
         isOwner: function() {
             return window.session_id == this.viewTeam.data.team.owner_id;
+        },
+
+        destroyTeam: function(e) {
+            e.preventDefault();
+
+            this.viewTeam.destroy = true;
+        },
+
+        cancelDestroy: function() {
+            this.viewTeam.destroy = false;
+        },
+
+        confirmDestroy: function() {
+            this.cancelDestroy();
+            this.viewTeam.loadingMessage = "DESTROYING TEAM";
+
+            var self = this;
+
+            this.$http.delete('/api/teams').success(function() {
+
+                self.viewTeam.loadingMessage = "";
+                self.teams.$remove(self.viewTeam.team);
+                self.myTeam = null;
+                self.backToList();
+            });
         }
     },
 
