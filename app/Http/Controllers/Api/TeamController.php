@@ -52,10 +52,10 @@ class TeamController extends Controller
 
         $user = User::findOrFail($request->input('user'));
 
-        $this->joinTeamFromInput($team, $user);
+        $this->joinTeamFromInput($user, $team);
     }
 
-    public function joinTeamFromInput($team, $user)
+    public function joinTeamFromInput($user, $team)
     {
         $items = $user->items()->get();
 
@@ -99,6 +99,8 @@ class TeamController extends Controller
 
         $this->validate($request, ['name' => 'required|min:2']);
 
+        $house = $user->house();
+
         $team = Team::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
@@ -106,11 +108,16 @@ class TeamController extends Controller
             'owner_id' => $user->id
         ]);
 
-        $house = $user->house;
         $house->owner_id = $team;
         $house->save();
 
         $this->joinTeamFromInput($user, $team);
+
+        return [
+            'id' => $team->id,
+            'name' => $team->name,
+            'user_count' => 1
+        ];
     }
 
     public function updateDesc(Request $request)

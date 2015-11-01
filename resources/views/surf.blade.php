@@ -57,7 +57,7 @@
                                 <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                             </ul>
                             <div class="online">
-                                Team Members Online <span>(2)</span> | Friends Online <span>(6)</span>
+                                Team Members Online <span>(Coming Soon)</span> | Friends Online <span>(Coming Soon)</span>
                             </div>
                         </div>
                     </div>

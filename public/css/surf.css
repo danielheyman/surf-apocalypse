@@ -69,7 +69,8 @@ body {
   left: 5%;
   width: 90%;
   margin-bottom: 50px;
-  border-radius: 5px; }
+  border-radius: 5px;
+  overflow: auto; }
 
 .billboard-shadow {
   border-radius: 5px;
@@ -81,6 +82,9 @@ body {
 
 .frame-wrapper {
   box-sizing: border-box;
+  padding: 40px; }
+
+.frame-wrapper.map {
   padding: 40px 40px 0; }
 
 iframe {
@@ -382,11 +386,12 @@ iframe {
 
 .content h1 {
   padding-top: 0;
-  padding-bottom: 30px;
+  padding-bottom: 20px;
   text-align: center;
   letter-spacing: 3px;
   color: #ececec;
-  text-shadow: 0 0 10px #606060; }
+  text-shadow: 0 0 10px #606060;
+  margin: -15px 0 0; }
 
 .content .table {
   overflow: hidden;

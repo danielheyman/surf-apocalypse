@@ -13,9 +13,9 @@ class Team extends Model
         return $this->hasMany('App\User');
     }
 
-    public function house()
+    public function house($fields = ['*'])
     {
-        return House::ownedBy($this)->first();
+        return House::ownedBy($this)->first($fields);
     }
 
     public function items()
@@ -25,7 +25,7 @@ class Team extends Model
 
     public function onDelete()
     {
-        $this->house()->delete();
+        House::ownedBy($this)->delete();
 
         foreach($this->users as $user) {
             $user->leaveTeam();

@@ -6,6 +6,12 @@ module.exports = {
         return {
             teams: null,
             myTeam: null,
+            newTeam: {
+                active: false,
+                name: '',
+                description: '',
+                posting: false
+            },
             viewTeam: {
                 team: null,
                 active: false,
@@ -81,6 +87,31 @@ module.exports = {
                 self.teams.$remove(self.viewTeam.team);
                 self.myTeam = null;
                 self.backToList();
+            });
+        },
+
+        createTeam: function() {
+            this.newTeam.active = true;
+        },
+
+        cancelCreate: function() {
+            this.newTeam.active = false;
+            this.newTeam.name = "";
+            this.newTeam.description = "";
+        },
+
+        confirmCreate: function() {
+            this.newTeam.posting = true;
+
+            var self = this;
+
+            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).success(function(site) {
+
+                self.teams.push(site);
+                self.myTeam = site;
+
+                self.cancelCreate();
+                this.newTeam.posting = false;
             });
         }
     },

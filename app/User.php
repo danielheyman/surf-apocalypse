@@ -39,9 +39,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return Item::ownedBy($this->team ?: $this);
     }
 
-    public function createHouse()
+    public function createHouse($skipHouseCheck = false)
     {
-        if($this->house())
+        if(!$skipHouseCheck && $this->house())
             return;
 
         return House::create([
@@ -55,7 +55,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         $this->coins = 0;
         $this->save();
 
-        $this->createHouse();
+        $this->createHouse(true);
     }
 
     public function onDelete()

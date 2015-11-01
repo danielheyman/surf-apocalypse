@@ -13,14 +13,14 @@
         <h1>TEAMS</h1>
 
         <span v-if="!viewTeam.active">
-            <div class="panel panel-default">
+            <div class="panel panel-default" v-if="!newTeam.active">
                 <div class="panel-body">
                     <h4>Teams are pretty snazzy, but what are they exactly?</h4>
                     <ul>
                         <li>Joining a team puts you at a great advantage.</li>
                         <li>All coins and other materials will be shared among the team.</li>
                         <li>The team will always be surfing together, as you will always be spawned on the same map.</li>
-                        <li>As a human, you will be sharing and building upon a mutual house.</li>
+                        <li>While a human, you will be sharing and building upon a mutual house.</li>
                         <li>A maximum of four players per team.</li>
                         <li>Good luck and fight together!</li>
                     </ul>
@@ -29,13 +29,26 @@
                     <ul>
                         <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>
                         <li>Should you choose to leave a team, you will have to start over without any supplies.</li>
-                        <li>As a human, leaving a team, will force you to build a new house.</li>
+                        <li>While a human, leaving a team will force you to build a new house.</li>
                         <li>Can be very addicting :)</li>
                     </ul>
                 </div>
             </div>
 
-            <table class="table table-striped">
+            <div class="panel panel-default" v-if="newTeam.active">
+                <div class="panel-body">
+                    <h4>Before creating a team, be aware of the following:</h4>
+                    <ul>
+                        <li>All coins and other materials will be shared among the team.</li>
+                        <li>While a human, you will be sharing and building upon a mutual house.</li>
+                        <li>As the creator, any house you own will carry over.</li>
+                        <li>Should you choose to destroy the team, you will have to start over without any supplies.</li>
+                        <li>While a human, destroying the team will force you to build a new house.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="table table-striped" v-if="!newTeam.active">
                 <thead>
                     <tr>
                         <th>Team Name</th>
@@ -56,6 +69,34 @@
                     </tr>
                 </tbody>
             </table>
+
+            <button type="button" class="btn btn-primary right" v-on="click: createTeam" v-show="!myTeam && !newTeam.active">Create a Team</button>
+
+            <div class="panel panel-default" v-show="newTeam.active">
+                <div class="panel-body">
+                    <div class="loader-inner" v-show="newTeam.posting">
+                        <div class="ball"></div>
+                        <p>ADDING SITE</p>
+                    </div>
+
+                    <div v-show="!newTeam.posting">
+                        <div class="form-group">
+                            <label for="teamName">Team Name:</label>
+                            <input type="text" class="form-control" v-model="newTeam.name" v-validate="minLength: 2">
+                            <small class="text-danger" v-if="newTeam.name && validation.newTeam.name.minLength">Name is too short</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="siteUrl">Team Descripion:</label>
+                            <textarea type="text" class="form-control" v-model="newTeam.description"></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmCreate">Create Team</button>
+                        <button type="button" class="btn btn-default" v-on="click: cancelCreate">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
         </span>
 
         <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy">

@@ -84,6 +84,7 @@ body {
     width: 90%;
     margin-bottom: 50px;
     border-radius: 5px;
+    overflow: auto;
 }
 
 .billboard-shadow {
@@ -100,6 +101,10 @@ body {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
+    padding: 40px;
+}
+
+.frame-wrapper.map {
     padding: 40px 40px 0;
 }
 
@@ -490,11 +495,12 @@ iframe {
 
 .content h1 {
     padding-top: 0;
-    padding-bottom: 30px;
+    padding-bottom: 20px;
     text-align: center;
     letter-spacing: 3px;
     color: #ececec;
     text-shadow: 0 0 10px #606060;
+    margin: -15px 0 0;
 }
 
 .content .table {

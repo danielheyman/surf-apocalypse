@@ -19,7 +19,7 @@ class SiteController extends Controller
 
     public function toggleSite(Request $request, $id)
     {
-        $site = auth()->user()->websites()->where('id', $id)->first();
+        $site = auth()->user()->websites()->where('id', $id)->first(['id', 'enabled']);
         if($site->enabled == $request->input('enabled'))
             return;
 
