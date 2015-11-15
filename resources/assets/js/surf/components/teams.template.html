@@ -1,9 +1,6 @@
-<div class="billboard-chain-left"></div>
-<div class="billboard-chain-right"></div>
-<div class="billboard"></div>
-<div class="billboard-shadow"></div>
-<div class="billboard-sign"></div>
-<div class="frame-wrapper">
+<billboard></billboard>
+
+<div class="billboard-content">
     <div class="loader" v-show="!teams">
         <div class="ball"></div>
         <p>LOADING TEAMS</p>
@@ -99,7 +96,7 @@
 
         </span>
 
-        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy">
+        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy && !viewTeam.leave">
             <div class="panel-body">
                 <div class="loader-inner" v-show="!viewTeam.data || viewTeam.loadingMessage">
                     <div class="ball"></div>
@@ -110,10 +107,10 @@
                     <h4>
                         {{ viewTeam.data.team.name }}:
                         <span v-if="viewTeam.data.team.member">
-                            <span v-if="!isOwner">
-                                You're a member. (<a href="#">Leave Team</a>)
+                            <span v-if="!isOwner()">
+                                You're a member. (<a href="#" v-on="click: leaveTeam($event)">Leave Team</a>)
                             </span>
-                            <span v-if="isOwner">
+                            <span v-if="isOwner()">
                                 You're the owner. (<a href="#" v-on="click: destroyTeam($event)">Destroy Team</a>)
                             </span>
                         </span>
@@ -122,6 +119,9 @@
                         </span>
                     </h4>
                     <br>
+
+                    <span v-if="viewTeam.data.team.description"> <p>{{ viewTeam.data.team.description }}</p><br> </span>
+
 
                     <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>
                     <br><br>
@@ -141,6 +141,15 @@
                 </div>
 
             </div>
+        </div>
+
+        <div class="alert alert-danger" role="alert" v-if="viewTeam.leave">
+              <p>Caution! Are you sure you want to leave team '{{ viewTeam.data.team.name }}'? </p>
+              <p>Doing so will force you to start over.</p>
+              <p>You will lose all your items, coins, and house.</p>
+              <br>
+              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmLeave">Yes, Leave Team</button>
+              <button type="button" class="btn btn-default" v-on="click: cancelLeave">Cancel</button>
         </div>
 
         <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">

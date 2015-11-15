@@ -61,7 +61,7 @@ body {
 
 .billboard,
 .billboard-shadow,
-.frame-wrapper {
+.billboard-content {
   position: absolute;
   top: 49px;
   right: 5%;
@@ -80,11 +80,11 @@ body {
   background: url("../../img/surf/bill-bg2.jpg"), url("../../img/surf/bill-bg.jpg");
   background-blend-mode: overlay; }
 
-.frame-wrapper {
+.billboard-content {
   box-sizing: border-box;
   padding: 40px; }
 
-.frame-wrapper.map {
+.billboard-content.map {
   padding: 40px 40px 0; }
 
 iframe {
@@ -303,14 +303,14 @@ iframe {
   50% {
     background: linear-gradient(rgba(138, 36, 36, 0.6), rgba(138, 36, 36, 0.6)), url("../../img/surf/send-button.png"); } }
 
-.big-loader {
+.loader-inline {
   background: #afa09f;
   position: absolute;
   height: 100%;
   width: 100%;
   left: 0;
   top: 0; }
-  .big-loader .loader p {
+  .loader-inline .loader {
     font-size: 30px; }
 
 .loader {
@@ -323,8 +323,14 @@ iframe {
   margin: auto;
   text-align: center; }
 
-.loader .ball,
-.loader-inner .ball {
+.loader, .loader-inner {
+  font-family: sans-serif;
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: #fff; }
+
+.loader::before, .loader-inner::before {
+  content: "";
   display: inline-block;
   width: 20px;
   height: 20px;
@@ -333,22 +339,13 @@ iframe {
   border-radius: 50%;
   background-color: #fff; }
 
-.loader p,
-.loader-inner p {
-  font-family: sans-serif;
-  font-size: 15px;
-  margin-top: 5px;
-  letter-spacing: 3px;
-  color: #fff; }
-
 .loader-inner {
   height: 50px;
   margin: auto;
-  text-align: center; }
-  .loader-inner .ball {
+  text-align: center;
+  color: #333; }
+  .loader-inner::before {
     background-color: #333; }
-  .loader-inner p {
-    color: #333; }
 
 @-webkit-keyframes motion {
   0% {
@@ -404,7 +401,7 @@ iframe {
 .content .table-striped > thead > tr {
   background: #adadad; }
 
-.content .frame-wrapper {
+.content .billboard-content {
   overflow: auto;
   margin-top: 40px;
   margin-bottom: 90px;
@@ -493,5 +490,75 @@ iframe {
 
 .hidden {
   display: none; }
+
+.profile {
+  position: absolute;
+  z-index: 1;
+  top: 20%;
+  left: 20%;
+  border-radius: 5px;
+  box-shadow: 0 0 10px #000;
+  background: #fff;
+  width: 400px;
+  overflow: hidden; }
+  .profile .close {
+    position: absolute;
+    right: 10px;
+    top: 5px; }
+  .profile .name {
+    height: 35px;
+    font-size: 17px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 35px;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    background: #eee; }
+  .profile .messages {
+    padding: 10px;
+    overflow: auto;
+    height: 300px; }
+    .profile .messages > div {
+      max-width: 75%; }
+    .profile .messages .right {
+      float: right;
+      clear: both; }
+      .profile .messages .right .message {
+        float: right;
+        background: #ccc; }
+      .profile .messages .right .info {
+        clear: both;
+        float: right; }
+    .profile .messages .message {
+      display: inline-block;
+      border-radius: 10px;
+      background: #eee;
+      padding: 4px 10px; }
+    .profile .messages .info {
+      font-size: smaller;
+      display: inline-block;
+      margin-bottom: 10px; }
+  .profile .form {
+    border-top: 1px solid #ccc; }
+    .profile .form input {
+      width: 335px;
+      height: 35px;
+      margin: 0;
+      padding: 5px 10px;
+      border: 0;
+      border-radius: 0;
+      float: left;
+      outline: none; }
+    .profile .form .submit {
+      width: 65px;
+      height: 35px;
+      line-height: 30px;
+      text-align: center;
+      background: #eee;
+      float: left;
+      border-left: 1px solid #ccc;
+      cursor: pointer; }
+      .profile .form .submit:hover {
+        background: #ddd; }
 
 /*# sourceMappingURL=surf.css.map */

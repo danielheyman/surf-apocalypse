@@ -13,6 +13,12 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 $(document).ready(function() {
 
+    var Billboard = Vue.extend({
+        template: require('./components/billboard.template.html')
+    });
+
+    Vue.component('billboard', Billboard);
+
     new Vue({
         el: '#app',
 
@@ -27,7 +33,8 @@ $(document).ready(function() {
             'chat': require('./components/chat'),
             'map': require('./components/map'),
             'sites': require('./components/sites'),
-            'teams': require('./components/teams')
+            'teams': require('./components/teams'),
+            'profile': require('./components/profile')
         },
 
         methods: {

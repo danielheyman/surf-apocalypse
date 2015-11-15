@@ -65,6 +65,31 @@ module.exports = {
             return window.session_id == this.viewTeam.data.team.owner_id;
         },
 
+        leaveTeam: function(e) {
+            e.preventDefault();
+
+            this.viewTeam.leave = true;
+        },
+
+        cancelLeave: function() {
+            this.viewTeam.leave = false;
+        },
+
+        confirmLeave: function() {
+            this.cancelLeave();
+            this.viewTeam.loadingMessage = "LEAVING TEAM";
+
+            var self = this;
+
+            this.$http.post('/api/teams/leave').success(function() {
+
+                self.viewTeam.loadingMessage = "";
+                self.viewTeam.team.user_count--;
+                self.myTeam = null;
+                self.backToList();
+            });
+        },
+
         destroyTeam: function(e) {
             e.preventDefault();
 

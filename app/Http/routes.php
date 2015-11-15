@@ -52,4 +52,12 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
 
     Route::get('map', 'MapController@getMap');
     Route::post('map', 'MapController@postMap');
+
+    Route::get('pms/event', function()
+    {
+        //True to an extent. For example, in Laravel 5 I cannot access $app straight off the board. Therefore, I have to use \App()->make('myController');
+        //$app = app();
+        $controller = $app->make('ExampleController');
+        return $controller->callAction('index', $parameters = array());
+    });
 });

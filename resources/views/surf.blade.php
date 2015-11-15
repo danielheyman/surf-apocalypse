@@ -22,7 +22,7 @@
     </head>
 
     <body id="app" v-class="bg: !loading">
-        <div v-show="loading" class="big-loader">
+        <div v-show="loading" class="loader-inline">
             <div class="loader">
                 <div class="ball"></div>
                 <p>LOADING TOOLS</p>
@@ -51,18 +51,22 @@
                                 <li v-on="click: navigate('map')">Surf</li>
                                 <li v-on="click: navigate('sites')">Sites</li>
                                 <li v-on="click: navigate('teams')">Teams</li>
-                                <li>Items</li>
+                                <!-- <li>Items</li> -->
                                 <li>Shop</li>
                                 <li>House</li>
                                 <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                             </ul>
                             <div class="online">
-                                Team Members Online <span>(Coming Soon)</span> | Friends Online <span>(Coming Soon)</span>
+                                Team Members Online <span>(Coming Soon)</span>
+                                | Messages <span>(Coming Soon)</span>
+                                 <!-- | Friends Online <span>(Coming Soon)</span> -->
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <profile></profile>
         </div>
     </body>
 

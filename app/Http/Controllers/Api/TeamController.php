@@ -26,7 +26,7 @@ class TeamController extends Controller
 
     public function getTeam($id)
     {
-        $team = Team::findOrFail($id, ['id', 'name', 'user_count', 'owner_id']);
+        $team = Team::findOrFail($id, ['id', 'name', 'description', 'user_count', 'owner_id']);
 
         $data = [
             "team" => $team,
@@ -68,14 +68,17 @@ class TeamController extends Controller
         }
 
         $team->increment('coins', $user->coins);
+        $team->increment('user_count');
     }
 
     public function leaveTeam()
     {
         $user = auth()->user();
 
-        if(!$user->team)
+        if(!($team = $user->team))
             return;
+
+        $team->decrement('user_count');
 
         $user->leaveTeam();
     }
