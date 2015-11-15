@@ -26,7 +26,8 @@ $(document).ready(function() {
             currentView: 'teams',
             loading: true,
             notifications: [],
-            coins: 0
+            coins: 0,
+            openProfiles: []
         },
 
         components: {
@@ -40,6 +41,18 @@ $(document).ready(function() {
         methods: {
             navigate: function(to) {
                 this.currentView = to;
+            },
+
+            closeProfile: function(id) {
+                this.openProfiles.$remove(this.profileIndex(id));
+            },
+
+            profileIndex: function(id) {
+                for (var i = 0; i < this.openProfiles.length; i++)
+                    if (this.openProfiles[i].id == id)
+                        return i;
+
+                return -1;
             }
         },
 
@@ -73,19 +86,34 @@ $(document).ready(function() {
                 self.coins = data.coins;
             });
 
+            socket.on('App\\Events\\SentPM', function(data) {
+                if(self.profileIndex(data.from) == -1)
+                    return;
+
+                self.$broadcast('received-pm', data);
+            });
+
             $(".footer").mouseenter(function() {
                 $(".wrapper").removeClass("small-footer");
             }).mouseleave(function() {
                 $(".wrapper").addClass("small-footer");
             });
 
+            this.$on('open-profile', function(data) {
+                if(window.session_id == data.id || this.profileIndex(data.id) != -1)
+                    return;
+
+                self.openProfiles.push(data);
+                return false;
+            });
+
             this.$on('chat-sent', function(message) {
-                this.$broadcast('chat-sent', message);
+                self.$broadcast('chat-sent', message);
                 return false;
             });
 
             this.$on('chat-received', function(message) {
-                this.$broadcast('chat-received', message);
+                self.$broadcast('chat-received', message);
                 return false;
             });
 

@@ -50,7 +50,8 @@ module.exports = {
 
             this.messages[data.c].push({
                 name: data.n,
-                text: data.m
+                text: data.m,
+                id: data.i
             });
 
             var self = this;
@@ -59,13 +60,13 @@ module.exports = {
                 this.unseen[data.c] = true;
 
             if (scrolledToBottom && data.c == this.channel) {
-                setTimeout(function() {
+                this.$nextTick(function () {
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                     }, 100, function() {
                         self.removeOldMessages(data.c);
                     });
-                }, 10);
+                });
             }
 
             if (data.c == "map" && data.i) {
@@ -98,6 +99,15 @@ module.exports = {
 
         currentChannel: function(channel) {
             return this.channel == channel;
+        },
+
+        openProfile: function(event, name, id) {
+            event.preventDefault();
+
+            console.log(name, id);
+
+            if(id)
+                this.$dispatch('open-profile', {name: name, id: id});
         }
     },
 

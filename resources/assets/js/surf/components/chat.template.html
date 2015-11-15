@@ -1,7 +1,7 @@
 <div class="messages">
     <div class="wrap" v-el="messages">
         <div class="message" v-repeat="messages[channel]">
-            <span>{{ name }}:</span>{{ text }}
+            <span><a href="#" v-on="click: openProfile($event, name, id)">{{ name }}</a>:</span>{{ text }}
         </div>
     </div>
 </div>

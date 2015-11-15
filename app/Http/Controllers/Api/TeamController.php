@@ -52,6 +52,9 @@ class TeamController extends Controller
 
         $user = User::findOrFail($request->input('user'));
 
+        if($user->team)
+            return;
+
         $this->joinTeamFromInput($user, $team);
     }
 

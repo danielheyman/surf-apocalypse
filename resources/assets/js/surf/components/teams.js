@@ -138,6 +138,11 @@ module.exports = {
                 self.cancelCreate();
                 this.newTeam.posting = false;
             });
+        },
+
+        openProfile: function(event, user) {
+            event.preventDefault();
+            this.$dispatch('open-profile', {name: user.name, id: user.id});
         }
     },
 

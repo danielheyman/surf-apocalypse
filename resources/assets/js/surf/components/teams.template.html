@@ -71,7 +71,7 @@
 
             <div class="panel panel-default" v-show="newTeam.active">
                 <div class="panel-body">
-                    <div class="loader-inner" v-show="newTeam.posting">
+                    <div class="loader-inline" v-show="newTeam.posting">
                         <div class="ball"></div>
                         <p>ADDING SITE</p>
                     </div>
@@ -98,7 +98,7 @@
 
         <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy && !viewTeam.leave">
             <div class="panel-body">
-                <div class="loader-inner" v-show="!viewTeam.data || viewTeam.loadingMessage">
+                <div class="loader-inline" v-show="!viewTeam.data || viewTeam.loadingMessage">
                     <div class="ball"></div>
                     <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : 'LOADING TEAM' }}</p>
                 </div>
@@ -134,7 +134,7 @@
                             </a>
                         </div>
                         <div class="media-body">
-                            <h4 class="media-heading">{{ user.name }}</h4>
+                            <h4 class="media-heading"><a href="#" v-on="click: openProfile($event, user)">{{ user.name }}</a></h4>
                             {{ user.id == viewTeam.data.team.owner_id ? 'Team Founder' : ''}}
                         </div>
                     </div>

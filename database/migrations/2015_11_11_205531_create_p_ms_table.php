@@ -18,7 +18,7 @@ class CreatePMsTable extends Migration
             $table->boolean('sender');
             $table->text('message');
             $table->string('event')->nullable();
-            $table->json('event_data');
+            $table->json('event_data')->nullable();
 
             $table->integer('pm_group_id')->unsigned();
             $table->foreign('pm_group_id')->references('id')->on('pm_groups')->onDelete('cascade');
@@ -32,6 +32,6 @@ class CreatePMsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('p_ms');
+        Schema::drop('pms');
     }
 }

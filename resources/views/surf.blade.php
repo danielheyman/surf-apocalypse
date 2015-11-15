@@ -22,7 +22,7 @@
     </head>
 
     <body id="app" v-class="bg: !loading">
-        <div v-show="loading" class="loader-inline">
+        <div v-show="loading" class="loader-big">
             <div class="loader">
                 <div class="ball"></div>
                 <p>LOADING TOOLS</p>
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <profile></profile>
+            <span v-repeat="profile: openProfiles"><profile user-id="@{{ profile.id }}" user-name="@{{ profile.name }}" on-close="@{{ closeProfile }}"></profile></span>
         </div>
     </body>
 

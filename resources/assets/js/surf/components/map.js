@@ -114,6 +114,10 @@ module.exports = {
 
         loadedSite: function() {
             this.siteLoaded = true;
+        },
+
+        openProfile: function(character) {
+            this.$dispatch('open-profile', {name: character.n, id: character.i});
         }
     },
 

@@ -109,6 +109,7 @@ redis.on('message', function(channel, message) {
     message = JSON.parse(message);
     var user_id = message.data.data.user_id;
     if (user_id) {
+        user_id = parseInt(user_id);
         if (users[user_id])
             users[user_id].socket_info.emit(message.event, message.data.data.data);
     } else
@@ -140,7 +141,8 @@ io.on('connection', function(socket) {
             socket.broadcast.emit("chat", {
                 c: 'global',
                 n: socket.name,
-                m: message.m
+                m: message.m,
+                i: socket.user_id
             });
         } else if (message.c == 'map') {
             if (!socket.current_map)

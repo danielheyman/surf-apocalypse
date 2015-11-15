@@ -15,10 +15,10 @@ class CreatePMGroupsTable extends Migration
         Schema::create('pm_groups', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
-            $table->timestamp('user_last_seen');
-            $table->timestamp('user2_last_seen');
-            $table->timestamp('user_last_message');
-            $table->timestamp('user2_last_message');
+            $table->timestamp('user_last_seen')->nullable();
+            $table->timestamp('user2_last_seen')->nullable();
+            $table->timestamp('user_last_message')->nullable();
+            $table->timestamp('user2_last_message')->nullable();
 
 
             $table->integer('user_id')->unsigned();
@@ -36,6 +36,6 @@ class CreatePMGroupsTable extends Migration
      */
     public function down()
     {
-        Schema::drop('p_m_groups');
+        Schema::drop('pm_groups');
     }
 }
