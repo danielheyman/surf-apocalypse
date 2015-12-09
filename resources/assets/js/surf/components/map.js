@@ -149,8 +149,8 @@ module.exports = {
 
             if (e.keyCode != 38) return;
 
-            var myLocationStart = self.getLeftPos(self.charXPercent) + 30;
-            var myLocationEnd = myLocationStart + $(self.$$.character).width() - 30;
+            var myLocationStart = self.getLeftPos(self.charXPercent) + $(self.$$.character).width() / 2 - 30;
+            var myLocationEnd = myLocationStart + 60;
 
             for (var x = 0; x < self.site.items.length; x++) {
                 if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {

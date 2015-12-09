@@ -79,7 +79,7 @@ body {
     position: absolute;
     top: 49px;
     right: 5%;
-    bottom: 49px;
+    bottom: 19px;
     left: 5%;
     width: 90%;
     margin-bottom: 50px;
@@ -159,7 +159,7 @@ iframe {
     .name {
         position: absolute;
         z-index: 3;
-        bottom: -18px;
+        bottom: -15px;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -181,7 +181,7 @@ iframe {
     .message {
         position: absolute;
         z-index: 3;
-        bottom: 100%;
+        bottom: 90%;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -191,7 +191,7 @@ iframe {
             display: inline-block;
             max-width: 100%;
             margin-bottom: 3px;
-            padding: 8px;
+            padding: 4px;
             word-wrap: break-word;
             color: #fff;
             border-radius: 3px;
@@ -213,11 +213,17 @@ iframe {
 }
 
 .human {
-    bottom: 9px;
-    width: 127px;
-    height: 127px;
-    max-width: 127px;
-    background: url("../../img/surf/human-sheet.png");
+    bottom: 5px;
+    width: 110px;
+    height: 110px;
+    max-width: 110px;
+    background: url("../../img/surf/sprites/torso/shirts/longsleeve/brown_longsleeve.png"),
+                url("../../img/surf/sprites/head/caps/leather_cap.png"),
+                url("../../img/surf/sprites/hair/plain/blonde.png"),
+                url("../../img/surf/sprites/legs/pants/teal_pants.png"),
+                url("../../img/surf/sprites/feet/shoes/brown_shoes.png"),
+                url("../../img/surf/sprites/body/light.png");
+    background-size: 900% 400%;
 }
 
 .footer {
@@ -566,7 +572,7 @@ iframe {
     }
 
     img {
-        max-width: 30px;
+        max-width: 25px;
         margin-bottom: 15px;
         -webkit-animation: item_float 0.7s infinite alternate linear;
         animation: item_float 0.7s infinite alternate linear;

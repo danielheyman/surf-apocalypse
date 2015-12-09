@@ -8,35 +8,33 @@ module.exports = {
             interval: 1,
             states: {
                 IDLE_RIGHT: {
-                    frames: 6,
-                    intervals: 5,
-                    line: 1
-                },
-                IDLE_LEFT: {
-                    frames: 6,
-                    intervals: 5,
-                    revese: true,
+                    frames: 2,
+                    intervals: 15,
                     line: 2
                 },
+                IDLE_LEFT: {
+                    frames: 2,
+                    intervals: 15,
+                    line: 1
+                },
                 WALK_RIGHT: {
-                    frames: 14,
-                    intervals: 1,
-                    line: 3,
+                    frames: 9,
+                    intervals: 3,
+                    line: 4,
                     moving: true
                 },
                 WALK_LEFT: {
-                    frames: 14,
-                    intervals: 1,
-                    reverse: true,
-                    line: 4,
+                    frames: 9,
+                    intervals: 3,
+                    line: 3,
                     moving: true
                 }
             },
             state: null,
             stateKey: 'IDLE_RIGHT',
             intervals: [],
-            height: 127,
-            width: 127
+            height: 110,
+            width: 110
         };
     },
 
@@ -87,13 +85,9 @@ module.exports = {
 
             $(this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
-            if (!this.state.reverse) {
-                if (++this.frame > this.state.frames)
-                    this.frame = 1;
-            } else {
-                if (--this.frame < 1)
-                    this.frame = this.state.frames;
-            }
+
+            if (--this.frame < 1)
+                this.frame = this.state.frames;
         },
 
         initNewState: function(state) {
