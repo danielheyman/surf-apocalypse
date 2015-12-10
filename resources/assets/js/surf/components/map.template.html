@@ -18,6 +18,6 @@
     </div>
     <character v-el="character" highlight="true" movable="true" name="{{ name }}" message="{{ message }}" on-move="{{ moveCharacter }}" current-state="{{@ state }}"></character>
     <div class="items">
-        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: item.icon" /></span>
+        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>
     </div>
 </div>

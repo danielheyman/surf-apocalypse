@@ -7,26 +7,26 @@ module.exports = {
             frame: 13,
             interval: 1,
             states: {
-                IDLE_RIGHT: {
-                    frames: 2,
-                    intervals: 15,
-                    line: 2
-                },
                 IDLE_LEFT: {
                     frames: 2,
                     intervals: 15,
                     line: 1
                 },
-                WALK_RIGHT: {
-                    frames: 9,
-                    intervals: 3,
-                    line: 4,
-                    moving: true
+                IDLE_RIGHT: {
+                    frames: 2,
+                    intervals: 15,
+                    line: 2
                 },
                 WALK_LEFT: {
                     frames: 9,
                     intervals: 3,
                     line: 3,
+                    moving: true
+                },
+                WALK_RIGHT: {
+                    frames: 9,
+                    intervals: 3,
+                    line: 4,
                     moving: true
                 }
             },

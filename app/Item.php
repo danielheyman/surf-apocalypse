@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
-    use OwnedByUserOrTeam;
-
-    protected $fillable = ['count', 'owner_id'];
+    protected $fillable = ['count', 'user_id'];
 
     public function itemType()
     {

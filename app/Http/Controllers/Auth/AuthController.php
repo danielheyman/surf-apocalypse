@@ -24,7 +24,7 @@ class AuthController extends Controller
 
     public function postRegister(RegisterRequest $request)
     {
-        $fields = array_merge($request->all(), ['confirmation_code' => str_random(30), 'human' => true]);
+        $fields = array_merge($request->all(), ['confirmation_code' => str_random(30)]);
 
         $user = User::create($fields);
 

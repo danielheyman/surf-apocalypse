@@ -51,9 +51,9 @@
                                 <li v-on="click: navigate('map')">Surf</li>
                                 <li v-on="click: navigate('sites')">Sites</li>
                                 <li v-on="click: navigate('teams')">Teams</li>
-                                <!-- <li>Items</li> -->
+                                <li>Items</li>
+                                <li>Equip</li>
                                 <li>Shop</li>
-                                <li>House</li>
                                 <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                             </ul>
                             <div class="online">

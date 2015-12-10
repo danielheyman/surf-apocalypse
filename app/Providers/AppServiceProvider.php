@@ -25,15 +25,6 @@ class AppServiceProvider extends ServiceProvider
         Website::deleted(function ($site) {
             $site->updateUserSiteCount();
         });
-
-        User::deleting(function ($user) {
-            $user->onDelete();
-        });
-
-        Team::deleting(function ($team) {
-            $team->onDelete();
-        });
-
     }
 
     /**

@@ -55,23 +55,10 @@ class TeamController extends Controller
         if($user->team)
             return;
 
-        $this->joinTeamFromInput($user, $team);
-    }
-
-    public function joinTeamFromInput($user, $team)
-    {
-        $items = $user->items()->get();
-
         $user->team()->associate($team);
         $user->save();
 
-        foreach($items as $item) {
-            $user->giveItem($item->item_type_id, $item->count);
-            $item->delete();
-        }
-
-        $team->increment('coins', $user->coins);
-        $team->increment('user_count');
+        $team->increment('health', $user->healthOrStrength);
     }
 
     public function leaveTeam()
@@ -81,9 +68,16 @@ class TeamController extends Controller
         if(!($team = $user->team))
             return;
 
-        $team->decrement('user_count');
+        $user->team()->dissociate();
+        $user->healthOrStrength = floor($team->health / $team->user_count);
+        if($user->healthOrStrength <= 0)
+            $user->healthOrStrength = 5;
+        $user->save();
 
-        $user->leaveTeam();
+        $team->health = $team->health - $user->healthOrStrength;
+        if($team->health <= 0)
+            $team->health = 5;
+        $team->save();
     }
 
     public function deleteTeam(Request $request)
@@ -93,6 +87,11 @@ class TeamController extends Controller
         if(!($team = $user->team) || $user->id != $team->owner_id)
             return;
 
+        $health = $team->health / $team->user_count;
+        foreach($team->users as $u) {
+            $u->healthOrStrength = $health;
+            $u->save();
+        }
         $team->delete();
     }
 
@@ -105,19 +104,16 @@ class TeamController extends Controller
 
         $this->validate($request, ['name' => 'required|min:2']);
 
-        $house = $user->house();
 
         $team = Team::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
             'user_count' => 1,
-            'owner_id' => $user->id
+            'user_id' => $user->id
         ]);
 
-        $house->owner_id = $team;
-        $house->save();
-
-        $this->joinTeamFromInput($user, $team);
+        $user->team()->associate($team);
+        $user->save();
 
         return [
             'id' => $team->id,

@@ -29,54 +29,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return $this->hasMany('App\Website');
     }
 
-    public function house()
-    {
-        return House::ownedBy($this->team ?: $this)->first();
-    }
-
     public function items()
     {
-        return Item::ownedBy($this->team ?: $this);
-    }
-
-    public function createHouse($skipHouseCheck = false)
-    {
-        if(!$skipHouseCheck && $this->house())
-            return;
-
-        return House::create([
-            'owner_id' => $this->team ?: $this
-        ]);
-    }
-
-    public function leaveTeam()
-    {
-        $this->team()->dissociate();
-        $this->coins = 0;
-        $this->save();
-
-        $this->createHouse(true);
-    }
-
-    public function onDelete()
-    {
-        if(!$this->team) {
-            $this->team->delete();
-            return;
-        }
-
-        $this->house()->delete();
-    }
-
-    public function giveCoins($change)
-    {
-        $team = $this->team;
-
-        if ($team) {
-            $team->increment('coins', $change);
-        } else {
-            $this->increment('coins', $change);
-        }
+        return $this->hasMany('App\Item');
     }
 
     public function giveItem($item_type, $count)
@@ -86,14 +41,14 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         }
 
         if ($type->item_type == ItemTypes::COIN) {
-            $this->giveCoins($count);
+            $this->increment('coins', $change);
         } else {
             if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
                 $update->increment('count', $count);
             } else {
                 $type->items()->create([
                     'count' => $count,
-                    'owner_id' => $this->team ?: $this,
+                    'user_id' => $this->id,
                 ]);
             }
         }

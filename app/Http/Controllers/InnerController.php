@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use Session;
 
-class SurfController extends Controller
+class InnerController extends Controller
 {
     public function __construct()
     {
@@ -13,6 +13,6 @@ class SurfController extends Controller
     public function index()
     {
         Session::put('name', auth()->user()->name);
-        return view('surf');
+        return view('inner');
     }
 }

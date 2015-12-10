@@ -118,6 +118,11 @@ module.exports = {
 
         openProfile: function(character) {
             this.$dispatch('open-profile', {name: character.n, id: character.i});
+        },
+
+        getItemSrc: function(icon) {
+            var id = icon % 100;
+            return '../img/surf/icons/' + (id < 10 ? '0' : '') + id + '.' + (Math.floor(icon / 100) ? 'jpg' : 'png');
         }
     },
 

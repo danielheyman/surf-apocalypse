@@ -18,8 +18,8 @@ class CreateUsersTable extends Migration
             $table->string('confirmation_code', 30)->nullable();
             $table->decimal('coins', 10, 2)->unsigned()->default(0);
             $table->smallInteger('website_count')->unsigned()->default(0);
-            $table->smallInteger('hunger')->unsigned()->default(0);
-            $table->boolean('human');
+            $table->smallInteger('healthOrStrength')->unsigned()->default(100);
+            $table->boolean('human')->default(true);
 
             $table->integer('team_id')->unsigned()->nullable();
             $table->foreign('team_id')->references('id')->on('teams')->onDelete('set null');

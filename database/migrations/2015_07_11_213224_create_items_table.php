@@ -14,12 +14,13 @@ class CreateItemsTable extends Migration
             $table->increments('id');
             $table->smallInteger('count')->unsigned();
 
-            $table->integer('owner_id')->unsigned();
-            $table->boolean('team_owned');
             $table->integer('item_type_id')->unsigned();
             $table->foreign('item_type_id')->references('id')->on('item_types')->onDelete('cascade');
 
-            $table->unique(['owner_id', 'team_owned', 'item_type_id']);
+            $table->integer('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            $table->unique(['item_type_id', 'user_id']);
 
             $table->timestamps();
         });

@@ -159,7 +159,7 @@ iframe {
     .name {
         position: absolute;
         z-index: 3;
-        bottom: -15px;
+        bottom: -13px;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -641,6 +641,7 @@ iframe {
                 margin-left: 8px;
                 content: '';
                 background: url("../../img/surf/coins.png");
+                background-size: 100%;
             }
         }
     }

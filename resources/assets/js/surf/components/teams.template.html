@@ -14,33 +14,12 @@
                 <div class="panel-body">
                     <h4>Teams are pretty snazzy, but what are they exactly?</h4>
                     <ul>
-                        <li>Joining a team puts you at a great advantage.</li>
-                        <li>All coins and other materials will be shared among the team.</li>
+                        <li>Joining a team is loads of fun.</li>
                         <li>The team will always be surfing together, as you will always be spawned on the same map.</li>
-                        <li>While a human, you will be sharing and building upon a mutual house.</li>
+                        <li>You will have your very own personal team chat.</li>
+                        <li>As a human, you will share a combined health bar.</li>
                         <li>A maximum of four players per team.</li>
                         <li>Good luck and fight together!</li>
-                    </ul>
-
-                    <h4>Warnings</h4>
-                    <ul>
-                        <li>Join a team and all your coins and materials will be transfered to the team supplies.</li>
-                        <li>Should you choose to leave a team, you will have to start over without any supplies.</li>
-                        <li>While a human, leaving a team will force you to build a new house.</li>
-                        <li>Can be very addicting :)</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="panel panel-default" v-if="newTeam.active">
-                <div class="panel-body">
-                    <h4>Before creating a team, be aware of the following:</h4>
-                    <ul>
-                        <li>All coins and other materials will be shared among the team.</li>
-                        <li>While a human, you will be sharing and building upon a mutual house.</li>
-                        <li>As the creator, any house you own will carry over.</li>
-                        <li>Should you choose to destroy the team, you will have to start over without any supplies.</li>
-                        <li>While a human, destroying the team will force you to build a new house.</li>
                     </ul>
                 </div>
             </div>
@@ -145,8 +124,7 @@
 
         <div class="alert alert-danger" role="alert" v-if="viewTeam.leave">
               <p>Caution! Are you sure you want to leave team '{{ viewTeam.data.team.name }}'? </p>
-              <p>Doing so will force you to start over.</p>
-              <p>You will lose all your items, coins, and house.</p>
+              <p>Your health bar will be decreased once again.</p>
               <br>
               <button type="button" class="btn btn-danger margin-right" v-on="click: confirmLeave">Yes, Leave Team</button>
               <button type="button" class="btn btn-default" v-on="click: cancelLeave">Cancel</button>
@@ -154,8 +132,7 @@
 
         <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">
               <p>Caution! Are you sure you want to destroy team '{{ viewTeam.data.team.name }}'? </p>
-              <p>Doing so will force all the team members, including you, to start over.</p>
-              <p>You will all lose your items, coins, and house.</p>
+              <p>Doing so will kick all your team members.</p>
               <br>
               <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDestroy">Yes, Destroy Me</button>
               <button type="button" class="btn btn-default" v-on="click: cancelDestroy">Cancel</button>
