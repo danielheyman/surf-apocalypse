@@ -11603,7 +11603,9 @@ module.exports = {
             intervals: [],
             height: 110,
             width: 110,
-            loaded: false
+            loaded: false,
+            name: '',
+            equipsCss: ''
         };
     },
 
@@ -11614,10 +11616,7 @@ module.exports = {
         setState: {
             type: String
         },
-        movable: {
-            type: Boolean
-        },
-        highlight: {
+        mine: {
             type: Boolean
         },
         message: {
@@ -11632,12 +11631,6 @@ module.exports = {
         },
         charId: {
             type: Number
-        },
-        name: {
-            type: String
-        },
-        equips: {
-            type: Array
         }
     },
 
@@ -11652,7 +11645,7 @@ module.exports = {
                 return;
             }
 
-            $(this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
+            $(".character", this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
             if (--this.frame < 1) this.frame = this.state.frames;
         },
@@ -11673,12 +11666,12 @@ module.exports = {
             if (e.keyCode == 39 && this.state == this.states.WALK_RIGHT) this.initNewState('IDLE_RIGHT');else if (e.keyCode == 37 && this.state == this.states.WALK_LEFT) this.initNewState('IDLE_LEFT');
         },
 
-        buildEquips: function buildEquips() {
+        buildEquips: function buildEquips(equips) {
             var self = this;
             var style = 'background:';
-            var equipsLength = this.equips.length;
+            var equipsLength = equips.length;
 
-            $.each(this.equips, function (index) {
+            $.each(equips, function (index) {
                 style += 'url("../api/equips/' + this + '.png")';
                 if (index < equipsLength - 1) style += ',';
             });
@@ -11687,26 +11680,44 @@ module.exports = {
         }
     },
 
-    created: function created() {
-        this.buildEquips();
-    },
-
     attached: function attached() {
         var self = this;
-        $(this.$el).preload(function () {
-            self.loaded = true;
 
-            self.initNewState(self.stateKey);
+        var preload = function preload() {
+            $(".character", self.$el).preload(function () {
+                self.initNewState(self.stateKey);
 
-            if (self.movable) {
-                $(document).on('keydown', self.keyDownListener);
-                $(document).on('keyup', self.keyUpListener);
-            }
+                if (self.mine) {
+                    $(document).on('keydown', self.keyDownListener);
+                    $(document).on('keyup', self.keyUpListener);
+                }
 
-            self.intervals.push(setInterval(self.drawCharacter, 50));
+                self.intervals.push(setInterval(self.drawCharacter, 50));
+
+                self.loaded = true;
+            });
+        };
+
+        if (this.mine) {
+            this.name = window.session_name;
+            this.buildEquips(window.session_equips);
+            this.$nextTick(preload);
+        } else {
+            socket.emit('char_info', this.charId);
+        }
+
+        socket.on('char_info', function (data) {
+            if (data.i != self.charId) return;
+
+            data.e = data.e.split(",");
+            if (data.e[0] === "") data.e = [];
+            self.name = data.n;
+            self.buildEquips(data.e);
+
+            self.$nextTick(preload);
         });
 
-        if (self.onCreate) self.onCreate($(self.$el), self.charId);
+        if (self.onCreate) self.onCreate($(".character", self.$el), self.charId);
     },
 
     detached: function detached() {
@@ -11719,7 +11730,7 @@ module.exports = {
 };
 
 },{"./character.template.html":83}],83:[function(require,module,exports){
-module.exports = '<div v-show="loaded" class="character human" style=\'{{ equipsCss }} background-size: 900% 400%;\'>\n    <span v-show="message" class="message"><span>{{ message }}</span></span>\n    <span class="name"><span v-class="highlight: highlight">{{ name }}</span></span>\n</div>\n';
+module.exports = '<div v-show="loaded">\n    <div class="character human" style=\'{{ equipsCss }} background-size: 900% 400%;\'>\n        <span v-show="message" class="message"><span>{{ message }}</span></span>\n        <span class="name"><span v-class="highlight: mine">{{ name }}</span></span>\n    </div>\n</div>\n';
 },{}],84:[function(require,module,exports){
 "use strict";
 
@@ -11855,22 +11866,13 @@ module.exports = {
             siteLoaded: false,
             characters: [],
             state: 'IDLE_RIGHT',
-            character: {
-                name: '',
-                equips: []
-            },
             intervals: [],
-            message: ''
+            message: '',
+            characterEl: null
         };
     },
 
     filters: {
-        processed: function processed(characters) {
-            return characters.filter(function (c) {
-                return c.n !== undefined;
-            });
-        },
-
         notFound: function notFound(items) {
             return items.filter(function (item) {
                 return !item.pickedUp;
@@ -11881,7 +11883,7 @@ module.exports = {
 
     methods: {
         sendStatus: function sendStatus() {
-            if (!this.site || !this.siteLoaded) return;
+            if (!this.site || !this.siteLoaded || !this.characterEl) return;
 
             var facingRight = this.state.indexOf('RIGHT') > -1;
             socket.emit('map_status', {
@@ -11901,7 +11903,11 @@ module.exports = {
         },
 
         getLeftPos: function getLeftPos(percent) {
-            return ($(window).width() - $(this.$$.character).width()) * percent / 100;
+            return ($(window).width() - 110) * percent / 100;
+        },
+
+        createMyCharacter: function createMyCharacter(el, id) {
+            this.characterEl = el;
         },
 
         createCharacter: function createCharacter(el, id) {
@@ -11957,7 +11963,7 @@ module.exports = {
 
             var left = this.getLeftPos(this.charXPercent);
 
-            $(this.$$.character).stop(true, true).animate({
+            this.characterEl.stop(true, true).animate({
                 'left': left
             }, 50);
         },
@@ -11995,9 +12001,6 @@ module.exports = {
     attached: function attached() {
         var self = this;
 
-        this.character.name = window.session_name;
-        this.character.equips = window.equips;
-
         this.$http.get('/api/map').success(function (site) {
             self.processSite(site);
         });
@@ -12005,11 +12008,9 @@ module.exports = {
         this.intervals.push(setInterval(this.sendStatus, 500));
 
         $(document).keydown(function (e) {
-            if (!self.site) return;
+            if (!self.site || e.keyCode != 38 || !self.characterEl) return;
 
-            if (e.keyCode != 38) return;
-
-            var myLocationStart = self.getLeftPos(self.charXPercent) + $(self.$$.character).width() / 2 - 30;
+            var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
 
             for (var x = 0; x < self.site.items.length; x++) {
@@ -12052,23 +12053,8 @@ module.exports = {
             } else {
                 data.message = '';
                 data.state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-                if (char_array_pos > -1) self.characters[char_array_pos] = data;else {
-                    self.characters.push(data);
-                    socket.emit('char_info', data.i);
-                }
+                if (char_array_pos > -1) self.characters[char_array_pos] = data;else self.characters.push(data);
             }
-        });
-
-        socket.on('char_info', function (data) {
-            var char_array_pos = self.getCharArrayPos(data.i);
-            if (char_array_pos === -1) return;
-
-            data.e = data.e.split(",");
-            if (data.e[0] === "") data.e = [];
-            var el = self.characters[char_array_pos];
-            el.e = data.e;
-            el.n = data.n;
-            self.characters.$set(char_array_pos, el);
         });
 
         socket.on('map_leave', function (id) {
@@ -12114,7 +12100,7 @@ module.exports = {
 };
 
 },{"./character.js":82,"./map.template.html":87}],87:[function(require,module,exports){
-module.exports = '<billboard></billboard>\n\n<div class="billboard-content map">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n\n<div v-if="site && siteLoaded">\n    <div class="characters">\n        <span v-repeat="c: characters | processed"><character v-on="click: openProfile(c)" set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" equips="{{ c.e }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <character v-el="character" highlight="true" movable="true" name="{{ character.name }}" message="{{ message }}" on-move="{{ moveCharacter }}" equips="{{ character.equips }}" current-state="{{@ state }}"></character>\n    <div class="items">\n        <span v-repeat="item: site.items | notFound" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>\n    </div>\n</div>\n';
+module.exports = '<billboard></billboard>\n\n<div class="billboard-content map">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n\n<div v-if="site && siteLoaded">\n    <div class="characters">\n        <span v-repeat="c: characters"><character v-on="click: openProfile(c)" set-state="{{ c.state }}" on-create="{{ createCharacter }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <character mine="true" message="{{ message }}" on-move="{{ moveCharacter }}" on-create="{{ createMyCharacter }}" current-state="{{@ state }}"></character>\n    <div class="items">\n        <span v-repeat="item: site.items | notFound" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>\n    </div>\n</div>\n';
 },{}],88:[function(require,module,exports){
 'use strict';
 

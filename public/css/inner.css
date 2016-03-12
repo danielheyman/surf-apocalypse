@@ -126,7 +126,8 @@ iframe {
 
 .character {
   position: absolute;
-  left: 5%; }
+  left: 5%;
+  bottom: 5px; }
   .character .name {
     position: absolute;
     z-index: 3;
@@ -172,7 +173,6 @@ iframe {
         border-color: #006888 transparent; }
 
 .human {
-  bottom: 5px;
   width: 110px;
   height: 110px;
   max-width: 110px; }

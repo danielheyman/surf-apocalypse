@@ -13,8 +13,7 @@
             window.session_id = '{{ $user->id }}';
             window.session_name = '{{ $user->name }}';
             window.session_coins = {{ $user->coins }};
-            window.session_coins = {{ $user->coins }};
-            window.equips = [{!! $equips !!}];
+            window.session_equips = [{!! $equips !!}];
         </script>
         <script src="{{ elixir('js/global_vendor.js') }}"></script>
         <script src="{{ elixir('js/inner_vendor.js') }}"></script>

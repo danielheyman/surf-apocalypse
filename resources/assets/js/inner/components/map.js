@@ -10,22 +10,13 @@ module.exports = {
             siteLoaded: false,
             characters: [],
             state: 'IDLE_RIGHT',
-            character: {
-                name: '',
-                equips: []
-            },
             intervals: [],
-            message: ''
+            message: '',
+            characterEl: null
         };
     },
     
     filters: {
-        processed: function(characters) {
-            return characters.filter(function(c) {
-                return c.n !== undefined;
-            });
-        },
-        
         notFound: function(items) {
             return items.filter(function(item) {
                 return !item.pickedUp;
@@ -36,7 +27,7 @@ module.exports = {
 
     methods: {
         sendStatus: function() {
-            if (!this.site || !this.siteLoaded) return;
+            if (!this.site || !this.siteLoaded || !this.characterEl) return;
 
             var facingRight = (this.state.indexOf('RIGHT') > -1);
             socket.emit('map_status', {
@@ -57,7 +48,11 @@ module.exports = {
         },
 
         getLeftPos: function(percent) {
-            return ($(window).width() - $(this.$$.character).width()) * percent / 100;
+            return ($(window).width() - 110) * percent / 100;
+        },
+        
+        createMyCharacter: function(el, id) {
+            this.characterEl = el;
         },
 
         createCharacter: function(el, id) {
@@ -115,7 +110,7 @@ module.exports = {
 
             var left = this.getLeftPos(this.charXPercent);
 
-            $(this.$$.character).stop(true, true).animate({
+            this.characterEl.stop(true, true).animate({
                 'left': left
             }, 50);
         },
@@ -153,9 +148,6 @@ module.exports = {
     attached: function() {
         var self = this;
 
-        this.character.name = window.session_name;
-        this.character.equips = window.equips;
-
         this.$http.get('/api/map').success(function(site) {
             self.processSite(site);
         });
@@ -163,11 +155,9 @@ module.exports = {
         this.intervals.push(setInterval(this.sendStatus, 500));
 
         $(document).keydown(function(e) {
-            if (!self.site) return;
+            if (!self.site || e.keyCode != 38 || !self.characterEl) return;
 
-            if (e.keyCode != 38) return;
-
-            var myLocationStart = self.getLeftPos(self.charXPercent) + $(self.$$.character).width() / 2 - 30;
+            var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
 
             for (var x = 0; x < self.site.items.length; x++) {
@@ -211,26 +201,11 @@ module.exports = {
                 data.message = '';
                 data.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
                 if(char_array_pos > -1) self.characters[char_array_pos] = data;
-                else {
-                    self.characters.push(data);
-                    socket.emit('char_info', data.i);
-                }
+                else self.characters.push(data);
             }
             
         });
         
-        socket.on('char_info', function(data) {
-            var char_array_pos = self.getCharArrayPos(data.i);
-            if(char_array_pos === -1) return;
-            
-            data.e = data.e.split(",");
-            if(data.e[0] === "") data.e = [];
-            var el = self.characters[char_array_pos];
-            el.e = data.e;
-            el.n = data.n; 
-            self.characters.$set(char_array_pos, el);
-        });
-
         socket.on('map_leave', function(id) {
             if (!self.site) return;
 

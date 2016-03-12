@@ -41,15 +41,12 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function giveItem($item_type, $count)
     {
-        if (is_string($item_type) && !($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
+        if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
             return;
-        } else {
-            $type = $item_type;
-            $item_type = $type->id;
         }
 
         if ($type->item_type == ItemTypes::COIN) {
-            $this->increment('coins', $change);
+            $this->increment('coins', $count);
         } else {
             if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
                 $update->increment('count', $count);

@@ -92,10 +92,7 @@ class DatabaseSeeder extends Seeder
             'find_min' => 1,
             'find_max' => 1,
             'item_type' => App\ItemTypes::MATERIAL
-        ]);        
-        
-        // Give user a brick
-        $user->giveItem($brick, 1);
+        ]);                
 
         Model::reguard();
     }

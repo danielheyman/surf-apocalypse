@@ -35,7 +35,9 @@ module.exports = {
             intervals: [],
             height: 110,
             width: 110,
-            loaded: false
+            loaded: false,
+            name: '',
+            equipsCss: ''
         };
     },
 
@@ -46,10 +48,7 @@ module.exports = {
         setState: {
             type: String
         },
-        movable: {
-            type: Boolean
-        },
-        highlight: {
+        mine: {
             type: Boolean
         },
         message: {
@@ -64,12 +63,6 @@ module.exports = {
         },
         charId: {
             type: Number
-        },
-        name: {
-            type: String
-        },
-        equips: {
-            type: Array
         }
     },
 
@@ -87,7 +80,7 @@ module.exports = {
                 return;
             }
 
-            $(this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
+            $(".character", this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
 
             if (--this.frame < 1)
@@ -118,12 +111,12 @@ module.exports = {
                 this.initNewState('IDLE_LEFT');
         },
         
-        buildEquips: function() {
+        buildEquips: function(equips) {
             var self = this;
             var style = 'background:';
-            var equipsLength = this.equips.length;
+            var equipsLength = equips.length;
 
-            $.each(this.equips, function(index) {
+            $.each(equips, function(index) {
                 style += 'url("../api/equips/' + this + '.png")';
                 if(index < equipsLength - 1) style += ',';
             });
@@ -132,26 +125,44 @@ module.exports = {
         }
     },
     
-    created: function() { 
-        this.buildEquips();
-    },
-
     attached: function() {
         var self = this;
-        $(this.$el).preload(function() {
-            self.loaded = true;
-            
-            self.initNewState(self.stateKey);
-            
-            if (self.movable) {
-                $(document).on('keydown', self.keyDownListener);
-                $(document).on('keyup', self.keyUpListener);
-            }
+        
+        var preload = function() {
+            $(".character", self.$el).preload(function() {                
+                self.initNewState(self.stateKey);
+                
+                if (self.mine) {
+                    $(document).on('keydown', self.keyDownListener);
+                    $(document).on('keyup', self.keyUpListener);
+                }
+                
+                self.intervals.push(setInterval(self.drawCharacter, 50));
+                
+                self.loaded = true;
+            });
+        };
 
-            self.intervals.push(setInterval(self.drawCharacter, 50));
+        if(this.mine) {
+            this.name = window.session_name;
+            this.buildEquips(window.session_equips);
+            this.$nextTick(preload);
+        } else {
+            socket.emit('char_info', this.charId);
+        }
+
+        socket.on('char_info', function(data) {
+            if(data.i != self.charId) return;
+            
+            data.e = data.e.split(",");
+            if(data.e[0] === "") data.e = [];
+            self.name = data.n; 
+            self.buildEquips(data.e);
+                
+            self.$nextTick(preload);
         });
         
-        if(self.onCreate) self.onCreate($(self.$el), self.charId);
+        if(self.onCreate) self.onCreate($(".character", self.$el), self.charId);
     },
 
     detached: function() {
