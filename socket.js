@@ -172,8 +172,8 @@ io.on('connection', function(socket) {
 
     socket.on('map_leave', function(map) {
         clearTimeout(map_timeout[socket.user_id]);
-        socket.broadcast.to(map.m).emit('map_leave', socket.user_id);
-        socket.leave(map.m);
+        socket.broadcast.to(map).emit('map_leave', socket.user_id);
+        socket.leave(map);
         socket.current_map = null;
     });
 

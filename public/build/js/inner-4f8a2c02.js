@@ -11599,7 +11599,7 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: 'IDLE_RIGHT',
+            stateKey: '',
             intervals: [],
             height: 110,
             width: 110,
@@ -11651,6 +11651,7 @@ module.exports = {
         },
 
         initNewState: function initNewState(state) {
+            if (this.stateKey == state) return;
             this.stateKey = state;
             if (this.currentState) this.currentState = state;
             this.state = this.states[state];
@@ -11659,7 +11660,7 @@ module.exports = {
         },
 
         keyDownListener: function keyDownListener(e) {
-            if (e.keyCode == 39 && this.state != this.states.WALK_RIGHT) this.initNewState('WALK_RIGHT');else if (e.keyCode == 37 && this.state != this.states.WALK_LEFT) this.initNewState('WALK_LEFT');
+            if (e.keyCode == 39) this.initNewState('WALK_RIGHT');else if (e.keyCode == 37) this.initNewState('WALK_LEFT');
         },
 
         keyUpListener: function keyUpListener(e) {
@@ -11683,17 +11684,17 @@ module.exports = {
     attached: function attached() {
         var self = this;
 
+        this.initNewState('IDLE_RIGHT');
+
+        if (this.mine) {
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
+        }
+
+        this.intervals.push(setInterval(this.drawCharacter, 50));
+
         var preload = function preload() {
             $(".character", self.$el).preload(function () {
-                self.initNewState(self.stateKey);
-
-                if (self.mine) {
-                    $(document).on('keydown', self.keyDownListener);
-                    $(document).on('keyup', self.keyUpListener);
-                }
-
-                self.intervals.push(setInterval(self.drawCharacter, 50));
-
                 self.loaded = true;
             });
         };
@@ -11709,7 +11710,7 @@ module.exports = {
         socket.on('char_info', function (data) {
             if (data.i != self.charId) return;
 
-            data.e = data.e.split(",");
+            if (typeof data.e == "string") data.e = data.e.split(",");
             if (data.e[0] === "") data.e = [];
             self.name = data.n;
             self.buildEquips(data.e);
@@ -11722,6 +11723,9 @@ module.exports = {
 
     detached: function detached() {
         var self = this;
+
+        $(document).off('keydown', this.keyDownListener);
+        $(document).off('keyup', this.keyUpListener);
 
         $.each(this.intervals, function (key) {
             clearInterval(self.intervals[key]);
@@ -11936,9 +11940,7 @@ module.exports = {
                 var self = this;
                 var itemsFound = [];
 
-                socket.emit('map_leave', {
-                    m: this.site.id
-                });
+                socket.emit('map_leave', this.site.id);
 
                 this.site.items.forEach(function (item) {
                     if (!item.pickedUp) return;
@@ -12050,10 +12052,14 @@ module.exports = {
 
                 el.l = data.l;
                 el.r = data.r;
+            } else if (char_array_pos > -1) {
+                var el = self.characters[char_array_pos];
+                el.message = '';
+                el.state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
             } else {
                 data.message = '';
                 data.state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-                if (char_array_pos > -1) self.characters[char_array_pos] = data;else self.characters.push(data);
+                self.characters.push(data);
             }
         });
 
@@ -12061,8 +12067,7 @@ module.exports = {
             if (!self.site) return;
 
             var char_array_pos = self.getCharArrayPos(id);
-
-            if (char_array_pos > -1) self.characters.$remove(0);
+            if (char_array_pos > -1) self.characters.$remove(char_array_pos);
         });
 
         this.$on('chat-sent', function (message) {

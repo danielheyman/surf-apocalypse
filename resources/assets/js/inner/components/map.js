@@ -83,9 +83,7 @@ module.exports = {
                 var self = this;
                 var itemsFound = [];
 
-                socket.emit('map_leave', {
-                    m: this.site.id
-                });
+                socket.emit('map_leave', this.site.id);
 
                 this.site.items.forEach(function(item) {
                     if (!item.pickedUp) return;
@@ -171,8 +169,9 @@ module.exports = {
         socket.on('map_status', function(data) {
             if (!self.site) return;
             
+            
             var char_array_pos = self.getCharArrayPos(data.i);
-                        
+                                    
             if (char_array_pos > -1 && self.characters[char_array_pos].el !== undefined) {
                 var el = self.characters[char_array_pos];
                 var state;
@@ -197,22 +196,23 @@ module.exports = {
 
                 el.l = data.l;
                 el.r = data.r;
+            } else if(char_array_pos > -1) {
+                var el = self.characters[char_array_pos];
+                el.message = '';
+                el.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
             } else {
                 data.message = '';
                 data.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                if(char_array_pos > -1) self.characters[char_array_pos] = data;
-                else self.characters.push(data);
+                self.characters.push(data);
             }
             
         });
         
         socket.on('map_leave', function(id) {
             if (!self.site) return;
-
+            
             var char_array_pos = self.getCharArrayPos(id);
-
-            if (char_array_pos > -1)
-                self.characters.$remove(0);
+            if (char_array_pos > -1) self.characters.$remove(char_array_pos);
 
         });
 
@@ -235,8 +235,7 @@ module.exports = {
             setTimeout(function() {
                 var char_array_pos = self.getCharArrayPos(message.id);
 
-                if (char_array_pos == -1)
-                    return;
+                if (char_array_pos == -1) return;
 
                 if (self.characters[char_array_pos].message == message.text)
                     self.characters[char_array_pos].message = "";

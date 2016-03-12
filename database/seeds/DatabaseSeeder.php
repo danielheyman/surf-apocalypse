@@ -79,7 +79,7 @@ class DatabaseSeeder extends Seeder
             'users_allowed' => App\UsersAllowed::ZOMBIE_AND_HUMAN,
             'find_chance' => 50,
             'find_decimal' => true,
-            'find_min' => 1,
+            'find_min' => 0,
             'find_max' => 2,
             'item_type' => App\ItemTypes::COIN
         ]);

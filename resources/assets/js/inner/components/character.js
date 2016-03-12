@@ -31,13 +31,13 @@ module.exports = {
                 }
             },
             state: null,
-            stateKey: 'IDLE_RIGHT',
+            stateKey: '',
             intervals: [],
             height: 110,
             width: 110,
             loaded: false,
             name: '',
-            equipsCss: ''
+            equipsCss: '',
         };
     },
 
@@ -79,15 +79,14 @@ module.exports = {
                     this.interval = 1;
                 return;
             }
-
+            
             $(".character", this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
-
-            if (--this.frame < 1)
-                this.frame = this.state.frames;
+            if (--this.frame < 1) this.frame = this.state.frames;
         },
 
         initNewState: function(state) {
+            if(this.stateKey == state) return;
             this.stateKey = state;
             if (this.currentState) this.currentState = state;
             this.state = this.states[state];
@@ -96,10 +95,10 @@ module.exports = {
         },
 
         keyDownListener: function(e) {
-            if (e.keyCode == 39 && this.state != this.states.WALK_RIGHT)
+            if (e.keyCode == 39)
                 this.initNewState('WALK_RIGHT');
 
-            else if (e.keyCode == 37 && this.state != this.states.WALK_LEFT)
+            else if (e.keyCode == 37)
                 this.initNewState('WALK_LEFT');
         },
 
@@ -128,17 +127,17 @@ module.exports = {
     attached: function() {
         var self = this;
         
+        this.initNewState('IDLE_RIGHT');
+        
+        if (this.mine) {
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
+        }
+        
+        this.intervals.push(setInterval(this.drawCharacter, 50));
+
         var preload = function() {
             $(".character", self.$el).preload(function() {                
-                self.initNewState(self.stateKey);
-                
-                if (self.mine) {
-                    $(document).on('keydown', self.keyDownListener);
-                    $(document).on('keyup', self.keyUpListener);
-                }
-                
-                self.intervals.push(setInterval(self.drawCharacter, 50));
-                
                 self.loaded = true;
             });
         };
@@ -154,7 +153,8 @@ module.exports = {
         socket.on('char_info', function(data) {
             if(data.i != self.charId) return;
             
-            data.e = data.e.split(",");
+            if(typeof data.e == "string")
+                data.e = data.e.split(",");
             if(data.e[0] === "") data.e = [];
             self.name = data.n; 
             self.buildEquips(data.e);
@@ -167,6 +167,9 @@ module.exports = {
 
     detached: function() {
         var self = this;
+        
+        $(document).off('keydown', this.keyDownListener);
+        $(document).off('keyup', this.keyUpListener);
 
         $.each(this.intervals, function(key) {
             clearInterval(self.intervals[key]);
