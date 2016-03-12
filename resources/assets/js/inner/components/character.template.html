@@ -1,4 +1,4 @@
-<div class="character human" style='{{ equipsCss }} background-size: 900% 400%;'>
+<div v-show="loaded" class="character human" style='{{ equipsCss }} background-size: 900% 400%;'>
     <span v-show="message" class="message"><span>{{ message }}</span></span>
     <span class="name"><span v-class="highlight: highlight">{{ name }}</span></span>
 </div>

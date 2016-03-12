@@ -25,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
         Website::deleted(function ($site) {
             $site->updateUserSiteCount();
         });
+
+        User::created(function ($user) {
+            $user->onCreate();
+        });
     }
 
     /**

@@ -63,7 +63,12 @@ $(document).ready(function() {
 
             this.coins = window.session_coins;
 
-            var doneLoading = false;
+            var loading = { 
+                count: 0, 
+                inc: function() { 
+                    if(++this.count === 2) self.loading = false; 
+                } 
+            };
 
             var images = [
                 '../../img/surf/bg.jpg',
@@ -71,17 +76,13 @@ $(document).ready(function() {
                 '../../img/surf/bill-bg2.jpg'
             ];
 
-            $.preload(images, 1, function(last) {
+            $.preload(images, 3, function(last) {
                 if (!last) return;
-                if (doneLoading) self.loading = false;
-                doneLoading = true;
+                loading.inc();
             });
 
-            $(".wrapper").preload(function() {
-                if (doneLoading) self.loading = false;
-                doneLoading = true;
-            });
-
+            $(".wrapper").preload(function() { loading.inc(); });
+            
             socket.on('App\\Events\\UpdatedCoins', function(data) {
                 self.coins = data.coins;
             });

@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
 
         // $this->call(UserTableSeeder::class);
 
+        // Clear database
         DB::table('item_types')->delete();
         DB::table('users')->delete();
         DB::table('teams')->delete();
@@ -27,13 +28,31 @@ class DatabaseSeeder extends Seeder
         DB::statement('ALTER SEQUENCE pms_id_seq RESTART;');
         DB::statement('ALTER SEQUENCE pm_groups_id_seq RESTART;');
 
+        // Create equipments
+        app("EquipType")->createFromName("torso/shirts/brown_longsleeve", "brown longsleeve");
+        app("EquipType")->createFromName("head/caps/leather_cap", "leather cap");
+        app("EquipType")->createFromName("hair/plain/blonde", "blonde hair");
+        app("EquipType")->createFromName("legs/pants/teal_pants", "teal pants");
+        app("EquipType")->createFromName("feet/shoes/brown_shoes", "brown shoes");
+        app("EquipType")->createFromName("body/light", "light body");
+
+        // Create users
         $user = App\User::create([
             'name' => 'Daniel Heyman',
             'email' => 'daniel.heyman@gmail.com',
             'password' => 'Daniel',
             'confirmation_code' => null
         ]);
+        
+        $user2 = App\User::create([
+            'name' => 'Test Dude',
+            'email' => 'heymandan@gmail.com',
+            'password' => 'test',
+            'confirmation_code' => null,
+            'team_id' => null,
+        ]);
 
+        // Create team
         $team = App\Team::create([
             'name' => 'Team Awesome',
             'description' => '',
@@ -44,19 +63,16 @@ class DatabaseSeeder extends Seeder
         $user->team()->associate($team);
         $user->save();
 
-        $user2 = App\User::create([
-            'name' => 'Test Dude',
-            'email' => 'heymandan@gmail.com',
-            'password' => 'test',
-            'confirmation_code' => null,
-            'team_id' => $team->id ?: null,
-        ]);
+        $user2->team()->associate($team);
+        $user2->save();
 
+        // Create websites
         $website = $user->websites()->create([
             'name' => 'My Blank website',
             'url' => 'http://www.this-page-intentionally-left-blank.org/',
         ]);
 
+        // Create items
         App\ItemType::create([
             'name' => 'coin',
             'icon' => '0000',
@@ -68,7 +84,7 @@ class DatabaseSeeder extends Seeder
             'item_type' => App\ItemTypes::COIN
         ]);
 
-        $itemType = App\ItemType::create([
+        $brick = App\ItemType::create([
             'name' => 'brick',
             'icon' => '0011',
             'users_allowed' => App\UsersAllowed::HUMAN,
@@ -76,41 +92,10 @@ class DatabaseSeeder extends Seeder
             'find_min' => 1,
             'find_max' => 1,
             'item_type' => App\ItemTypes::MATERIAL
-        ]);
+        ]);        
         
-        $body = App\ItemType::create([
-            'name' => 'light body',
-            'sprite' => app("EquipType")->nameToId("body/light"),
-            'users_allowed' => App\UsersAllowed::HUMAN,
-            'item_type' => App\ItemTypes::EQUIP
-        ]);
-        
-        $hair = App\ItemType::create([
-            'name' => 'blonde hair',
-            'sprite' => app("EquipType")->nameToId("hair/plain/blonde"),
-            'users_allowed' => App\UsersAllowed::HUMAN,
-            'item_type' => App\ItemTypes::EQUIP
-        ]);
-        
-        // url("../../img/surf/sprites/torso/shirts/longsleeve/brown_longsleeve.png"),
-        //             url("../../img/surf/sprites/head/caps/leather_cap.png"),
-        //             url("../../img/surf/sprites/hair/plain/blonde.png"),
-        //             url("../../img/surf/sprites/legs/pants/teal_pants.png"),
-        //             url("../../img/surf/sprites/feet/shoes/brown_shoes.png"),
-        //             url("../../img/surf/sprites/body/light.png");
-
-        $itemType->items()->create([
-            'count' => 1,
-            'user_id' => $user->id,
-        ]);
-        
-        $body->equips()->create([
-            'user_id' => $user->id
-        ]);
-        
-        $hair->equips()->create([
-            'user_id' => $user->id
-        ]);
+        // Give user a brick
+        $user->giveItem($brick, 1);
 
         Model::reguard();
     }

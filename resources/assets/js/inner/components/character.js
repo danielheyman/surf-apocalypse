@@ -34,7 +34,8 @@ module.exports = {
             stateKey: 'IDLE_RIGHT',
             intervals: [],
             height: 110,
-            width: 110
+            width: 110,
+            loaded: false
         };
     },
 
@@ -136,17 +137,21 @@ module.exports = {
     },
 
     attached: function() {
-        this.initNewState(this.stateKey);
+        var self = this;
+        $(this.$el).preload(function() {
+            self.loaded = true;
+            
+            self.initNewState(self.stateKey);
+            
+            if (self.movable) {
+                $(document).on('keydown', self.keyDownListener);
+                $(document).on('keyup', self.keyUpListener);
+            }
+
+            self.intervals.push(setInterval(self.drawCharacter, 50));
+        });
         
-        if (this.movable) {
-            $(document).on('keydown', this.keyDownListener);
-            $(document).on('keyup', this.keyUpListener);
-        }
-
-        if (this.onCreate)
-            this.onCreate($(this.$el), this.charId);
-
-        this.intervals.push(setInterval(this.drawCharacter, 50));
+        if(self.onCreate) self.onCreate($(self.$el), self.charId);
     },
 
     detached: function() {

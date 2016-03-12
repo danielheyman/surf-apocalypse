@@ -142,7 +142,12 @@ io.on('connection', function(socket) {
     });
     
     socket.on('char_info', function(id) {
-        socket.emit('char_info')
+        var soc = users[id].socket_info;
+        socket.emit('char_info', {
+            i: id,
+            n: soc.name,
+            e: soc.equips            
+        });
     });
 
     socket.on('map_status', function(map) {
@@ -151,14 +156,10 @@ io.on('connection', function(socket) {
         socket.join(map.m);
         socket.current_map = map.m;
         
-        console.log(socket.equips);
-
         socket.broadcast.to(map.m).emit('map_status', {
             i: socket.user_id,
             l: map.l,
-            r: map.r,
-            n: socket.name,
-            e: socket.equips
+            r: map.r
         });
 
         map_timeout[socket.user_id] = setTimeout(function() {

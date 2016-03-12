@@ -41,8 +41,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function giveItem($item_type, $count)
     {
-        if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
+        if (is_string($item_type) && !($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
             return;
+        } else {
+            $type = $item_type;
+            $item_type = $type->id;
         }
 
         if ($type->item_type == ItemTypes::COIN) {
@@ -57,6 +60,22 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
                 ]);
             }
         }
+    }
+    
+    public function giveEquip($equip) {
+        $equip->equips()->create([
+            'user_id' => $this->id
+        ]);
+    }
+    
+    public function onCreate() {
+        $this->giveEquip(app("EquipType")->nameToItemType("torso/shirts/brown_longsleeve"));
+        $this->giveEquip(app("EquipType")->nameToItemType("head/caps/leather_cap"));
+        $this->giveEquip(app("EquipType")->nameToItemType("hair/plain/blonde"));
+        $this->giveEquip(app("EquipType")->nameToItemType("legs/pants/teal_pants"));
+        $this->giveEquip(app("EquipType")->nameToItemType("feet/shoes/brown_shoes"));
+        $this->giveEquip(app("EquipType")->nameToItemType("body/light"));
+
     }
 
     public function syncOriginal()

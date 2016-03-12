@@ -5,14 +5,14 @@ return [
         'belt' => [],
         'body' => ['dark', 'dark2', 'darkself', 'darkself2', 'light', 'orc', 'red_orc', 'skeleton', 'tanned', 'tanned2'],
         'facial' => [],
-        'feet' => [],
+        'feet' => ['shoes' => ['brown_shoes']],
         'formal' => [],
         'hair' => ['plain' => ['blonde']],
         'hands' => [],
-        'head' => [],
-        'legs' => [],
-        'torso' => [],
+        'head' => ['caps' => ['leather_cap']],
+        'legs' => ['pants' => ['teal_pants']],
+        'torso' => ['shirts' => ['brown_longsleeve']],
         'weapons' => [],
     ],
-    'priority' => ['body', 'hair']
+    'priority' => ['body', 'feet', 'legs', 'hair', 'head', 'torso']
 ];

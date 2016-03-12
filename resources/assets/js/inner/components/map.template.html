@@ -14,10 +14,10 @@
 
 <div v-if="site && siteLoaded">
     <div class="characters">
-        <span v-repeat="c: characters"><character v-on="click: openProfile(c)" set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" equips="{{ c.e }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
+        <span v-repeat="c: characters | processed"><character v-on="click: openProfile(c)" set-state="{{ c.state }}" on-create="{{ createCharacter }}" name="{{ c.n }}" equips="{{ c.e }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
     </div>
     <character v-el="character" highlight="true" movable="true" name="{{ character.name }}" message="{{ message }}" on-move="{{ moveCharacter }}" equips="{{ character.equips }}" current-state="{{@ state }}"></character>
     <div class="items">
-        <span v-repeat="item: site.items | removeFoundItems" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>
+        <span v-repeat="item: site.items | notFound" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>
     </div>
 </div>

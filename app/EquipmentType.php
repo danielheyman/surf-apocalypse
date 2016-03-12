@@ -1,6 +1,6 @@
 <?php
 
-namespace app;
+namespace App;
 
 class EquipmentType
 {
@@ -17,6 +17,17 @@ class EquipmentType
             }
         }
         return $code * 10;
+    }
+    function createFromName($name, $desc) {
+        return ItemType::create([
+            'name' => $desc,
+            'sprite' => $this->nameToId($name),
+            'users_allowed' => UsersAllowed::HUMAN,
+            'item_type' => ItemTypes::EQUIP
+        ]);
+    }
+    function nameToItemType($name) {
+         return ItemType::where('sprite', $this->nameToId($name))->first();
     }
     function idToLocation($id) {
         $id = strval($id);

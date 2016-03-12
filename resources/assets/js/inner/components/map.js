@@ -18,6 +18,21 @@ module.exports = {
             message: ''
         };
     },
+    
+    filters: {
+        processed: function(characters) {
+            return characters.filter(function(c) {
+                return c.n !== undefined;
+            });
+        },
+        
+        notFound: function(items) {
+            return items.filter(function(item) {
+                return !item.pickedUp;
+            });
+        }
+
+    },
 
     methods: {
         sendStatus: function() {
@@ -135,14 +150,6 @@ module.exports = {
         'character': require('./character.js')
     },
 
-    filters: {
-        removeFoundItems: function(items) {
-            return items.filter(function(item) {
-                return !item.pickedUp;
-            });
-        }
-    },
-
     attached: function() {
         var self = this;
 
@@ -175,39 +182,53 @@ module.exports = {
             if (!self.site) return;
             
             var char_array_pos = self.getCharArrayPos(data.i);
-            
-            data.e = data.e.split(",");
-            if(data.e[0] === "") data.e = [];
-
-            if (char_array_pos > -1) {
-                var oldData = self.characters[char_array_pos];
+                        
+            if (char_array_pos > -1 && self.characters[char_array_pos].el !== undefined) {
+                var el = self.characters[char_array_pos];
                 var state;
 
-                if (oldData.l != data.l) {
-                    state = (data.l > oldData.l) ? "WALK_RIGHT" : "WALK_LEFT";
+                if (el.l != data.l) {
+                    state = (data.l > el.l) ? "WALK_RIGHT" : "WALK_LEFT";
                     var left = self.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - oldData.l) / self.walkingSpeed * 65;
-                    oldData.state = state;
+                    var time = Math.abs(data.l - el.l) / self.walkingSpeed * 65;
+                    el.state = state;
 
-                    oldData.el.stop(true).animate({
+                    el.el.stop(true).animate({
                         'left': left
                     }, time, 'linear', function() {
                         state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                        oldData.state = state;
+                        el.state = state;
                     });
-                } else if (oldData.r != data.r) {
+                } else if (el.r != data.r) {
                     state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                    oldData.state = state;
+                    el.state = state;
                 }
 
-                oldData.l = data.l;
-                oldData.r = data.r;
+                el.l = data.l;
+                el.r = data.r;
             } else {
                 data.message = '';
                 data.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                self.characters.push(data);
+                if(char_array_pos > -1) self.characters[char_array_pos] = data;
+                else {
+                    self.characters.push(data);
+                    socket.emit('char_info', data.i);
+                }
             }
+            
+        });
+        
+        socket.on('char_info', function(data) {
+            var char_array_pos = self.getCharArrayPos(data.i);
+            if(char_array_pos === -1) return;
+            
+            data.e = data.e.split(",");
+            if(data.e[0] === "") data.e = [];
+            var el = self.characters[char_array_pos];
+            el.e = data.e;
+            el.n = data.n; 
+            self.characters.$set(char_array_pos, el);
         });
 
         socket.on('map_leave', function(id) {
