@@ -29,7 +29,8 @@ class MapController extends Controller
         foreach ($items as $item) {
             if (rand(1, 10000) / 100 <= $item->find_chance) {
                 $id = str_random(60);
-                $count = rand($item->find_min, $item->find_max);
+                $multiplier = $item->find_decimal ? 100 : 1;
+                $count = rand($item->find_min * $multiplier, $item->find_max * $multiplier) / $multiplier;
                 $ids['items'][$id] = ['id_real' => $item->id, 'count' => $count];
                 $map_items[] = [
                     'id' => $id,
