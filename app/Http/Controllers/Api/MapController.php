@@ -18,7 +18,7 @@ class MapController extends Controller
 
     public function getMap()
     {
-        $items = ItemType::all();
+        $items = ItemType::where('find_chance', '>', 0)->get();
 
         $map_items = [];
         $ids = [

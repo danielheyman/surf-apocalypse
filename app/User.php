@@ -33,6 +33,11 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany('App\Item');
     }
+    
+    public function equips()
+    {
+        return $this->hasMany('App\Equip');
+    }
 
     public function giveItem($item_type, $count)
     {

@@ -59,9 +59,10 @@ class DatabaseSeeder extends Seeder
 
         App\ItemType::create([
             'name' => 'coin',
-            'icon' => 0,
-            'character_type' => App\CharacterTypes::ZOMBIE_AND_HUMAN,
+            'icon' => '0000',
+            'users_allowed' => App\UsersAllowed::ZOMBIE_AND_HUMAN,
             'find_chance' => 50,
+            'find_decimal' => true,
             'find_min' => 1,
             'find_max' => 2,
             'item_type' => App\ItemTypes::COIN
@@ -69,17 +70,46 @@ class DatabaseSeeder extends Seeder
 
         $itemType = App\ItemType::create([
             'name' => 'brick',
-            'icon' => 101,
-            'character_type' => App\CharacterTypes::HUMAN,
+            'icon' => '0011',
+            'users_allowed' => App\UsersAllowed::HUMAN,
             'find_chance' => 50,
             'find_min' => 1,
             'find_max' => 1,
             'item_type' => App\ItemTypes::MATERIAL
         ]);
+        
+        $body = App\ItemType::create([
+            'name' => 'light body',
+            'sprite' => app("EquipType")->nameToId("body/light"),
+            'users_allowed' => App\UsersAllowed::HUMAN,
+            'item_type' => App\ItemTypes::EQUIP
+        ]);
+        
+        $hair = App\ItemType::create([
+            'name' => 'blonde hair',
+            'sprite' => app("EquipType")->nameToId("hair/plain/blonde"),
+            'users_allowed' => App\UsersAllowed::HUMAN,
+            'item_type' => App\ItemTypes::EQUIP
+        ]);
+        
+        // url("../../img/surf/sprites/torso/shirts/longsleeve/brown_longsleeve.png"),
+        //             url("../../img/surf/sprites/head/caps/leather_cap.png"),
+        //             url("../../img/surf/sprites/hair/plain/blonde.png"),
+        //             url("../../img/surf/sprites/legs/pants/teal_pants.png"),
+        //             url("../../img/surf/sprites/feet/shoes/brown_shoes.png"),
+        //             url("../../img/surf/sprites/body/light.png");
 
-        $item = $itemType->items()->create([
+        $itemType->items()->create([
             'count' => 1,
             'user_id' => $user->id,
+        ]);
+        
+        $body->equips()->create([
+            'user_id' => $user->id
+        ]);
+        
+        $hair->equips()->create([
+            'user_id' => $user->id
         ]);
 
         Model::reguard();

@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-
     <head>
         <meta charset="utf-8">
         <meta id="token" name="token" value="{{ csrf_token() }}">
 
         <title>SurfApacolypse</title>
 
-        <link href="{{ elixir('css/global.css') }}" rel="stylesheet">
-        <link href="{{ elixir('css/surf.css') }}" rel="stylesheet">
-
+        <link href="{{ elixir('css/global_vendor.css') }}" rel="stylesheet">
+        <link href="{{ elixir('css/inner.css') }}" rel="stylesheet">
         <!-- Scripts -->
         <script type="text/javascript">
-            window.session_id = '{{ auth()->user()->id }}';
-            window.session_name = '{{ auth()->user()->name }}';
-            window.session_coins = {{ auth()->user()->coins }};
+            window.session_id = '{{ $user->id }}';
+            window.session_name = '{{ $user->name }}';
+            window.session_coins = {{ $user->coins }};
+            window.session_coins = {{ $user->coins }};
+            window.equips = [{!! $equips !!}];
         </script>
-        <script src="{{ elixir('js/global.js') }}"></script>
-        <script src="{{ elixir('js/surfv.js') }}"></script>
-        <script src="{{ elixir('js/surf.js') }}"></script>
+        <script src="{{ elixir('js/global_vendor.js') }}"></script>
+        <script src="{{ elixir('js/inner_vendor.js') }}"></script>
+        <script src="{{ elixir('js/inner.js') }}"></script>
     </head>
 
     <body id="app" v-class="bg: !loading">

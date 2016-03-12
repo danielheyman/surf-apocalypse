@@ -77,6 +77,7 @@ io.use(function(socket, next) {
                         laravelSession = PHPUnserialize.unserialize(PHPUnserialize.unserialize(result));
                         socket.user_id = laravelSession.login_82e5d2c56bdd0811318f0cf078b78bfc;
                         socket.name = laravelSession.name;
+                        socket.equips = laravelSession.equips;
 
                         clearTimeout(offline_timeout[socket.user_id]);
 
@@ -118,23 +119,6 @@ redis.on('message', function(channel, message) {
 
 io.on('connection', function(socket) {
     console.log(socket.user_id + ' joined');
-    // socket.on('join', function ()
-    // {
-    //     clearTimeout(offline_timeout[socket.user_id]);
-    //
-    //     if(!users[socket.user_id])
-    //     {
-    //         users[socket.user_id] = {
-    //             socket_info: socket
-    //         };
-    //     }
-    //     else
-    //     {
-    //         //socket.leave(users[user_info.id].location);
-    //         //users[user_info.id].location = user_info.location;
-    //     }
-    //     //socket.join(user_info.location);
-    // });
 
     socket.on('chat', function(message) {
         if (message.c == 'global') {
@@ -156,18 +140,25 @@ io.on('connection', function(socket) {
             });
         }
     });
+    
+    socket.on('char_info', function(id) {
+        socket.emit('char_info')
+    });
 
     socket.on('map_status', function(map) {
         clearTimeout(map_timeout[socket.user_id]);
 
         socket.join(map.m);
         socket.current_map = map.m;
+        
+        console.log(socket.equips);
 
         socket.broadcast.to(map.m).emit('map_status', {
             i: socket.user_id,
             l: map.l,
             r: map.r,
-            n: socket.name
+            n: socket.name,
+            e: socket.equips
         });
 
         map_timeout[socket.user_id] = setTimeout(function() {

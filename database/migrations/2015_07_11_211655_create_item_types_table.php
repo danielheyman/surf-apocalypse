@@ -14,13 +14,14 @@ class CreateItemTypesTable extends Migration
             $table->increments('id');
             $table->string('name');
             $table->smallInteger('icon')->unsigned()->nullable();
-            $table->smallInteger('sprite')->unsigned()->nullable();
-            $table->smallInteger('character_type')->unsigned();
-            $table->decimal('find_chance', 5, 2);
-            $table->smallInteger('find_min')->unsigned();
-            $table->smallInteger('find_max')->unsigned();
+            $table->integer('sprite')->unsigned()->nullable();
+            $table->smallInteger('users_allowed')->unsigned();
+            $table->decimal('find_chance', 5, 2)->default(0);
+            $table->boolean('find_decimal')->default(false);
+            $table->smallInteger('find_min')->unsigned()->default(0);
+            $table->smallInteger('find_max')->unsigned()->default(0);
             $table->smallInteger('item_type')->unsigned();
-            $table->json('upgradable')->nullable();
+            $table->json('attributes')->nullable();
             $table->timestamps();
         });
     }
