@@ -1,6 +1,6 @@
-<div class="profile" v-on="mousedown: startMove($event)">
+<div class="profile">
     <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>
-    <p class="name">
+    <p v-on="mousedown: startMove($event)" class="name">
         {{ userName }}
     </p>
     <div class="loader-inline" v-if="!loaded">
@@ -8,7 +8,7 @@
         <p>LOADING CHAT</p>
     </div>
     <div v-if="loaded">
-        <img class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">
+        <img draggable="false" v-on="mousedown: startMove($event)" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">
         <div v-show="noMessages" class="no-messages">
             No messsages were found. Say hello :)
         </div>

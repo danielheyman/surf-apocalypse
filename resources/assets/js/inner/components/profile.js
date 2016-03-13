@@ -121,7 +121,7 @@ module.exports = {
         el.css('left', ($(document).width() - el.width()) / 2);
         el.css('top', ($(document).height() - 400) / 2);
 
-        $('body').on('mouseup', function() {
+        $(window).on('mouseup', function() {
             if(self.move) self.move = null;
         });
 

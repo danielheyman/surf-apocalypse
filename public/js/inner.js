@@ -12227,7 +12227,7 @@ module.exports = {
         el.css('left', ($(document).width() - el.width()) / 2);
         el.css('top', ($(document).height() - 400) / 2);
 
-        $('body').on('mouseup', function () {
+        $(window).on('mouseup', function () {
             if (self.move) self.move = null;
         });
 
@@ -12247,7 +12247,7 @@ module.exports = {
 };
 
 },{"./profile.template.html":89}],89:[function(require,module,exports){
-module.exports = '<div class="profile" v-on="mousedown: startMove($event)">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p class="name">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <div v-if="loaded">\n        <img class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n        <div v-show="noMessages" class="no-messages">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div class="profile">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p v-on="mousedown: startMove($event)" class="name">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <div v-if="loaded">\n        <img draggable="false" v-on="mousedown: startMove($event)" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n        <div v-show="noMessages" class="no-messages">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
 },{}],90:[function(require,module,exports){
 'use strict';
 
