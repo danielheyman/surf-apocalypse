@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
         // Create team
         $team = App\Team::create([
             'name' => 'Team Awesome',
-            'description' => '',
+            'description' => 'The team description.',
             'user_count' => 2,
             'owner_id' => $user->id
         ]);

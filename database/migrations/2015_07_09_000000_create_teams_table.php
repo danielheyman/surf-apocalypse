@@ -15,7 +15,6 @@ class CreateTeamsTable extends Migration
             $table->string('name');
             $table->text('description');
             $table->smallInteger('user_count')->unsigned()->default(0);
-            $table->smallInteger('health')->unsigned()->default(0);
             $table->timestamps();
 
             $table->integer('owner_id')->unsigned();

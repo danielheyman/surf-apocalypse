@@ -45,20 +45,18 @@ class TeamController extends Controller
 
     public function joinTeam(Request $request)
     {
-        $team = Team::findOrFail($request->input('team'), ['id', 'owner_id', 'coins']);
+        $team = Team::findOrFail($request->input('team'), ['id', 'owner_id']);
 
-        if(auth()->user()->id != $team->owner_id)
-            return;
+        if(auth()->user()->id != $team->owner_id) return;
 
         $user = User::findOrFail($request->input('user'));
 
-        if($user->team)
-            return;
+        if($user->team) return;
 
         $user->team()->associate($team);
         $user->save();
-
-        $team->increment('health', $user->healthOrStrength);
+        
+        $team->increment('user_count');
     }
 
     public function leaveTeam()
@@ -69,29 +67,17 @@ class TeamController extends Controller
             return;
 
         $user->team()->dissociate();
-        $user->healthOrStrength = floor($team->health / $team->user_count);
-        if($user->healthOrStrength <= 0)
-            $user->healthOrStrength = 5;
         $user->save();
 
-        $team->health = $team->health - $user->healthOrStrength;
-        if($team->health <= 0)
-            $team->health = 5;
-        $team->save();
+        $team->decrement('user_count');
     }
 
     public function deleteTeam(Request $request)
     {
         $user = auth()->user();
 
-        if(!($team = $user->team) || $user->id != $team->owner_id)
-            return;
+        if(!($team = $user->team) || $user->id != $team->owner_id) return;
 
-        $health = $team->health / $team->user_count;
-        foreach($team->users as $u) {
-            $u->healthOrStrength = $health;
-            $u->save();
-        }
         $team->delete();
     }
 
@@ -99,8 +85,7 @@ class TeamController extends Controller
     {
         $user = auth()->user();
 
-        if($user->team)
-            return;
+        if($user->team) return;
 
         $this->validate($request, ['name' => 'required|min:2']);
 
@@ -126,8 +111,7 @@ class TeamController extends Controller
     {
         $user = auth()->user();
 
-        if(!($team = $user->team) || $user->id != $team->owner_id)
-            return;
+        if(!($team = $user->team) || $user->id != $team->owner_id) return;
 
         $team->description = $request->input('description');
     }
