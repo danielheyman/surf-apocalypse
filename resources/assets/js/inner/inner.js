@@ -101,7 +101,7 @@ $(document).ready(function() {
             });
 
             this.$on('open-profile', function(data) {
-                if(window.session_id == data.id || this.profileIndex(data.id) != -1)
+                if(!data.id || window.session_id == data.id || this.profileIndex(data.id) != -1)
                     return;
 
                 self.openProfiles.push(data);

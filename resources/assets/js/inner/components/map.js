@@ -56,7 +56,7 @@ module.exports = {
         },
 
         createCharacter: function(el, id) {
-
+            
             var char_array_pos = this.getCharArrayPos(id);
             var data = this.characters[char_array_pos];
             var left = this.getLeftPos(data.l);
@@ -94,7 +94,6 @@ module.exports = {
                     'id': this.site.id,
                     'items': itemsFound
                 }).success(function(site) {
-
                     self.processSite(site);
                 });
 
@@ -124,10 +123,6 @@ module.exports = {
 
         loadedSite: function() {
             this.siteLoaded = true;
-        },
-
-        openProfile: function(character) {
-            this.$dispatch('open-profile', {name: character.n, id: character.i});
         },
 
         getItemSrc: function(icon) {
@@ -169,11 +164,10 @@ module.exports = {
         socket.on('map_status', function(data) {
             if (!self.site) return;
             
-            
             var char_array_pos = self.getCharArrayPos(data.i);
-                                    
+            var el = (char_array_pos > -1) ? self.characters[char_array_pos] : null;
+            
             if (char_array_pos > -1 && self.characters[char_array_pos].el !== undefined) {
-                var el = self.characters[char_array_pos];
                 var state;
 
                 if (el.l != data.l) {
@@ -197,7 +191,6 @@ module.exports = {
                 el.l = data.l;
                 el.r = data.r;
             } else if(char_array_pos > -1) {
-                var el = self.characters[char_array_pos];
                 el.message = '';
                 el.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
             } else {
@@ -210,10 +203,8 @@ module.exports = {
         
         socket.on('map_leave', function(id) {
             if (!self.site) return;
-            
-            var char_array_pos = self.getCharArrayPos(id);
+            var char_array_pos = parseInt(self.getCharArrayPos(id));
             if (char_array_pos > -1) self.characters.$remove(char_array_pos);
-
         });
 
         this.$on('chat-sent', function(message) {

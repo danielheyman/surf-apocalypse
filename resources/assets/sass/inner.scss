@@ -71,6 +71,7 @@ body {
     height: 85px;
     margin-left: -45px;
     background: url("../../img/surf/bill-sign.png");
+    z-index: 1;
 }
 
 .billboard,
@@ -101,11 +102,12 @@ body {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
-    padding: 40px;
+    padding: 20px 20px 0;
+    background: #DCDCDC;
 }
 
 .billboard-content.map {
-    padding: 40px 40px 0;
+    background: none;
 }
 
 iframe {
@@ -430,11 +432,7 @@ iframe {
     background-color: #fff;
 }
 
-.loader-inline {
-    height: 50px;
-    margin: auto;
-    text-align: center;
-
+.loader-inline, .loader-dark {
     p {
         color: #333;
     }
@@ -442,6 +440,12 @@ iframe {
     .ball {
         background-color: #333;
     }
+}
+
+.loader-inline {
+    height: 50px;
+    margin: auto;
+    text-align: center;
 }
 
 @-webkit-keyframes motion {
@@ -498,20 +502,23 @@ iframe {
     }
 }
 
-.content h1 {
-    padding-top: 0;
-    padding-bottom: 20px;
+.billboard-title {
+    width: 100%;
+    position: fixed;
+    top: 3px;
+    font-size: 30px;
     text-align: center;
     letter-spacing: 3px;
     color: #ececec;
-    text-shadow: 0 0 10px #606060;
-    margin: -15px 0 0;
 }
 
 .content .table {
     overflow: hidden;
     border-radius: 3px;
-    box-shadow: 0 0 10px #606060;
+    box-shadow: 0 0 5px #606060;
+}
+.content .panel {
+    box-shadow: 0 0 10px -3px #606060;
 }
 
 .content .table-striped > tbody > tr:nth-of-type(even) {
@@ -681,6 +688,7 @@ iframe {
         margin: 0;
         border-bottom: 1px solid #ccc;
         background: #eee;
+        cursor: pointer;
     }
 
     .no-messages {
@@ -719,7 +727,8 @@ iframe {
 
             .message {
                 float: right;
-                background: #ccc;
+                background: #0084FF;
+                color: #fff;
             }
 
             .info {

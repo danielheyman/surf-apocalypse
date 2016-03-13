@@ -1,14 +1,13 @@
 <billboard></billboard>
 
+<div class="billboard-title">TEAMS</div>
 <div class="billboard-content">
-    <div class="loader" v-show="!teams">
+    <div class="loader loader-dark" v-show="!teams">
         <div class="ball"></div>
         <p>LOADING TEAMS</p>
     </div>
 
     <div v-el="content" class="content" v-show="teams">
-        <h1>TEAMS</h1>
-
         <span v-if="!viewTeam.active">
             <div class="panel panel-default" v-if="!newTeam.active">
                 <div class="panel-body">

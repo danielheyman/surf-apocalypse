@@ -14,7 +14,7 @@
 
 <div v-if="site && siteLoaded">
     <div class="characters">
-        <span v-repeat="c: characters"><character v-on="click: openProfile(c)" set-state="{{ c.state }}" on-create="{{ createCharacter }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
+        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
     </div>
     <character mine="true" message="{{ message }}" on-move="{{ moveCharacter }}" on-create="{{ createMyCharacter }}" current-state="{{@ state }}"></character>
     <div class="items">

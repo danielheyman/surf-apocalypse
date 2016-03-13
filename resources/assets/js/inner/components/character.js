@@ -80,7 +80,7 @@ module.exports = {
                 return;
             }
             
-            $(".character", this.$el).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
+            $(this.$$.character).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
             if (--this.frame < 1) this.frame = this.state.frames;
         },
@@ -95,6 +95,8 @@ module.exports = {
         },
 
         keyDownListener: function(e) {
+            if(!this.loaded) return;
+            
             if (e.keyCode == 39)
                 this.initNewState('WALK_RIGHT');
 
@@ -103,6 +105,8 @@ module.exports = {
         },
 
         keyUpListener: function(e) {
+            if(!this.loaded) return;
+
             if (e.keyCode == 39 && this.state == this.states.WALK_RIGHT)
                 this.initNewState('IDLE_RIGHT');
 
@@ -111,33 +115,33 @@ module.exports = {
         },
         
         buildEquips: function(equips) {
+            if(typeof equips == "string") equips = equips.split(",");
+            
             var self = this;
             var style = 'background:';
             var equipsLength = equips.length;
 
             $.each(equips, function(index) {
-                style += 'url("../api/equips/' + this + '.png")';
+                style += 'url("../../img/surf/equips/' + this + '.png")';
                 if(index < equipsLength - 1) style += ',';
             });
             style += ';background-size: 900% 400%;';
             this.equipsCss = style;
-        }
+        },
+        
+        openProfile: function() {
+            this.$dispatch('open-profile', {name: this.name, id: this.charId});
+        },
+
     },
     
     attached: function() {
         var self = this;
-        
-        this.initNewState('IDLE_RIGHT');
-        
-        if (this.mine) {
-            $(document).on('keydown', this.keyDownListener);
-            $(document).on('keyup', this.keyUpListener);
-        }
-        
+        this.initNewState('IDLE_RIGHT');        
         this.intervals.push(setInterval(this.drawCharacter, 50));
 
         var preload = function() {
-            $(".character", self.$el).preload(function() {                
+            $(this.$$.character).preload(function() {                
                 self.loaded = true;
             });
         };
@@ -146,6 +150,8 @@ module.exports = {
             this.name = window.session_name;
             this.buildEquips(window.session_equips);
             this.$nextTick(preload);
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
         } else {
             socket.emit('char_info', this.charId);
         }
@@ -162,7 +168,7 @@ module.exports = {
             self.$nextTick(preload);
         });
         
-        if(self.onCreate) self.onCreate($(".character", self.$el), self.charId);
+        if(self.onCreate) self.onCreate($(this.$el), self.charId);
     },
 
     detached: function() {

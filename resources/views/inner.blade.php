@@ -13,7 +13,7 @@
             window.session_id = '{{ $user->id }}';
             window.session_name = '{{ $user->name }}';
             window.session_coins = {{ $user->coins }};
-            window.session_equips = [{!! $equips !!}];
+            window.session_equips = '{!! $equips !!}';
         </script>
         <script src="{{ elixir('js/global_vendor.js') }}"></script>
         <script src="{{ elixir('js/inner_vendor.js') }}"></script>
@@ -24,7 +24,7 @@
         <div v-show="loading" class="loader-big">
             <div class="loader">
                 <div class="ball"></div>
-                <p>LOADING TOOLS</p>
+                <p>Loading SurfApocalypse...</p>
             </div>
         </div>
         <div v-show="!loading" v-el="main" class="wrapper small-footer hidden">

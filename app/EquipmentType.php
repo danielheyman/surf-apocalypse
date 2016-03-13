@@ -36,11 +36,11 @@ class EquipmentType
             $key1 = array_keys($config)[intval(substr($id, 0, 3)) - 100];
             $key2 = array_keys($config[$key1])[intval(substr($id, 3, 3)) - 100];
             $key3 = $config[$key1][$key2][intval(substr($id, 6, 3)) - 100];
-            return "{$key1}/{$key2}/{$key3}.png";
+            return "{$key1}/{$key2}/{$key3}";
         } else {
             $key1 = array_keys($config)[intval(substr($id, 0, 3)) - 100];
             $key2 = $config[$key1][intval(substr($id, 3, 3)) - 100];
-            return "{$key1}/{$key2}.png";
+            return "{$key1}/{$key2}";
         }
     }
     function idToPriority($id) {
