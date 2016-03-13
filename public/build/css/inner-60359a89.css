@@ -83,11 +83,12 @@ body {
 
 .billboard-content {
   box-sizing: border-box;
-  padding: 20px 20px 0;
+  padding: 20px;
   background: #DCDCDC; }
 
 .billboard-content.map {
-  background: none; }
+  background: none;
+  padding: 20px 20px 0; }
 
 iframe {
   width: 100%;
@@ -403,7 +404,7 @@ iframe {
   border-radius: 3px;
   box-shadow: 0 0 5px #606060; }
 
-.content .panel {
+.content .panel, .content .alert {
   box-shadow: 0 0 10px -3px #606060; }
 
 .content .table-striped > tbody > tr:nth-of-type(even) {

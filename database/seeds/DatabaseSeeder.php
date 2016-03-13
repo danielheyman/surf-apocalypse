@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
 
         // Create websites
         $website = $user->websites()->create([
-            'name' => 'My Blank website',
+            'name' => 'My Cool Website Name',
             'url' => 'http://www.this-page-intentionally-left-blank.org/',
         ]);
 

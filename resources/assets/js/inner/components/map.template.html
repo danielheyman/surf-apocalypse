@@ -1,5 +1,6 @@
 <billboard></billboard>
 
+<div class="billboard-title" v-if="site" v-text="site.name"></div>
 <div class="billboard-content map">
     <div class="loader" v-show="!site || !siteLoaded">
         <div class="ball"></div>

@@ -46,7 +46,7 @@ class MapController extends Controller
             ->orWhere('coins', '>', 0);
         })->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
 
-        $site = $user->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url']);
+        $site = $user->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url', 'name']);
 
         $ids['id'] = auth()->user()->human + $site->id;
 
