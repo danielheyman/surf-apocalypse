@@ -1,14 +1,14 @@
 <div class="profile">
     <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>
-    <p v-on="mousedown: startMove($event)" class="name">
+    <p class="draggable name" data-draggable="draggable">
         {{ userName }}
     </p>
     <div class="loader-inline" v-if="!loaded">
         <div class="ball"></div>
         <p>LOADING CHAT</p>
     </div>
+    <img draggable="false" data-draggable="draggable" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">
     <div v-if="loaded">
-        <img draggable="false" v-on="mousedown: startMove($event)" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">
         <div v-show="noMessages" class="no-messages">
             No messsages were found. Say hello :)
         </div>

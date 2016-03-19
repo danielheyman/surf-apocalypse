@@ -30,7 +30,7 @@ class AuthController extends Controller
 
         Mail::send('emails.verify', compact('user'), function ($message) use ($user) {
             $message->to($user->email, $user->name);
-            $message->subject('Welcome to bla');
+            $message->subject('Welcome to SurfApocalypse!');
         });
 
         return redirect()->back()->with('status', 'Thanks for signing up! Please check your email for a confirmation link.');

@@ -66,6 +66,7 @@
             </div>
 
             <span v-repeat="profile: openProfiles"><profile user-id="@{{ profile.id }}" user-name="@{{ profile.name }}" on-close="@{{ closeProfile }}"></profile></span>
+            <equip></equip>
         </div>
     </body>
 

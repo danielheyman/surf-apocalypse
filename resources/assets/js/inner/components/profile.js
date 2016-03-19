@@ -36,11 +36,6 @@ module.exports = {
     },
 
     methods: {
-        startMove: function(event) {
-            var offset = $(this.$el).offset();
-            this.move = {mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top};
-        },
-
         close: function() {
             if (this.onClose)
                 this.onClose(this.userId);
@@ -107,8 +102,7 @@ module.exports = {
         });
 
         this.$on('received-pm', function(data) {
-            if(data.from != self.userId)
-                return;
+            if(data.from != self.userId) return;
 
             self.messages.push(data.message);
             self.scrolledToBottom();
@@ -116,34 +110,11 @@ module.exports = {
             return false;
         });
 
-        var el = $(self.$el);
+        $(this.$el).draggable();
 
-        el.css('left', ($(document).width() - el.width()) / 2);
-        el.css('top', ($(document).height() - 400) / 2);
+    },
 
-        $(window).on('mouseup', function() {
-            if(self.move) self.move = null;
-        });
-
-        $('body').on('mousemove', function(event) {
-            if(!self.move)
-                return;
-
-            var el = $(self.$el);
-            var x = event.pageX - self.move.mouseX + self.move.locX;
-            var y = event.pageY - self.move.mouseY + self.move.locY;
-            if(x < 0)
-                x = 0;
-            else if(x > $(document).width() - el.width())
-                x = $(document).width() - el.width();
-            if(y < 0)
-                y = 0;
-            else if(y > $(document).height() - el.height())
-                y = $(document).height() - el.height();
-
-            el.css('left', x);
-            el.css('top', y);
-        });
-
+    detached: function() {
+        $(self.$el).undraggable();
     }
 };
