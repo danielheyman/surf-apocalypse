@@ -49,6 +49,8 @@ server.listen(port, function() {
     console.log('Listening on Port 3000');
 });
 
+var time = require('time')(Date);
+
 io.use(function(socket, next) {
     var interfaces = os.networkInterfaces();
     var addresses = [];
@@ -139,6 +141,46 @@ io.on('connection', function(socket) {
                 i: socket.user_id
             });
         }
+    });
+    
+    socket.on('pm', function(data) {
+        var now = new Date();
+        now.setTimezone('America/New_York');
+        
+        var monthNames = [
+          "Jan", "Feb", "Mar",
+          "Apr", "May", "Jun", "Jul",
+          "Aug", "Sep", "Oct",
+          "Nov", "Dec"
+        ];
+
+        var addZero = function(i) { return (i < 10) ? "0" + i : i; };
+        var day = now.getDate();
+        var month = monthNames[now.getMonth()];
+        var hour = now.getHours();
+        var a = (hour >= 12) ? "PM" : "AM";
+        if(hour === 0) hour = 12;
+        else if(hour > 12) hour -= 12;
+        var minute = addZero(now.getMinutes());
+        var info = month + " " + day + " " + addZero(hour) + ":" + minute + " " + a;
+        
+        if(users[data.id] !== undefined) {
+            users[data.id].socket_info.emit("pm", {
+                from: socket.user_id,
+                message: {
+                    message: data.m,
+                    info: info
+                }
+            });
+        }
+
+        socket.emit("pm", {
+            from: socket.user_id,
+            message: {
+                message: data.m,
+                info: info
+            }
+        });
     });
     
     socket.on('char_info', function(id) {

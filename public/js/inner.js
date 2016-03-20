@@ -89,10 +89,8 @@ $(document).ready(function () {
             this.unreadPm = window.unread_pm.split(",");
             if (this.unreadPm[0] === "") this.unreadPm = [];
 
-            socket.on('App\\Events\\SentPM', function (data) {
-                if (data.from == window.session_id) return;
-
-                if (self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
+            socket.on('pm', function (data) {
+                if (data.from !== window.session_id && self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
 
                 self.$broadcast('received-pm', data);
             });
@@ -11787,7 +11785,7 @@ module.exports = {
 
             if (!this.message) return;
 
-            if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
+            if (this.channel == 'map') his.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
                 c: this.channel,
@@ -12158,7 +12156,6 @@ module.exports = {
             //     info: 'Nov 11, 11:22 AM'
             // }],
             messages: [],
-            noMessages: true,
             loaded: false,
             message: '',
             gravatar: '',
@@ -12190,15 +12187,11 @@ module.exports = {
 
             this.sending = true;
 
-            this.$http.post('/api/pms/' + this.userId, { message: this.message }).success(function (data) {
-                self.messages.push(data);
-                self.noMessages = false;
-                self.message = "";
-                self.sending = false;
-                self.scrolledToBottom();
-                self.$nextTick(function () {
-                    self.$$.message.focus();
-                });
+            this.$http.post('/api/pms/' + this.userId, { message: this.message });
+
+            socket.emit("pm", {
+                id: this.userId,
+                m: this.message
             });
 
             this.message = "Sending...";
@@ -12237,19 +12230,27 @@ module.exports = {
             self.gravatar = data.gravatar;
             self.messages = data.messages;
             self.loaded = true;
-            self.noMessages = data.messages.length === 0;
             self.scrolledToBottom();
             self.$dispatch('seen-pm', this.userId);
         });
 
         this.$on('received-pm', function (data) {
-            if (data.from != self.userId) return;
+            self.messages.push({
+                side: data.from == window.session_id ? 'right' : 'left',
+                message: data.message.message,
+                info: data.message.info
+            });
 
-            self.messages.push(data.message);
+            if (data.from == window.session_id) {
+                self.message = "";
+                self.sending = false;
+                self.$nextTick(function () {
+                    self.$$.message.focus();
+                });
+            }
+
             self.scrolledToBottom();
-
             self.$dispatch('seen-pm', data.from);
-
             return false;
         });
 
@@ -12262,7 +12263,7 @@ module.exports = {
 };
 
 },{"./profile.template.html":91}],91:[function(require,module,exports){
-module.exports = '<div class="profile">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p class="draggable name" data-draggable="draggable">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <img draggable="false" data-draggable="draggable" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n    <div v-if="loaded">\n        <div v-show="noMessages" class="no-messages">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div class="profile">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p class="draggable name" data-draggable="draggable">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <img draggable="false" data-draggable="draggable" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n    <div v-if="loaded">\n        <div v-show="noMessages" class="!messages.length">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
 },{}],92:[function(require,module,exports){
 'use strict';
 

@@ -102,20 +102,5 @@ class PMController extends Controller
         foreach($pms as $pm) {
             $pm->delete();
         }
-
-        event(new \App\Events\SentPM($id, [
-            'from' => $user->id,
-            'message' => [
-                'side' => 'left',
-                'message' => $message->message,
-                'info' => $message->created_at->format('M j h:i A')
-            ]
-        ]));
-
-        return [
-            'side' => 'right',
-            'message' => $message->message,
-            'info' => $message->created_at->format('M j h:i A')
-        ];
     }
 }

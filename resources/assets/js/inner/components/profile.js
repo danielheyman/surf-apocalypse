@@ -15,7 +15,6 @@ module.exports = {
             //     info: 'Nov 11, 11:22 AM'
             // }],
             messages: [],
-            noMessages: true,
             loaded: false,
             message: '',
             gravatar: '',
@@ -49,15 +48,11 @@ module.exports = {
 
             this.sending = true;
 
-            this.$http.post('/api/pms/' + this.userId, {message: this.message}).success(function(data) {
-                self.messages.push(data);
-                self.noMessages = false;
-                self.message = "";
-                self.sending = false;
-                self.scrolledToBottom();
-                self.$nextTick(function () {
-                    self.$$.message.focus();
-                });
+            this.$http.post('/api/pms/' + this.userId, {message: this.message});
+
+            socket.emit("pm", {
+                id: this.userId,
+                m: this.message
             });
 
             this.message = "Sending...";
@@ -97,22 +92,30 @@ module.exports = {
             self.gravatar = data.gravatar;
             self.messages = data.messages;
             self.loaded = true;
-            self.noMessages = (data.messages.length === 0);
             self.scrolledToBottom();
             self.$dispatch('seen-pm', this.userId);
         });
 
         this.$on('received-pm', function(data) {
-            if(data.from != self.userId) return;
-
-            self.messages.push(data.message);
-            self.scrolledToBottom();
+            self.messages.push({
+                side: data.from == window.session_id ? 'right' : 'left',
+                message: data.message.message,
+                info: data.message.info
+            });
             
-            self.$dispatch('seen-pm', data.from);
+            if(data.from == window.session_id) {
+                self.message = "";
+                self.sending = false;
+                self.$nextTick(function () {
+                    self.$$.message.focus();
+                });
+            }
 
+            self.scrolledToBottom();
+            self.$dispatch('seen-pm', data.from);
             return false;
         });
-
+        
         $(this.$el).draggable();
 
     },

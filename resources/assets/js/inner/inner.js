@@ -90,10 +90,8 @@ $(document).ready(function() {
             this.unreadPm = window.unread_pm.split(",");
             if(this.unreadPm[0] === "") this.unreadPm = [];
             
-            socket.on('App\\Events\\SentPM', function(data) {
-                if(data.from == window.session_id) return;
-                
-                if(self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
+            socket.on('pm', function(data) {
+                if(data.from !== window.session_id && self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
                 
                 self.$broadcast('received-pm', data);
             });
