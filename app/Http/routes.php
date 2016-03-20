@@ -55,6 +55,7 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
 
     Route::get('pms/{id}', 'PMController@getPM');
     Route::post('pms/{id}', 'PMController@postPM');
+    Route::put('pms/seen/{id}', 'PMController@seenPm');
     Route::get('pms/event', function()
     {
         //True to an extent. For example, in Laravel 5 I cannot access $app straight off the board. Therefore, I have to use \App()->make('myController');

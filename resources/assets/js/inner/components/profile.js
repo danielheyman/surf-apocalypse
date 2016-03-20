@@ -99,6 +99,7 @@ module.exports = {
             self.loaded = true;
             self.noMessages = (data.messages.length === 0);
             self.scrolledToBottom();
+            self.$dispatch('seen-pm', this.userId);
         });
 
         this.$on('received-pm', function(data) {
@@ -106,6 +107,8 @@ module.exports = {
 
             self.messages.push(data.message);
             self.scrolledToBottom();
+            
+            self.$dispatch('seen-pm', data.from);
 
             return false;
         });

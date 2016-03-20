@@ -225,8 +225,13 @@ iframe {
     line-height: 18px;
     color: #baa166;
     text-transform: uppercase;
-    margin-right: 5px; }
-    .footer .online span {
+    margin-right: 5px;
+    cursor: pointer; }
+    .footer .online span.blink {
+      -webkit-animation: online-blink 1s step-end infinite;
+      -ms-animation: online-blink 1s step-end infinite;
+      animation: online-blink 1s step-end infinite; }
+    .footer .online span.online {
       color: #fff; }
   .footer .channel-picker {
     list-style: none;
@@ -296,6 +301,18 @@ iframe {
       background-size: 100% 100%; }
       .footer .chat-menu .send:hover {
         background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("../../img/surf/send-button.png"); }
+
+@-webkit-keyframes online-blink {
+  0% {
+    color: #fff; }
+  50% {
+    color: #8a2424; } }
+
+@keyframes online-blink {
+  0% {
+    color: #fff; }
+  50% {
+    color: #8a2424; } }
 
 @-webkit-keyframes channel-blink {
   0% {

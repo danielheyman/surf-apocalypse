@@ -38,7 +38,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany('App\Equip');
     }
-
+        
     public function giveItem($item_type, $count)
     {
         if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {

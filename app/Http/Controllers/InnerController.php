@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use Session;
+use App\PmGroup;
 
 class InnerController extends Controller
 {
@@ -23,9 +24,11 @@ class InnerController extends Controller
             return app("EquipType")->idToLocation($e);
         }, $equips);
         $equips = implode(',', $equips);
-
+        
+        $unreadPm = implode(',', PMGroup::unreadPm($user->id));
+        
         Session::put('equips', $equips);
         Session::put('name', $user->name);
-        return view('inner', compact('equips', 'user'));
+        return view('inner', compact('equips', 'user', 'unreadPm'));
     }
 }

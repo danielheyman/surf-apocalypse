@@ -289,8 +289,16 @@ iframe {
         color: #baa166;
         text-transform: uppercase;
         margin-right: 5px;
+        cursor: pointer;
+        
+        span.blink {
+            -webkit-animation: online-blink 1s step-end infinite;
+            -moz-animation: online-blink 1s step-end infinite;
+            -ms-animation: online-blink 1s step-end infinite;
+            animation: online-blink 1s step-end infinite;
+        }
 
-        span {
+        span.online {
             color: #fff;
         }
     }
@@ -384,6 +392,13 @@ iframe {
             }
         }
     }
+}
+
+
+
+@keyframes online-blink {
+	0% {color: #fff;}
+	50% {color: rgb(138, 36, 36);}
 }
 
 @keyframes channel-blink {

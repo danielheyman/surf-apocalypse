@@ -14,6 +14,7 @@
             window.session_name = '{{ $user->name }}';
             window.session_coins = {{ $user->coins }};
             window.session_equips = '{!! $equips !!}';
+            window.unread_pm = '{{ $unreadPm }}';
         </script>
         <script src="{{ elixir('js/global_vendor.js') }}"></script>
         <script src="{{ elixir('js/inner_vendor.js') }}"></script>
@@ -56,8 +57,8 @@
                                 <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                             </ul>
                             <div class="online">
-                                Team Members Online <span>(Coming Soon)</span>
-                                | Messages <span>(Coming Soon)</span>
+                                Team Members Online <span class="count">(Coming Soon)</span>
+                                | <span v-class="blink: unreadPm.length">Messages <span class="count">(@{{ unreadPm.length }})</span></span>
                                  <!-- | Friends Online <span>(Coming Soon)</span> -->
                             </div>
                         </div>

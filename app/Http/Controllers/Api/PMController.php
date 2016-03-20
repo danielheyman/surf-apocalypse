@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\PMGroup;
 use App\PM;
 use App\User;
+use DB;
 
 class PMController extends Controller
 {
@@ -18,14 +19,26 @@ class PMController extends Controller
 
     public function getPMs()
     {
-
+        
+    }
+    
+    public function seenPM($id)
+    {
+        $user = auth()->user();
+        if($id == $user->id) return;
+        
+        if($user->id < $id) {
+            PMGroup::where('user_id', $user->id)->where('user2_id', $id)->update(['user_last_seen' => DB::raw('user2_last_message')]);
+        }
+        else {
+            PMGroup::where('user_id', $id)->where('user2_id', $user->id)->update(['user2_last_seen' => DB::raw('user_last_message')]);
+        }
     }
 
     public function getPM($id)
     {
         $user = auth()->user();
-        if($id == $user->id)
-            return;
+        if($id == $user->id) return;
 
         $user_id = ($user->id > $id ? $id : $user->id);
         $user2_id = ($user->id > $id ? $user->id : $id);

@@ -104,10 +104,7 @@ module.exports = {
         openProfile: function(event, name, id) {
             event.preventDefault();
 
-            console.log(name, id);
-
-            if(id)
-                this.$dispatch('open-profile', {name: name, id: id});
+            if(id) this.$dispatch('open-profile', {name: name, id: id});
         }
     },
 

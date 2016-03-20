@@ -26,7 +26,8 @@ $(document).ready(function () {
             loading: true,
             notifications: [],
             coins: 0,
-            openProfiles: []
+            openProfiles: [],
+            unreadPm: []
         },
 
         components: {
@@ -55,12 +56,12 @@ $(document).ready(function () {
         },
 
         ready: function ready() {
+            // Init
             $(this.$$.main).removeClass('hidden');
-
             var self = this;
-
             this.coins = window.session_coins;
 
+            // Preloading
             var loading = {
                 count: 0,
                 inc: function inc() {
@@ -79,20 +80,28 @@ $(document).ready(function () {
                 loading.inc();
             });
 
+            // Update coins
             socket.on('App\\Events\\UpdatedCoins', function (data) {
                 self.coins = data.coins;
             });
 
+            // Profile private messages
+            this.unreadPm = window.unread_pm.split(",");
+            if (this.unreadPm[0] === "") this.unreadPm = [];
+
             socket.on('App\\Events\\SentPM', function (data) {
-                if (self.profileIndex(data.from) == -1) return;
+                if (data.from == window.session_id) return;
+
+                if (self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
 
                 self.$broadcast('received-pm', data);
             });
 
-            $(".footer").mouseenter(function () {
-                $(".wrapper").removeClass("small-footer");
-            }).mouseleave(function () {
-                $(".wrapper").addClass("small-footer");
+            this.$on('seen-pm', function (id) {
+                var index = self.unreadPm.indexOf(id);
+                if (index !== -1) self.unreadPm.$remove(index);
+                this.$http.put('/api/pms/seen/' + id);
+                return false;
             });
 
             this.$on('open-profile', function (data) {
@@ -102,6 +111,14 @@ $(document).ready(function () {
                 return false;
             });
 
+            // Resizing footer
+            $(".footer").mouseenter(function () {
+                $(".wrapper").removeClass("small-footer");
+            }).mouseleave(function () {
+                $(".wrapper").addClass("small-footer");
+            });
+
+            // Chat system
             this.$on('chat-sent', function (message) {
                 self.$broadcast('chat-sent', message);
                 return false;
@@ -114,6 +131,7 @@ $(document).ready(function () {
 
             this.$on('notification', function (message) {
                 self.notifications.push(message);
+
                 setTimeout(function () {
                     self.notifications.shift();
                 }, 5000);
@@ -11845,8 +11863,6 @@ module.exports = {
         openProfile: function openProfile(event, name, id) {
             event.preventDefault();
 
-            console.log(name, id);
-
             if (id) this.$dispatch('open-profile', { name: name, id: id });
         }
     },
@@ -12223,6 +12239,7 @@ module.exports = {
             self.loaded = true;
             self.noMessages = data.messages.length === 0;
             self.scrolledToBottom();
+            self.$dispatch('seen-pm', this.userId);
         });
 
         this.$on('received-pm', function (data) {
@@ -12230,6 +12247,8 @@ module.exports = {
 
             self.messages.push(data.message);
             self.scrolledToBottom();
+
+            self.$dispatch('seen-pm', data.from);
 
             return false;
         });
