@@ -2,78 +2,12 @@ var Vue = require('vue');
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 
-var socket = io('http://surf.local:3000');
-window.socket = socket;
-
-// socket.on("global:App\\Events\\SentGlobalMessage", function(message){
-//     console.log(message.data);
-// });
+window.socket = io('http://surf.local:3000');
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
-
-window.draggable = {
-    move: null,
-    el: null,
-    init: function() {
-        var self = this;
-        
-        $(window).on('mouseup', function() {
-            $("body").css("pointer-events", "auto");
-            self.move = null;
-        });
-        $(document).on('mousemove', function(event) {
-            if(!self.move) return;
-
-            var x = event.pageX - self.move.mouseX + self.move.locX;
-            var y = event.pageY - self.move.mouseY + self.move.locY;
-            var el = self.el;
-            
-            if(x < 0)
-                x = 0;
-            else if(x > $(document).width() - el.width())
-                x = $(document).width() - el.width();
-            if(y < 0)
-                y = 0;
-            else if(y > $(document).height() - el.height())
-                y = $(document).height() - el.height();
-
-            el.css('left', x);
-            el.css('top', y);
-        }); 
-    },
-    add: function(el) {
-        el.find('[data-draggable=draggable]').bind('mousedown', { self: this, el: el }, this.startmove);
-        el.css({
-            position: 'absolute',
-            zIndex: 10,
-            left: ($(document).width() - el.width()) / 2,
-            top: ($(document).height() - 400) / 2,
-            boxShadow: "0 0 10px #000"
-        });
-    },
-    remove: function(el) {
-        el.find('[data-draggable=draggable]').unbind('mousedown', this.startmove);
-    },
-    startmove: function(e) {
-        $("body").css("pointer-events", "none");
-        e.data.self.el = e.data.el;
-        var offset = e.data.el.offset();
-        e.data.self.move = {mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top};
-    }
-};
-
-draggable.init();
-
-$.fn.draggable = function() {
-    window.draggable.add($(this));
-};
-
-$.fn.undraggable = function() {
-    window.draggable.remove($(this));
-};
-
 $(document).ready(function() {
+    require('./draggable');
 
     var Billboard = Vue.extend({
         template: require('./components/billboard.template.html')

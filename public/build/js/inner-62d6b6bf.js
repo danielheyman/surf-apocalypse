@@ -5,71 +5,12 @@ var Vue = require('vue');
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 
-var socket = io('http://surf.local:3000');
-window.socket = socket;
-
-// socket.on("global:App\\Events\\SentGlobalMessage", function(message){
-//     console.log(message.data);
-// });
+window.socket = io('http://surf.local:3000');
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
-window.draggable = {
-    move: null,
-    el: null,
-    init: function init() {
-        var self = this;
-
-        $(window).on('mouseup', function () {
-            $("body").css("pointer-events", "auto");
-            self.move = null;
-        });
-        $(document).on('mousemove', function (event) {
-            if (!self.move) return;
-
-            var x = event.pageX - self.move.mouseX + self.move.locX;
-            var y = event.pageY - self.move.mouseY + self.move.locY;
-            var el = self.el;
-
-            if (x < 0) x = 0;else if (x > $(document).width() - el.width()) x = $(document).width() - el.width();
-            if (y < 0) y = 0;else if (y > $(document).height() - el.height()) y = $(document).height() - el.height();
-
-            el.css('left', x);
-            el.css('top', y);
-        });
-    },
-    add: function add(el) {
-        el.find('[data-draggable=draggable]').bind('mousedown', { self: this, el: el }, this.startmove);
-        el.css({
-            position: 'absolute',
-            zIndex: 10,
-            left: ($(document).width() - el.width()) / 2,
-            top: ($(document).height() - 400) / 2,
-            boxShadow: "0 0 10px #000"
-        });
-    },
-    remove: function remove(el) {
-        el.find('[data-draggable=draggable]').unbind('mousedown', this.startmove);
-    },
-    startmove: function startmove(e) {
-        $("body").css("pointer-events", "none");
-        e.data.self.el = e.data.el;
-        var offset = e.data.el.offset();
-        e.data.self.move = { mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top };
-    }
-};
-
-draggable.init();
-
-$.fn.draggable = function () {
-    window.draggable.add($(this));
-};
-
-$.fn.undraggable = function () {
-    window.draggable.remove($(this));
-};
-
 $(document).ready(function () {
+    require('./draggable');
 
     var Billboard = Vue.extend({
         template: require('./components/billboard.template.html')
@@ -183,7 +124,7 @@ $(document).ready(function () {
     });
 });
 
-},{"./components/billboard.template.html":81,"./components/chat":84,"./components/equip":86,"./components/map":88,"./components/profile":90,"./components/sites":92,"./components/teams":94,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
+},{"./components/billboard.template.html":81,"./components/chat":84,"./components/equip":86,"./components/map":88,"./components/profile":90,"./components/sites":92,"./components/teams":94,"./draggable":96,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -12570,4 +12511,58 @@ module.exports = {
 
 },{"./teams.template.html":95}],95:[function(require,module,exports){
 module.exports = '<billboard></billboard>\n\n<div class="billboard-title">Teams</div>\n<div class="billboard-content">\n    <div class="loader loader-dark" v-show="!teams">\n        <div class="ball"></div>\n        <p>LOADING TEAMS</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="teams">\n        <span v-if="!viewTeam.active">\n            <div class="panel panel-default" v-if="!newTeam.active">\n                <div class="panel-body">\n                    <h4>Teams are loads of fun, but what are they exactly?</h4>\n                    <ul>\n                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>\n                        <li>You will have your very own personal team chat.</li>\n                        <li>A maximum of four players per team.</li>\n                        <li>Good luck!</li>\n                    </ul>\n                </div>\n            </div>\n\n            <table class="table table-striped" v-if="!newTeam.active">\n                <thead>\n                    <tr>\n                        <th>Team Name</th>\n                        <th># of Players</th>\n                        <th>Info</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-if="myTeam">\n                        <td>{{ myTeam.name }} (Member)</td>\n                        <td>{{ myTeam.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>\n                    </tr>\n                    <tr v-repeat="team: teams | notMine">\n                        <td>{{ team.name }}</td>\n                        <td>{{ team.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>\n                    </tr>\n                </tbody>\n            </table>\n\n            <button type="button" class="btn btn-primary right" v-on="click: createTeam" v-show="!myTeam && !newTeam.active">Create a Team</button>\n\n            <div class="panel panel-default" v-show="newTeam.active">\n                <div class="panel-body">\n                    <div class="loader-inline" v-show="newTeam.posting">\n                        <div class="ball"></div>\n                        <p>ADDING SITE</p>\n                    </div>\n\n                    <div v-show="!newTeam.posting">\n                        <div class="form-group">\n                            <label for="teamName">Team Name:</label>\n                            <input type="text" class="form-control" v-model="newTeam.name" v-validate="minLength: 2">\n                            <small class="text-danger" v-if="newTeam.name && validation.newTeam.name.minLength">Name is too short</small>\n                        </div>\n\n                        <div class="form-group">\n                            <label for="siteUrl">Team Descripion:</label>\n                            <textarea type="text" class="form-control" v-model="newTeam.description"></textarea>\n                        </div>\n\n                        <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmCreate">Create Team</button>\n                        <button type="button" class="btn btn-default" v-on="click: cancelCreate">Cancel</button>\n                    </div>\n                </div>\n            </div>\n\n        </span>\n\n        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy && !viewTeam.leave">\n            <div class="panel-body">\n                <div class="loader-inline" v-show="!viewTeam.data || viewTeam.loadingMessage">\n                    <div class="ball"></div>\n                    <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : \'LOADING TEAM\' }}</p>\n                </div>\n\n                <div v-if="viewTeam.data && !viewTeam.loadingMessage">\n                    <h4>\n                        {{ viewTeam.data.team.name }}:\n                        <span v-if="viewTeam.data.team.member">\n                            <span v-if="!isOwner()">\n                                You\'re a member. (<a href="#" v-on="click: leaveTeam($event)">Leave Team</a>)\n                            </span>\n                            <span v-if="isOwner()">\n                                You\'re the owner. (<a href="#" v-on="click: destroyTeam($event)">Destroy Team</a>)\n                            </span>\n                        </span>\n                        <span v-if="!viewTeam.data.team.member">\n                            Not yet a member. (<a href="#">Join Team</a>)\n                        </span>\n                    </h4>\n                    <br>\n\n                    <span v-if="viewTeam.data.team.description"> <p>{{ viewTeam.data.team.description }}</p><br> </span>\n\n\n                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>\n                    <br><br>\n\n                    <h4>Members:</h4>\n                    <div class="media" v-repeat="user: viewTeam.data.users">\n                        <div class="media-left">\n                            <a href="#">\n                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">\n                            </a>\n                        </div>\n                        <div class="media-body">\n                            <h4 class="media-heading"><a href="#" v-on="click: openProfile($event, user)">{{ user.name }}</a></h4>\n                            {{ user.id == viewTeam.data.team.owner_id ? \'Team Founder\' : \'\'}}\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="viewTeam.leave">\n              <p>Caution! Are you sure you want to leave team \'{{ viewTeam.data.team.name }}\'? </p>\n              <p>Your health bar will be decreased once again.</p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmLeave">Yes, Leave Team</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelLeave">Cancel</button>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">\n              <p>Caution! Are you sure you want to destroy team \'{{ viewTeam.data.team.name }}\'? </p>\n              <p>Doing so will kick all your team members.</p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDestroy">Yes, Destroy Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDestroy">Cancel</button>\n        </div>\n\n\n    </div>\n</div>\n';
+},{}],96:[function(require,module,exports){
+"use strict";
+
+var move = null;
+var el = null;
+
+$(window).on('mouseup', function () {
+    $("body").css("pointer-events", "auto");
+    move = null;
+});
+
+$(document).on('mousemove', function (event) {
+    if (!move) return;
+
+    var x = event.pageX - move.mouseX + move.locX;
+    var y = event.pageY - move.mouseY + move.locY;
+
+    if (x < 0) x = 0;else if (x > $(document).width() - el.width()) x = $(document).width() - el.width();
+    if (y < 0) y = 0;else if (y > $(document).height() - el.height()) y = $(document).height() - el.height();
+
+    el.css('left', x);
+    el.css('top', y);
+});
+
+var startmove = function startmove(e) {
+    $("body").css("pointer-events", "none");
+    el = e.data.el;
+    var offset = el.offset();
+    move = { mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top };
+};
+
+var add = function add(el) {
+    el.find('[data-draggable=draggable]').bind('mousedown', { el: el }, startmove);
+    el.css({
+        position: 'absolute',
+        zIndex: 10,
+        left: ($(document).width() - el.width()) / 2,
+        top: ($(document).height() - 400) / 2,
+        boxShadow: "0 0 10px #000"
+    });
+};
+
+var remove = function remove(el) {
+    el.find('[data-draggable=draggable]').unbind('mousedown', startmove);
+};
+
+$.fn.draggable = function () {
+    add($(this));
+};
+
+$.fn.undraggable = function () {
+    remove($(this));
+};
+
 },{}]},{},[1]);
