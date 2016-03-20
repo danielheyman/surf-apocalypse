@@ -33,7 +33,8 @@ $(document).ready(function() {
             'sites': require('./components/sites'),
             'teams': require('./components/teams'),
             'profile': require('./components/profile'),
-            'equip': require('./components/equip')
+            'equip': require('./components/equip'),
+            'health': require('./components/health')
         },
 
         methods: {

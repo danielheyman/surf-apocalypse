@@ -36,7 +36,8 @@ $(document).ready(function () {
             'sites': require('./components/sites'),
             'teams': require('./components/teams'),
             'profile': require('./components/profile'),
-            'equip': require('./components/equip')
+            'equip': require('./components/equip'),
+            'health': require('./components/health')
         },
 
         methods: {
@@ -140,7 +141,7 @@ $(document).ready(function () {
     });
 });
 
-},{"./components/billboard.template.html":81,"./components/chat":84,"./components/equip":86,"./components/map":88,"./components/profile":90,"./components/sites":92,"./components/teams":94,"./draggable":96,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
+},{"./components/billboard.template.html":81,"./components/chat":84,"./components/equip":86,"./components/health":88,"./components/map":90,"./components/profile":92,"./components/sites":94,"./components/teams":96,"./draggable":98,"vue":79,"vue-resource":4,"vue-validator":11}],2:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -11785,7 +11786,7 @@ module.exports = {
 
             if (!this.message) return;
 
-            if (this.channel == 'map') his.$dispatch('chat-sent', this.message);
+            if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
                 c: this.channel,
@@ -11893,6 +11894,30 @@ module.exports = {
 },{"./equip.template.html":87}],87:[function(require,module,exports){
 module.exports = '<div style="background: red; width: 300px;"><span data-draggable="draggable">Hello</span></div>\n';
 },{}],88:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+
+    template: require('./health.template.html'),
+
+    data: function data() {
+        return {
+            width: 5,
+            health: 10
+        };
+    },
+
+    methods: {},
+
+    ready: function ready() {
+        this.health = window.session_health;
+        this.width = 5 + this.health * 0.95;
+    }
+};
+
+},{"./health.template.html":89}],89:[function(require,module,exports){
+module.exports = '<div class="health-wrapper">\n    <div class="health">\n        <div class="in" style="width:{{ width }}%">{{ health }}%</div>\n    </div>\n    <div class="assign">Health Usage</div>\n</div>\n';
+},{}],90:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12134,9 +12159,9 @@ module.exports = {
     }
 };
 
-},{"./character.js":82,"./map.template.html":89}],89:[function(require,module,exports){
+},{"./character.js":82,"./map.template.html":91}],91:[function(require,module,exports){
 module.exports = '<billboard></billboard>\n\n<div class="billboard-title" v-if="site && siteLoaded" v-text="site.name"></div>\n<div class="billboard-content map">\n    <div class="loader" v-show="!site || !siteLoaded">\n        <div class="ball"></div>\n        <p>LOADING MAP</p>\n    </div>\n\n    <span v-if="site">\n        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n    </span>\n\n</div>\n\n<div v-if="site && siteLoaded">\n    <div class="characters">\n        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>\n    </div>\n    <character mine="true" message="{{ message }}" on-move="{{ moveCharacter }}" on-create="{{ createMyCharacter }}" current-state="{{@ state }}"></character>\n    <div class="items">\n        <span v-repeat="item: site.items | notFound" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>\n    </div>\n</div>\n';
-},{}],90:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12262,9 +12287,9 @@ module.exports = {
     }
 };
 
-},{"./profile.template.html":91}],91:[function(require,module,exports){
-module.exports = '<div class="profile">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p class="draggable name" data-draggable="draggable">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <img draggable="false" data-draggable="draggable" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n    <div v-if="loaded">\n        <div v-show="noMessages" class="!messages.length">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
-},{}],92:[function(require,module,exports){
+},{"./profile.template.html":93}],93:[function(require,module,exports){
+module.exports = '<div class="profile">\n    <div class="close" v-on="click: close"><i class="fa fa-times"></i></div>\n    <p class="draggable name" data-draggable="draggable">\n        {{ userName }}\n    </p>\n    <div class="loader-inline" v-if="!loaded">\n        <div class="ball"></div>\n        <p>LOADING CHAT</p>\n    </div>\n    <img draggable="false" data-draggable="draggable" class="pic" src="http://www.gravatar.com/avatar/{{ gravatar}}">\n    <div v-if="loaded">\n        <div v-show="!messages.length" class="no-messages">\n            No messsages were found. Say hello :)\n        </div>\n        <div class="messages" v-el="messages">\n            <div v-repeat="m: messages" class="{{ m.side }}">\n                <div class="message">{{ m.message }}</div>\n                <div class="info">{{ m.info }}</div>\n            </div>\n        </div>\n        <div class="form">\n            <input type="text" placeholder="Type a message..." v-model="message" v-on="keyup: sendMessage | key \'enter\'" v-attr="disabled: sending" v-el="message">\n            <div class="submit" v-on="click: sendMessage">Send</div>\n        </div>\n    </div>\n</div>\n';
+},{}],94:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12364,9 +12389,9 @@ module.exports = {
     }
 };
 
-},{"./sites.template.html":93}],93:[function(require,module,exports){
+},{"./sites.template.html":95}],95:[function(require,module,exports){
 module.exports = '<billboard></billboard>\n\n<div class="billboard-title">Your Websites</div>\n<div class="billboard-content">\n    <div class="loader loader-dark" v-show="!sites">\n        <div class="ball"></div>\n        <p>LOADING YOUR SITES</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="sites">\n        <div v-if="!delete && !newSite.active">\n            <div class="panel panel-default">\n                <div class="panel-body">\n                    <h4>Woah, some cool text about websites.</h4>\n                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit aliquid alias mollitia esse excepturi atque a doloribus ipsa consequuntur delectus totam expedita, aut distinctio non, nam pariatur, quaerat, quisquam fugit!</p>\n                </div>\n            </div>\n            <table class="table table-striped">\n                <thead>\n                    <tr>\n                        <th>Name</th>\n                        <th>URL</th>\n                        <th>Views Today</th>\n                        <th>Total Views</th>\n                        <th>Enabled</th>\n                        <th>Delete</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-repeat="site: sites">\n                        <td>{{ site.name }}</td>\n                        <td>{{ site.url }}</td>\n                        <td>{{ site.views_today }}</td>\n                        <td>{{ site.views_total }}</td>\n                        <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? \'Yup :)\' : \'Nope :(\' }}</a></td>\n                        <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>\n                    </tr>\n                    <tr v-show="noSites">\n                        <td colspan="6">You have no sites.</td>\n                    </tr>\n                </tbody>\n            </table>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="delete">\n              <p>Are you sure you want to remove \'{{ delete.name }}\'? </p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>\n        </div>\n\n        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active && !delete">Add New Site</button>\n\n        <div class="panel panel-default" v-show="newSite.active">\n            <div class="panel-body">\n                <div class="loader-inline" v-show="newSite.posting">\n                    <div class="ball"></div>\n                    <p>ADDING SITE</p>\n                </div>\n\n                <div v-show="!newSite.posting">\n                    <div class="form-group">\n                        <label for="siteName">Website Name:</label>\n                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">\n                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>\n                    </div>\n\n                    <div class="form-group">\n                        <label for="siteUrl">Website URL:</label>\n                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">\n                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>\n                    </div>\n\n                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>\n                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>\n                </div>\n            </div>\n        </div>\n    </div>\n</div>\n';
-},{}],94:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -12529,9 +12554,9 @@ module.exports = {
     }
 };
 
-},{"./teams.template.html":95}],95:[function(require,module,exports){
+},{"./teams.template.html":97}],97:[function(require,module,exports){
 module.exports = '<billboard></billboard>\n\n<div class="billboard-title">Teams</div>\n<div class="billboard-content">\n    <div class="loader loader-dark" v-show="!teams">\n        <div class="ball"></div>\n        <p>LOADING TEAMS</p>\n    </div>\n\n    <div v-el="content" class="content" v-show="teams">\n        <span v-if="!viewTeam.active">\n            <div class="panel panel-default" v-if="!newTeam.active">\n                <div class="panel-body">\n                    <h4>Teams are loads of fun, but what are they exactly?</h4>\n                    <ul>\n                        <li>The team will always be surfing together, as you will always be spawned on the same map.</li>\n                        <li>You will have your very own personal team chat.</li>\n                        <li>A maximum of four players per team.</li>\n                        <li>Good luck!</li>\n                    </ul>\n                </div>\n            </div>\n\n            <table class="table table-striped" v-if="!newTeam.active">\n                <thead>\n                    <tr>\n                        <th>Team Name</th>\n                        <th># of Players</th>\n                        <th>Info</th>\n                    </tr>\n                </thead>\n                <tbody>\n                    <tr v-if="myTeam">\n                        <td>{{ myTeam.name }} (Member)</td>\n                        <td>{{ myTeam.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, myTeam)">More info</a></td>\n                    </tr>\n                    <tr v-repeat="team: teams | notMine">\n                        <td>{{ team.name }}</td>\n                        <td>{{ team.user_count }} of 4</td>\n                        <td><a href="#" v-on="click: openTeam($event, team)">More info</a></td>\n                    </tr>\n                </tbody>\n            </table>\n\n            <button type="button" class="btn btn-primary right" v-on="click: createTeam" v-show="!myTeam && !newTeam.active">Create a Team</button>\n\n            <div class="panel panel-default" v-show="newTeam.active">\n                <div class="panel-body">\n                    <div class="loader-inline" v-show="newTeam.posting">\n                        <div class="ball"></div>\n                        <p>ADDING SITE</p>\n                    </div>\n\n                    <div v-show="!newTeam.posting">\n                        <div class="form-group">\n                            <label for="teamName">Team Name:</label>\n                            <input type="text" class="form-control" v-model="newTeam.name" v-validate="minLength: 2">\n                            <small class="text-danger" v-if="newTeam.name && validation.newTeam.name.minLength">Name is too short</small>\n                        </div>\n\n                        <div class="form-group">\n                            <label for="siteUrl">Team Descripion:</label>\n                            <textarea type="text" class="form-control" v-model="newTeam.description"></textarea>\n                        </div>\n\n                        <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmCreate">Create Team</button>\n                        <button type="button" class="btn btn-default" v-on="click: cancelCreate">Cancel</button>\n                    </div>\n                </div>\n            </div>\n\n        </span>\n\n        <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy && !viewTeam.leave">\n            <div class="panel-body">\n                <div class="loader-inline" v-show="!viewTeam.data || viewTeam.loadingMessage">\n                    <div class="ball"></div>\n                    <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : \'LOADING TEAM\' }}</p>\n                </div>\n\n                <div v-if="viewTeam.data && !viewTeam.loadingMessage">\n                    <h4>\n                        {{ viewTeam.data.team.name }}:\n                        <span v-if="viewTeam.data.team.member">\n                            <span v-if="!isOwner()">\n                                You\'re a member. (<a href="#" v-on="click: leaveTeam($event)">Leave Team</a>)\n                            </span>\n                            <span v-if="isOwner()">\n                                You\'re the owner. (<a href="#" v-on="click: destroyTeam($event)">Destroy Team</a>)\n                            </span>\n                        </span>\n                        <span v-if="!viewTeam.data.team.member">\n                            Not yet a member. (<a href="#">Join Team</a>)\n                        </span>\n                    </h4>\n                    <br>\n\n                    <span v-if="viewTeam.data.team.description"> <p>{{ viewTeam.data.team.description }}</p><br> </span>\n\n\n                    <button type="button" class="btn btn-default" v-on="click: backToList">Go Back</button>\n                    <br><br>\n\n                    <h4>Members:</h4>\n                    <div class="media" v-repeat="user: viewTeam.data.users">\n                        <div class="media-left">\n                            <a href="#">\n                                <img class="media-object" src="http://www.gravatar.com/avatar/{{ user.gravatar }}">\n                            </a>\n                        </div>\n                        <div class="media-body">\n                            <h4 class="media-heading"><a href="#" v-on="click: openProfile($event, user)">{{ user.name }}</a></h4>\n                            {{ user.id == viewTeam.data.team.owner_id ? \'Team Founder\' : \'\'}}\n                        </div>\n                    </div>\n                </div>\n\n            </div>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="viewTeam.leave">\n              <p>Caution! Are you sure you want to leave team \'{{ viewTeam.data.team.name }}\'? </p>\n              <p>Your health bar will be decreased once again.</p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmLeave">Yes, Leave Team</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelLeave">Cancel</button>\n        </div>\n\n        <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">\n              <p>Caution! Are you sure you want to destroy team \'{{ viewTeam.data.team.name }}\'? </p>\n              <p>Doing so will kick all your team members.</p>\n              <br>\n              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDestroy">Yes, Destroy Me</button>\n              <button type="button" class="btn btn-default" v-on="click: cancelDestroy">Cancel</button>\n        </div>\n\n\n    </div>\n</div>\n';
-},{}],96:[function(require,module,exports){
+},{}],98:[function(require,module,exports){
 "use strict";
 
 var move = null;

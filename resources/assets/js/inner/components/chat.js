@@ -26,7 +26,7 @@ module.exports = {
 
             if (!this.message) return;
 
-            if (this.channel == 'map') his.$dispatch('chat-sent', this.message);
+            if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
 
             socket.emit("chat", {
                 c: this.channel,

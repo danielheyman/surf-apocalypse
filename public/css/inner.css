@@ -247,7 +247,7 @@ iframe {
       background-size: 100% 100%;
       border-radius: 3px; }
       .footer .channel-picker li.current {
-        background: linear-gradient(rgba(50, 61, 128, 0.3), rgba(50, 61, 128, 0.3)), url("../../img/surf/send-button.png");
+        background: linear-gradient(rgba(50, 128, 115, 0.3), rgba(50, 61, 128, 0.3)), url("../../img/surf/send-button.png");
         background-size: 100% 100%; }
       .footer .channel-picker li.unseen {
         -webkit-animation: channel-blink 1s step-end infinite;
@@ -614,5 +614,36 @@ iframe {
       cursor: pointer; }
       .profile .form .submit:hover {
         background: #ddd; }
+
+.footer .health-wrapper {
+  text-align: right;
+  margin-bottom: 10px; }
+  .footer .health-wrapper .health {
+    display: inline-block;
+    width: 50%;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 2px solid #3A3329; }
+    .footer .health-wrapper .health .in {
+      width: 30%;
+      line-height: 20px;
+      background: #3A3329;
+      color: #ccc;
+      text-align: center; }
+  .footer .health-wrapper .assign {
+    vertical-align: top;
+    line-height: 24px;
+    display: inline-block;
+    color: #896d48;
+    text-align: center;
+    margin-left: 8px;
+    background: url("../../img/surf/send-button.png");
+    background-size: 100% 100%;
+    border-radius: 3px;
+    padding: 0 10px;
+    cursor: pointer; }
+    .footer .health-wrapper .assign:hover {
+      background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("../../img/surf/send-button.png");
+      background-size: 100% 100%; }
 
 /*# sourceMappingURL=inner.css.map */

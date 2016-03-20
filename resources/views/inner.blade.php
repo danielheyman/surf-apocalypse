@@ -13,6 +13,7 @@
             window.session_id = '{{ $user->id }}';
             window.session_name = '{{ $user->name }}';
             window.session_coins = {{ $user->coins }};
+            window.session_health = {{ $user->health }};
             window.session_equips = '{!! $equips !!}';
             window.unread_pm = '{{ $unreadPm }}';
         </script>
@@ -56,8 +57,9 @@
                                 <li>Shop</li>
                                 <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
                             </ul>
+                            <health></health>
                             <div class="online">
-                                Team Members Online <span class="count">(Coming Soon)</span>
+                                Team Members Online <span class="count">()</span>
                                 | <span v-class="blink: unreadPm.length">Messages <span class="count">(@{{ unreadPm.length }})</span></span>
                                  <!-- | Friends Online <span>(Coming Soon)</span> -->
                             </div>
