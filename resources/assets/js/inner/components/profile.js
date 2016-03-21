@@ -40,8 +40,6 @@ module.exports = {
         },
 
         sendMessage: function(e) {
-            if(e !== null && e.which != 13) return;
-            
             if (!this.message || this.sending)
                 return;
 
@@ -117,12 +115,6 @@ module.exports = {
             self.$dispatch('seen-pm', data.from);
             return false;
         });
-        
-        $(this.$el).draggable();
 
     },
-
-    detached: function() {
-        $(self.$el).undraggable();
-    }
 };

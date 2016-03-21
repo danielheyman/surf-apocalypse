@@ -1,5 +1,5 @@
-<div class="profile">
-    <div class="close" v-on:click="close"><i class="fa fa-times"></i></div>
+<div class="profile" v-draggable>
+    <div class="close" @click="close"><i class="fa fa-times"></i></div>
     <p class="draggable name" data-draggable="draggable">
         {{ userName }}
     </p>
@@ -19,8 +19,8 @@
             </div>
         </div>
         <div class="form">
-            <input type="text" placeholder="Type a message..." v-model="message" v-on:keyup="sendMessage" :disabled="sending" v-el:message>
-            <div class="submit" v-on:click="sendMessage">Send</div>
+            <input type="text" placeholder="Type a message..." v-model="message" @keyup.enter="sendMessage" :disabled="sending" v-el:message>
+            <div class="submit" @click="sendMessage">Send</div>
         </div>
     </div>
 </div>

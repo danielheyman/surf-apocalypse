@@ -8,7 +8,7 @@
     </div>
 
     <span v-if="site">
-        <iframe v-show="siteLoaded" v-on:load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>
+        <iframe v-show="siteLoaded" @load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>
     </span>
 
 </div>

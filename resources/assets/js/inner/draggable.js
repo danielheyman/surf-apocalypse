@@ -25,32 +25,26 @@ $(document).on('mousemove', function(event) {
     el.css('top', y);
 }); 
 
-var startmove = function(e) {
-    $("body").css("pointer-events", "none");
-    el = e.data.el;
-    var offset = el.offset();
-    move = {mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top};
-};
-
-var add = function(el) {
-    el.find('[data-draggable=draggable]').bind('mousedown', {el: el}, startmove);
-    el.css({
-        position: 'absolute',
-        zIndex: 10,
-        left: ($(document).width() - el.width()) / 2,
-        top: ($(document).height() - 400) / 2,
-        boxShadow: "0 0 10px #000"
-    });
-};
-
-var remove = function(el) {
-    el.find('[data-draggable=draggable]').unbind('mousedown', startmove);
-};
-
-$.fn.draggable = function() {
-    add($(this));
-};
-
-$.fn.undraggable = function() {
-    remove($(this));
-};
+window.Vue.directive('draggable', {
+    bind: function() {
+        $(this.el).find('[data-draggable=draggable]').bind('mousedown', {el: $(this.el)}, this.mousedown);
+        $(this.el).css({
+            position: 'absolute',
+            zIndex: 10,
+            left: ($(document).width() - $(this.el).width()) / 2,
+            top: ($(document).height() - 400) / 2,
+            boxShadow: "0 0 10px #000"
+        });
+    },
+    
+    mousedown: function(e) {
+        $("body").css("pointer-events", "none");
+        el = e.data.el;
+        var offset = el.offset();
+        move = {mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top};
+    },
+    
+    unbind: function() {
+        $(this.el).find('[data-draggable=draggable]').unbind('mousedown', this.mousedown);
+    }
+});

@@ -1,18 +1,18 @@
 <div class="messages">
     <div class="wrap" v-el:messages>
         <div class="message" v-for="m in messages[channel]">
-            <span><a href="#" v-on:click="openProfile($event, name, id)">{{ m.name }}</a>:</span>{{ m.text }}
+            <span><a href="#" @click="openProfile($event, name, id)">{{ m.name }}</a>:</span>{{ m.text }}
         </div>
     </div>
 </div>
 <ul class="channel-picker">
-    <li v-for="c in channels" v-on:click="toggleChannel(c)" :class="{'current': currentChannel(c), 'unseen': unseen[c]}">
+    <li v-for="c in channels" @click="toggleChannel(c)" :class="{'current': currentChannel(c), 'unseen': unseen[c]}">
         {{ c | capitalize }}
     </li>
 </ul>
 <div class="chat-menu">
     <div class="form">
-        <input placeholder="Your message" type="text" class="message" v-on:keyup="sendMessage($event)" v-model="message"/>
+        <input placeholder="Your message" type="text" class="message" @keyup.enter="sendMessage" v-model="message"/>
     </div>
-    <div class="send" v-on:click="sendMessage">Send</div>
+    <div class="send" @click="sendMessage">Send</div>
 </div>

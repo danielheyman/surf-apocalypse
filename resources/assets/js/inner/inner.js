@@ -1,4 +1,5 @@
 var Vue = require('vue');
+window.Vue = Vue;
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 

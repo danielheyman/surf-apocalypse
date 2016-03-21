@@ -1,4 +1,4 @@
-<div v-show="loaded" v-on:click="openProfile" class="character">
+<div v-show="loaded" @click="openProfile" class="character">
     <div v-el:character class="human" :style='style'>
         <span v-show="message" class="message"><span>{{ message }}</span></span>
         <span class="name"><span :class="{'highlight': mine}">{{ name }}</span></span>

@@ -49,9 +49,9 @@
                         <div class="right">
                             <ul class="menu">
                                 <li>Home</li>
-                                <li v-on:click="navigate('map')">Surf</li>
-                                <li v-on:click="navigate('sites')">Sites</li>
-                                <li v-on:click="navigate('teams')">Teams</li>
+                                <li @click="navigate('map')">Surf</li>
+                                <li @click="navigate('sites')">Sites</li>
+                                <li @click="navigate('teams')">Teams</li>
                                 <li>Items</li>
                                 <li>Equip</li>
                                 <li>Shop</li>

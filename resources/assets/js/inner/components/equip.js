@@ -11,8 +11,4 @@ module.exports = {
     methods: {
         
     },
-
-    ready: function () {
-        $(this.$el).draggable();
-    }
 };

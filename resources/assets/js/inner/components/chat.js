@@ -23,7 +23,6 @@ module.exports = {
     
     methods: {
         sendMessage: function(e) {
-            if(e !== null && e.which != 13) return;
             if (!this.message) return;
 
             if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
