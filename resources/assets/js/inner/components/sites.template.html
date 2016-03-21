@@ -1,80 +1,82 @@
-<billboard></billboard>
+<div>
+    <billboard></billboard>
 
-<div class="billboard-title">Your Websites</div>
-<div class="billboard-content">
-    <div class="loader loader-dark" v-show="!sites">
-        <div class="ball"></div>
-        <p>LOADING YOUR SITES</p>
-    </div>
+    <div class="billboard-title">Your Websites</div>
+    <div class="billboard-content">
+        <div class="loader loader-dark" v-show="!sites">
+            <div class="ball"></div>
+            <p>LOADING YOUR SITES</p>
+        </div>
 
-    <div v-el="content" class="content" v-show="sites">
-        <div v-if="!delete && !newSite.active">
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    <h4>Woah, some cool text about websites.</h4>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit aliquid alias mollitia esse excepturi atque a doloribus ipsa consequuntur delectus totam expedita, aut distinctio non, nam pariatur, quaerat, quisquam fugit!</p>
+        <div v-el="content" class="content" v-show="sites">
+            <div v-if="!delete && !newSite.active">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <h4>Woah, some cool text about websites.</h4>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Impedit aliquid alias mollitia esse excepturi atque a doloribus ipsa consequuntur delectus totam expedita, aut distinctio non, nam pariatur, quaerat, quisquam fugit!</p>
+                    </div>
                 </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>URL</th>
+                            <th>Views Today</th>
+                            <th>Total Views</th>
+                            <th>Enabled</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="site in sites">
+                            <td>{{ site.name }}</td>
+                            <td>{{ site.url }}</td>
+                            <td>{{ site.views_today }}</td>
+                            <td>{{ site.views_total }}</td>
+                            <td><a href="#" @click="toggleSite($event, site)">{{ site.enabled ? 'Yup :)' : 'Nope :(' }}</a></td>
+                            <td><a href="#" @click="deleteSite($event, site)"><i class="fa fa-times"></i></a></td>
+                        </tr>
+                        <tr v-show="noSites">
+                            <td colspan="6">You have no sites.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>URL</th>
-                        <th>Views Today</th>
-                        <th>Total Views</th>
-                        <th>Enabled</th>
-                        <th>Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="site in sites">
-                        <td>{{ site.name }}</td>
-                        <td>{{ site.url }}</td>
-                        <td>{{ site.views_today }}</td>
-                        <td>{{ site.views_total }}</td>
-                        <td><a href="#" @click="toggleSite($event, site)">{{ site.enabled ? 'Yup :)' : 'Nope :(' }}</a></td>
-                        <td><a href="#" @click="deleteSite($event, site)"><i class="fa fa-times"></i></a></td>
-                    </tr>
-                    <tr v-show="noSites">
-                        <td colspan="6">You have no sites.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
 
-        <div class="alert alert-danger" role="alert" v-if="delete">
-              <p>Are you sure you want to remove '{{ delete.name }}'? </p>
-              <br>
-              <button type="button" class="btn btn-danger margin-right" @click="confirmDelete">Yes, Delete Me</button>
-              <button type="button" class="btn btn-default" @click="cancelDelete">Cancel</button>
-        </div>
+            <div class="alert alert-danger" role="alert" v-if="delete">
+                  <p>Are you sure you want to remove '{{ delete.name }}'? </p>
+                  <br>
+                  <button type="button" class="btn btn-danger margin-right" @click="confirmDelete">Yes, Delete Me</button>
+                  <button type="button" class="btn btn-default" @click="cancelDelete">Cancel</button>
+            </div>
 
-        <button type="button" class="btn btn-primary right" @click="addSite" v-show="!newSite.active && !delete">Add New Site</button>
+            <button type="button" class="btn btn-primary right" @click="addSite" v-show="!newSite.active && !delete">Add New Site</button>
 
-        <div class="panel panel-default" v-show="newSite.active">
-            <div class="panel-body">
-                <div class="loader-inline" v-show="newSite.posting">
-                    <div class="ball"></div>
-                    <p>ADDING SITE</p>
-                </div>
+            <div class="panel panel-default" v-show="newSite.active">
+                <div class="panel-body">
+                    <div class="loader-inline" v-show="newSite.posting">
+                        <div class="ball"></div>
+                        <p>ADDING SITE</p>
+                    </div>
 
-                <div v-show="!newSite.posting">
-                    <validator name="validation">
-                        <div class="form-group">
-                            <label for="siteName">Website Name:</label>
-                            <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate:name="{ minLength: 2 }">
-                            <small class="text-danger" v-if="newSite.name && $validation.name.minLength">Name is too short</small>
-                        </div>
+                    <div v-show="!newSite.posting">
+                        <validator name="validation">
+                            <div class="form-group">
+                                <label for="siteName">Website Name:</label>
+                                <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate:name="{ minLength: 2 }">
+                                <small class="text-danger" v-if="newSite.name && $validation.name.minLength">Name is too short</small>
+                            </div>
 
-                        <div class="form-group">
-                            <label for="siteUrl">Website URL:</label>
-                            <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate:url="['url']">
-                            <small class="text-danger" v-if="newSite.url && $validation.url.url">Url is invalid</small>
-                        </div>
+                            <div class="form-group">
+                                <label for="siteUrl">Website URL:</label>
+                                <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate:url="['url']">
+                                <small class="text-danger" v-if="newSite.url && $validation.url.url">Url is invalid</small>
+                            </div>
 
-                        <button type="button" class="btn btn-primary margin-right" v-if="$validation.valid" @click="confirmAdd">Add Me</button>
-                        <button type="button" class="btn btn-default" @click="cancelAdd">Cancel</button>
-                    </validator>
+                            <button type="button" class="btn btn-primary margin-right" v-if="$validation.valid" @click="confirmAdd">Add Me</button>
+                            <button type="button" class="btn btn-default" @click="cancelAdd">Cancel</button>
+                        </validator>
+                    </div>
                 </div>
             </div>
         </div>
