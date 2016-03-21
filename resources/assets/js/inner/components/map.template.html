@@ -8,17 +8,17 @@
     </div>
 
     <span v-if="site">
-        <iframe v-show="siteLoaded" v-on="load: loadedSite" src="{{ site.url }}" sandbox="allow-forms allow-scripts allow-popups"></iframe>
+        <iframe v-show="siteLoaded" v-on:load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>
     </span>
 
 </div>
 
 <div v-if="site && siteLoaded">
     <div class="characters">
-        <span v-repeat="c: characters"><character set-state="{{ c.state }}" on-create="{{ createCharacter }}" message="{{ c.message }}" v-if="site" char-id="{{ c.i }}"></character></span>
+        <span v-for="c in characters"><character :set-state="c.state" :on-create="createCharacter" :message="c.message" v-if="site" :char-id="c.i"></character></span>
     </div>
-    <character mine="true" message="{{ message }}" on-move="{{ moveCharacter }}" on-create="{{ createMyCharacter }}" current-state="{{@ state }}"></character>
+    <character :mine="true" :message="message" :on-move="moveCharacter" :on-create="createMyCharacter" :current-state.sync="state"></character>
     <div class="items">
-        <span v-repeat="item: site.items | notFound" style="left: {{ item.left }}px"><img v-attr="src: getItemSrc(item.icon)" /></span>
+        <span v-for="item in site.items | notFound" :style="{'left': item.left + 'px'}"><img :src="getItemSrc(item.icon)" /></span>
     </div>
 </div>

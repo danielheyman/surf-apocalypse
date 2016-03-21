@@ -37,7 +37,10 @@ module.exports = {
             width: 110,
             loaded: false,
             name: '',
-            equipsCss: '',
+            style: {
+                background: '',
+                'background-size': ''
+            }
         };
     },
 
@@ -80,7 +83,7 @@ module.exports = {
                 return;
             }
             
-            $(this.$$.character).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
+            $(this.$els.character).css('background-position', -((this.frame - 1) * this.width) + 'px ' + -((this.state.line - 1) * this.height) + 'px');
 
             if (--this.frame < 1) this.frame = this.state.frames;
         },
@@ -118,15 +121,15 @@ module.exports = {
             if(typeof equips == "string") equips = equips.split(",");
             
             var self = this;
-            var style = 'background:';
+            var style = '';
             var equipsLength = equips.length;
 
             $.each(equips, function(index) {
                 style += 'url("../../img/surf/equips/' + this + '.png")';
                 if(index < equipsLength - 1) style += ',';
             });
-            style += ';background-size: 900% 400%;';
-            this.equipsCss = style;
+            this.style.background = style;
+            this.style['background-size'] = '900% 400%';
         },
         
         openProfile: function() {
@@ -141,7 +144,7 @@ module.exports = {
         this.intervals.push(setInterval(this.drawCharacter, 50));
 
         var preload = function() {
-            $(this.$$.character).preload(function() {                
+            $(this.$els.character).preload(function() {                
                 self.loaded = true;
             });
         };

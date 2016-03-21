@@ -36,11 +36,12 @@ module.exports = {
 
     methods: {
         close: function() {
-            if (this.onClose)
-                this.onClose(this.userId);
+            if (this.onClose) this.onClose(this.userId);
         },
 
-        sendMessage: function() {
+        sendMessage: function(e) {
+            if(e !== null && e.which != 13) return;
+            
             if (!this.message || this.sending)
                 return;
 
@@ -67,13 +68,13 @@ module.exports = {
         scrolledToBottom: function() {
             var self = this;
 
-            var messages = $(this.$$.messages);
+            var messages = $(this.$els.messages);
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
             if (scrolledToBottom || !messages.length) {
                 this.$nextTick(function () {
                     if(!messages.length)
-                        messages = $(this.$$.messages);
+                        messages = $(this.$els.messages);
 
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
@@ -88,7 +89,8 @@ module.exports = {
     ready: function () {
         var self = this;
 
-        this.$http.get('/api/pms/' + this.userId).success(function(data) {
+        this.$http.get('/api/pms/' + this.userId).then(function(result) {
+            var data = result.data;
             self.gravatar = data.gravatar;
             self.messages = data.messages;
             self.loaded = true;
@@ -107,7 +109,7 @@ module.exports = {
                 self.message = "";
                 self.sending = false;
                 self.$nextTick(function () {
-                    self.$$.message.focus();
+                    self.$els.message.focus();
                 });
             }
 

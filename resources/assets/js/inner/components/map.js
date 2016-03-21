@@ -93,8 +93,8 @@ module.exports = {
                 this.$http.post('/api/map', {
                     'id': this.site.id,
                     'items': itemsFound
-                }).success(function(site) {
-                    self.processSite(site);
+                }).then(function(result) {
+                    self.processSite(result.data);
                 });
 
                 this.site = null;
@@ -141,8 +141,8 @@ module.exports = {
     attached: function() {
         var self = this;
 
-        this.$http.get('/api/map').success(function(site) {
-            self.processSite(site);
+        this.$http.get('/api/map').then(function(result) {
+            self.processSite(result.data);
         });
 
         this.intervals.push(setInterval(this.sendStatus, 500));
@@ -204,7 +204,7 @@ module.exports = {
         socket.on('map_leave', function(id) {
             if (!self.site) return;
             var char_array_pos = parseInt(self.getCharArrayPos(id));
-            if (char_array_pos > -1) self.characters.$remove(char_array_pos);
+            if (char_array_pos > -1) self.characters.splice(char_array_pos, 1);
         });
 
         this.$on('chat-sent', function(message) {

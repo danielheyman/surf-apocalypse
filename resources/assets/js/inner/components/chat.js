@@ -20,10 +20,10 @@ module.exports = {
             channel: 'global'
         };
     },
-
+    
     methods: {
-        sendMessage: function() {
-
+        sendMessage: function(e) {
+            if(e !== null && e.which != 13) return;
             if (!this.message) return;
 
             if (this.channel == 'map') this.$dispatch('chat-sent', this.message);
@@ -43,7 +43,7 @@ module.exports = {
         },
 
         addMessage: function(data) {
-            var messages = $(this.$$.messages);
+            var messages = $(this.$els.messages);
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
@@ -87,7 +87,7 @@ module.exports = {
 
             this.unseen[channel] = false;
 
-            var messages = $(this.$$.messages);
+            var messages = $(this.$els.messages);
 
             this.$nextTick(function() {
                 messages.animate({

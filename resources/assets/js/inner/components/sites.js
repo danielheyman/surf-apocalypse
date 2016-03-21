@@ -15,11 +15,12 @@ module.exports = {
         };
     },
 
-    validator: {
-        validates: {
-            url: function (val) {
-                return /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/.test(val);
-            }
+    validators: {
+        url: function (val) {
+            return /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/.test(val);
+        }, 
+        minLength: function (val, rule) {
+            return val.length >= rule;
         }
     },
 
@@ -71,9 +72,8 @@ module.exports = {
 
             var self = this;
 
-            this.$http.post('/api/sites/new', {'name': this.newSite.name, 'url': this.newSite.url}).success(function(site) {
-
-                self.sites.push(site);
+            this.$http.post('/api/sites/new', {'name': this.newSite.name, 'url': this.newSite.url}).then(function(result) {
+                self.sites.push(result.data);
 
                 self.newSite.active = false;
                 self.newSite.posting = false;
@@ -88,12 +88,8 @@ module.exports = {
     ready: function() {
         var self = this;
 
-        this.$http.get('/api/sites').success(function(sites) {
-
-            self.sites = sites;
-
-        }).error(function() {
-
+        this.$http.get('/api/sites').then(function(result) {
+            self.sites = result.data;
         });
     }
 };

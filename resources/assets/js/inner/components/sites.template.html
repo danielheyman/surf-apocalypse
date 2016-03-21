@@ -27,13 +27,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-repeat="site: sites">
+                    <tr v-for="site in sites">
                         <td>{{ site.name }}</td>
                         <td>{{ site.url }}</td>
                         <td>{{ site.views_today }}</td>
                         <td>{{ site.views_total }}</td>
-                        <td><a href="#" v-on="click: toggleSite($event, site)">{{ site.enabled ? 'Yup :)' : 'Nope :(' }}</a></td>
-                        <td><a href="#" v-on="click: deleteSite($event, site)"><i class="fa fa-times"></i></a></td>
+                        <td><a href="#" v-on:click="toggleSite($event, site)">{{ site.enabled ? 'Yup :)' : 'Nope :(' }}</a></td>
+                        <td><a href="#" v-on:click="deleteSite($event, site)"><i class="fa fa-times"></i></a></td>
                     </tr>
                     <tr v-show="noSites">
                         <td colspan="6">You have no sites.</td>
@@ -45,11 +45,11 @@
         <div class="alert alert-danger" role="alert" v-if="delete">
               <p>Are you sure you want to remove '{{ delete.name }}'? </p>
               <br>
-              <button type="button" class="btn btn-danger margin-right" v-on="click: confirmDelete">Yes, Delete Me</button>
-              <button type="button" class="btn btn-default" v-on="click: cancelDelete">Cancel</button>
+              <button type="button" class="btn btn-danger margin-right" v-on:click="confirmDelete">Yes, Delete Me</button>
+              <button type="button" class="btn btn-default" v-on:click="cancelDelete">Cancel</button>
         </div>
 
-        <button type="button" class="btn btn-primary right" v-on="click: addSite" v-show="!newSite.active && !delete">Add New Site</button>
+        <button type="button" class="btn btn-primary right" v-on:click="addSite" v-show="!newSite.active && !delete">Add New Site</button>
 
         <div class="panel panel-default" v-show="newSite.active">
             <div class="panel-body">
@@ -59,20 +59,22 @@
                 </div>
 
                 <div v-show="!newSite.posting">
-                    <div class="form-group">
-                        <label for="siteName">Website Name:</label>
-                        <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate="minLength: 2">
-                        <small class="text-danger" v-if="newSite.name && validation.newSite.name.minLength">Name is too short</small>
-                    </div>
+                    <validator name="validation">
+                        <div class="form-group">
+                            <label for="siteName">Website Name:</label>
+                            <input type="text" class="form-control" id="siteName" v-model="newSite.name" v-validate:name="{ minLength: 2 }">
+                            <small class="text-danger" v-if="newSite.name && $validation.name.minLength">Name is too short</small>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="siteUrl">Website URL:</label>
-                        <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate="url">
-                        <small class="text-danger" v-if="newSite.url && validation.newSite.url.url">Url is invalid</small>
-                    </div>
+                        <div class="form-group">
+                            <label for="siteUrl">Website URL:</label>
+                            <input type="text" class="form-control" id="siteUrl" v-model="newSite.url" v-validate:url="['url']">
+                            <small class="text-danger" v-if="newSite.url && $validation.url.url">Url is invalid</small>
+                        </div>
 
-                    <button type="button" class="btn btn-primary margin-right" v-if="valid" v-on="click: confirmAdd">Add Me</button>
-                    <button type="button" class="btn btn-default" v-on="click: cancelAdd">Cancel</button>
+                        <button type="button" class="btn btn-primary margin-right" v-if="$validation.valid" v-on:click="confirmAdd">Add Me</button>
+                        <button type="button" class="btn btn-default" v-on:click="cancelAdd">Cancel</button>
+                    </validator>
                 </div>
             </div>
         </div>

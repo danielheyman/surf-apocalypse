@@ -43,7 +43,7 @@ $(document).ready(function() {
             },
 
             closeProfile: function(id) {
-                this.openProfiles.$remove(this.profileIndex(id));
+                this.openProfiles.splice(this.profileIndex(id), 1);
             },
 
             profileIndex: function(id) {
@@ -57,7 +57,7 @@ $(document).ready(function() {
 
         ready: function() {
             // Init
-            $(this.$$.main).removeClass('hidden');
+            $(this.$els.main).removeClass('hidden');
             var self = this;
             this.coins = window.session_coins;
 
@@ -99,7 +99,7 @@ $(document).ready(function() {
 
             this.$on('seen-pm', function(id) {
                 var index = self.unreadPm.indexOf(id);
-                if(index !== -1) self.unreadPm.$remove(index);      
+                if(index !== -1) self.unreadPm.splice(index, 1);
                 this.$http.put('/api/pms/seen/' + id);          
                 return false;
             });

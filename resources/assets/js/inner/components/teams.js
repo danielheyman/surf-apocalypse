@@ -24,6 +24,12 @@ module.exports = {
         };
     },
 
+    validators: {
+        minLength: function (val, rule) {
+            return val.length >= rule;
+        }
+    },
+
     filters: {
         notMine: function(teams) {
             var self = this;
@@ -46,12 +52,8 @@ module.exports = {
             this.viewTeam.active = true;
             this.viewTeam.team = team;
 
-            this.$http.get('/api/teams/' + team.id).success(function(data) {
-
-                self.viewTeam.data = data;
-
-            }).error(function() {
-
+            this.$http.get('/api/teams/' + team.id).then(function(result) {
+                self.viewTeam.data = result.data;
             });
         },
 
@@ -81,7 +83,7 @@ module.exports = {
 
             var self = this;
 
-            this.$http.post('/api/teams/leave').success(function() {
+            this.$http.post('/api/teams/leave').then(function() {
 
                 self.viewTeam.loadingMessage = "";
                 self.viewTeam.team.user_count--;
@@ -106,7 +108,7 @@ module.exports = {
 
             var self = this;
 
-            this.$http.delete('/api/teams').success(function() {
+            this.$http.delete('/api/teams').then(function() {
 
                 self.viewTeam.loadingMessage = "";
                 self.teams.$remove(self.viewTeam.team);
@@ -130,8 +132,8 @@ module.exports = {
 
             var self = this;
 
-            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).success(function(site) {
-
+            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).then(function(result) {
+                var site = result.data;
                 self.teams.push(site);
                 self.myTeam = site;
 
@@ -149,8 +151,8 @@ module.exports = {
     ready: function() {
         var self = this;
 
-        this.$http.get('/api/teams').success(function(data) {
-
+        this.$http.get('/api/teams').then(function(result) {
+            var data = result.data;
             self.teams = data.teams;
 
             if(data.my_team) {
@@ -159,8 +161,6 @@ module.exports = {
                         self.myTeam = data.teams[team];
                 });
             }
-
-        }).error(function() {
 
         });
     }
