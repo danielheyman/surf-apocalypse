@@ -23,7 +23,7 @@ Route::group(['namespace' => 'Auth'], function () {
         Route::get('resend', 'AuthController@resend');
         Route::post('resend', 'AuthController@postResend');
     });
-
+    
     Route::get('login', 'AuthController@getLogin');
     Route::post('login', 'AuthController@postLogin');
     Route::get('logout', 'AuthController@getLogout');

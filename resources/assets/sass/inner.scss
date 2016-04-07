@@ -4,9 +4,9 @@ html {
 }
 
 body {
-    font-family: Frutiger, 'Frutiger Linotype', Univers, Calibri, 'Gill Sans', 'Gill Sans MT', 'Myriad Pro', Myriad, 'DejaVu Sans Condensed', 'Liberation Sans', 'Nimbus Sans L', Tahoma, Geneva, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    font-size: 14px;
     margin: 0;
+    font-size: 14px;
+    font-family: Frutiger, 'Frutiger Linotype', Univers, Calibri, 'Gill Sans', 'Gill Sans MT', 'Myriad Pro', Myriad, 'DejaVu Sans Condensed', 'Liberation Sans', 'Nimbus Sans L', Tahoma, Geneva, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .bg {
@@ -16,19 +16,19 @@ body {
 
 .top {
     position: fixed;
-    z-index: 1;
     top: 0;
     right: 0;
     bottom: 180px;
     left: 0;
+    z-index: 1;
 }
 
 .bottom {
     position: fixed;
-    z-index: 0;
     right: 0;
     bottom: 0;
     left: 0;
+    z-index: 0;
     height: 180px;
 }
 
@@ -67,11 +67,11 @@ body {
     position: absolute;
     top: 30px;
     left: 5%;
+    z-index: 1;
+    margin-left: -45px;
     width: 85px;
     height: 85px;
-    margin-left: -45px;
     background: url("../../img/surf/bill-sign.png");
-    z-index: 1;
 }
 
 .billboard,
@@ -82,10 +82,10 @@ body {
     right: 5%;
     bottom: 19px;
     left: 5%;
-    width: 90%;
-    margin-bottom: 50px;
-    border-radius: 5px;
     overflow: auto;
+    margin-bottom: 50px;
+    width: 90%;
+    border-radius: 5px;
 }
 
 .billboard-shadow {
@@ -95,6 +95,7 @@ body {
 
 .billboard {
     background: url('../../img/surf/bill-bg2.jpg'), url("../../img/surf/bill-bg.jpg");
+
     background-blend-mode: overlay;
 }
 
@@ -107,8 +108,8 @@ body {
 }
 
 .billboard-content.map {
-    background: none;
     padding: 20px 20px 0;
+    background: none;
 }
 
 iframe {
@@ -122,32 +123,32 @@ iframe {
 
 .footer-fence {
     position: absolute;
-    z-index: 2;
     bottom: 0;
+    z-index: 2;
     width: 100%;
     height: 49px;
     background: url("../../img/surf/footer-fence.png");
 }
 
 .notifications {
+    position: absolute;
+    right: 10px;
+    bottom: 20px;
+    z-index: 10;
     overflow: auto;
     border-radius: 5px;
-    position: absolute;
-    bottom: 20px;
-    right: 10px;
-    z-index: 10;
 
     .notification {
-        line-height: 18px;
-        color: #baa166;
-        background: rgba(0, 0, 0, .5);
-        border-radius: 5px;
-        padding: 5px;
-        margin-bottom: 5px;
-        border: 1px solid #333;
         float: right;
         clear: right;
+        margin-bottom: 5px;
+        padding: 5px;
+        border: 1px solid #333;
+        border-radius: 5px;
+        background: rgba(0, 0, 0, .5);
+        color: #baa166;
         font-size: bigger;
+        line-height: 18px;
 
         span {
             color: #fff;
@@ -157,13 +158,13 @@ iframe {
 
 .character {
     position: absolute;
-    left: 5%;
     bottom: 5px;
+    left: 5%;
 
     .name {
         position: absolute;
-        z-index: 3;
         bottom: -13px;
+        z-index: 3;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -171,9 +172,9 @@ iframe {
         span {
             display: inline-block;
             padding: 0 5px;
-            color: #fff;
             border-radius: 3px;
             background: #816a48;
+            color: #fff;
             line-height: 18px;
 
             &.highlight {
@@ -184,8 +185,8 @@ iframe {
 
     .message {
         position: absolute;
-        z-index: 3;
         bottom: 90%;
+        z-index: 3;
         display: inline-block;
         width: 100%;
         text-align: center;
@@ -193,33 +194,33 @@ iframe {
         span {
             position: relative;
             display: inline-block;
-            max-width: 100%;
             margin-bottom: 3px;
             padding: 4px;
-            word-wrap: break-word;
-            color: #fff;
+            max-width: 100%;
             border-radius: 3px;
             background: #006888;
             box-shadow: 0 0 8px #000;
+            color: #fff;
+            word-wrap: break-word;
 
             &:after {
                 position: absolute;
                 bottom: -6px;
                 left: 50%;
                 margin-left: -5px;
-                content: '';
                 border: solid;
                 border-width: 6px 6px 0;
                 border-color: #006888 transparent;
+                content: '';
             }
         }
     }
 }
 
 .human {
+    max-width: 110px;
     width: 110px;
     height: 110px;
-    max-width: 110px;
 }
 
 .footer {
@@ -235,38 +236,38 @@ iframe {
 
     .left {
         float: left;
-        width: 600px;
         margin: 0;
         padding: 0;
+        width: 600px;
     }
 
     .right {
         float: left;
-        width: 600px;
         margin: 0;
         padding: 0 0 0 5px;
+        width: 600px;
     }
 
     .inner {
-        width: 1200px;
         margin: 10px auto auto;
+        width: 1200px;
     }
 
     .messages {
-        height: 90px;
         padding: 5px 10px;
+        height: 90px;
         border: 1px solid #231b0f;
         border-radius: 5px;
         background: #000;
 
         .wrap {
-            max-height: 100%;
             overflow: auto;
+            max-height: 100%;
         }
 
         .message {
-            line-height: 18px;
             color: #baa166;
+            line-height: 18px;
 
             span {
                 margin-right: 5px;
@@ -284,11 +285,11 @@ iframe {
     }
 
     .online {
-        text-align: right;
-        line-height: 18px;
-        color: #baa166;
-        text-transform: uppercase;
         margin-right: 5px;
+        color: #baa166;
+        text-align: right;
+        text-transform: uppercase;
+        line-height: 18px;
         cursor: pointer;
         
         span.blink {
@@ -304,19 +305,19 @@ iframe {
     }
 
     .channel-picker {
-        list-style: none;
-        padding: 0;
         margin: 5px 0 0;
+        padding: 0;
+        list-style: none;
 
         li {
             display: inline-block;
-            width: 75px;
-            color: #896d48;
-            text-align: center;
             margin-right: 8px;
+            width: 75px;
+            border-radius: 3px;
             background: url("../../img/surf/send-button.png");
             background-size: 100% 100%;
-            border-radius: 3px;
+            color: #896d48;
+            text-align: center;
 
             &.current {
                 background: linear-gradient(rgba(50, 128, 115, 0.3), rgba(50, 61, 128, 0.3)), url("../../img/surf/send-button.png");
@@ -324,11 +325,11 @@ iframe {
             }
 
             &.unseen {
+                background-size: 100% 100%;
                 -webkit-animation: channel-blink 1s step-end infinite;
                 -moz-animation: channel-blink 1s step-end infinite;
                 -ms-animation: channel-blink 1s step-end infinite;
                 animation: channel-blink 1s step-end infinite;
-                background-size: 100% 100%;
             }
 
             &:not(.current) {
@@ -350,24 +351,24 @@ iframe {
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
+            padding: 7px 8px;
             width: 510px;
             height: 42px;
-            padding: 7px 8px;
             background: url("../../img/surf/message-form.png");
             background-size: 100% 100%;
 
             .message {
                 display: inline-block;
-                width: 100%;
-                height: 28px;
                 padding-top: 2px;
                 padding-left: 10px;
-                color: #896d48;
+                width: 100%;
+                height: 28px;
+                outline: 0;
                 border: 0;
                 border-radius: 3px;
-                outline: 0;
                 background: #161414;
                 box-shadow: inset 2px 2px 6px #000;
+                color: #896d48;
 
                 &::-webkit-input-placeholder { color:#896d48; }
                 &::-moz-placeholder { color:#896d48; }
@@ -377,15 +378,15 @@ iframe {
         }
 
         .send {
-            line-height: 42px;
             float: right;
             width: 80px;
             height: 42px;
-            cursor: pointer;
-            text-align: center;
-            color: #896d48;
             background: url("../../img/surf/send-button.png");
             background-size: 100% 100%;
+            color: #896d48;
+            text-align: center;
+            line-height: 42px;
+            cursor: pointer;
 
             &:hover {
                 background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), url("../../img/surf/send-button.png");
@@ -407,12 +408,12 @@ iframe {
 }
 
 .loader-big {
-    background: #afa09f;
     position: absolute;
-    height: 100%;
-    width: 100%;
-    left: 0;
     top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #afa09f;
 
     .loader p {
         font-size: 30px;
@@ -425,27 +426,27 @@ iframe {
     right: 0;
     bottom: 0;
     left: 0;
-    height: 50px;
     margin: auto;
+    height: 50px;
     text-align: center;
 }
 
 .loader p, .loader-inline p {
-    font-family: sans-serif;
-    font-size: 15px;
-    letter-spacing: 3px;
     color: #fff;
+    letter-spacing: 3px;
+    font-size: 15px;
+    font-family: sans-serif;
 }
 
 .loader .ball, .loader-inline .ball {
-    content: "";
     display: inline-block;
     width: 20px;
     height: 20px;
-    -webkit-animation: motion 3s cubic-bezier(.77, 0, .175, 1) infinite;
-    animation: motion 3s cubic-bezier(.77, 0, .175, 1) infinite;
     border-radius: 50%;
     background-color: #fff;
+    content: "";
+    -webkit-animation: motion 3s cubic-bezier(.77, 0, .175, 1) infinite;
+    animation: motion 3s cubic-bezier(.77, 0, .175, 1) infinite;
 }
 
 .loader-inline, .loader-dark {
@@ -459,8 +460,8 @@ iframe {
 }
 
 .loader-inline {
-    height: 50px;
     margin: auto;
+    height: 50px;
     text-align: center;
 }
 
@@ -519,13 +520,13 @@ iframe {
 }
 
 .billboard-title {
-    width: 100%;
     position: fixed;
     top: 3px;
-    font-size: 30px;
+    width: 100%;
+    color: #ececec;
     text-align: center;
     letter-spacing: 3px;
-    color: #ececec;
+    font-size: 30px;
 }
 
 .content .table {
@@ -563,8 +564,8 @@ iframe {
 
 .map-view .items {
     position: absolute;
-    z-index: 10;
     bottom: 20px;
+    z-index: 10;
 
     span {
         position: absolute;
@@ -578,22 +579,23 @@ iframe {
         left: 12%;
         width: 76%;
         height: 8px;
-        content: '';
         border-radius: 5px;
         background: #fff;
+        content: '';
         -webkit-filter: blur(3px);
-        -moz-filter: blur(3px);
-        -o-filter: blur(3px);
         -ms-filter: blur(3px);
         filter:blur(3px);
+
+        -moz-filter: blur(3px);
+        -o-filter: blur(3px);
     }
 
     img {
-        max-width: 25px;
         margin-bottom: 15px;
+        max-width: 25px;
+        border-radius: 3px;
         -webkit-animation: item_float 0.7s infinite alternate linear;
         animation: item_float 0.7s infinite alternate linear;
-        border-radius: 3px;
     }
 }
 
@@ -619,31 +621,31 @@ iframe {
 
 .menu {
     display: table;
-    width: 100%;
     padding: 4px 0 5px;
-    list-style: none;
+    width: 100%;
     border-radius: 3px;
     background: url("../../img/surf/menu.png");
     background-size: 100% 100%;
+    list-style: none;
 
     li {
-        line-height: 35px;
         display: table-cell;
+        border-right: 2px solid #231f1c;
+        color: #896d48;
         text-align: center;
         text-transform: uppercase;
-        color: #896d48;
-        border-right: 2px solid #231f1c;
+        line-height: 35px;
 
         &:hover {
-            cursor: pointer;
             background-color: rgba(0, 0, 0, .2);
+            cursor: pointer;
         }
 
         &.coins {
             padding-right: 20px;
             border-right: 0;
-            background-repeat: no-repeat;
             background-position: right;
+            background-repeat: no-repeat;
 
             .count {
                 color: #ccc;
@@ -652,13 +654,13 @@ iframe {
             &::after {
                 position: absolute;
                 display: inline-block;
-                width: 40px;
-                height: 32px;
                 margin-top: -4px;
                 margin-left: 8px;
-                content: '';
+                width: 40px;
+                height: 32px;
                 background: url("../../img/surf/coins.png");
                 background-size: 100%;
+                content: '';
             }
         }
     }
@@ -669,10 +671,10 @@ iframe {
 }
 
 .profile {
+    overflow: hidden;
+    width: 400px;
     border-radius: 5px;
     background: #fff;
-    width: 400px;
-    overflow: hidden;
 
     .loader-inline {
         margin: 40px auto;
@@ -680,48 +682,49 @@ iframe {
 
     .close {
         position: absolute;
-        right: 9px;
         top: 4px;
+        right: 9px;
     }
     
     .name, .pic {
+        cursor: pointer;        
+
         -webkit-touch-callout: none; 
         -webkit-user-select: none;   
         -khtml-user-select: none;    
         -moz-user-select: none;      
         -ms-user-select: none;       
         user-select: none;   
-        cursor: pointer;        
     }
 
     .pic {
         position: absolute;
-        left: 0;
         top: 0;
+        left: 0;
         height: 50px;
     }
 
     .name {
-        height: 51px;
-        font-size: 17px;
-        font-weight: bold;
-        text-align: center;
-        line-height: 51px;
         margin: 0;
+        height: 51px;
         border-bottom: 1px solid #ccc;
         background: #eee;
+        text-align: center;
+        font-weight: bold;
+        font-size: 17px;
+        line-height: 51px;
     }
 
     .no-messages {
-        text-align: center;
         position: absolute;
-        width: 100%;
         margin-top: 130px;
+        width: 100%;
+        text-align: center;
     }
 
     .messages {
-        padding: 10px;
         overflow: auto;
+        padding: 10px;
         height: 300px;
 
         & > div {
@@ -737,8 +740,8 @@ iframe {
             }
 
             .info {
-                clear: both;
                 float: left;
+                clear: both;
             }
         }
 
@@ -753,22 +756,22 @@ iframe {
             }
 
             .info {
-                clear: both;
                 float: right;
+                clear: both;
             }
         }
 
         .message {
             display: inline-block;
+            padding: 4px 10px;
             border-radius: 10px;
             background: #eee;
-            padding: 4px 10px;
         }
 
         .info {
-            font-size: smaller;
             display: inline-block;
             margin-bottom: 10px;
+            font-size: smaller;
         }
     }
 
@@ -776,24 +779,24 @@ iframe {
         border-top: 1px solid #ccc;
 
         input {
-            width: 335px;
-            height: 35px;
+            float: left;
             margin: 0;
             padding: 5px 10px;
+            width: 335px;
+            height: 35px;
+            outline: none;
             border: 0;
             border-radius: 0;
-            float: left;
-            outline: none;
         }
 
         .submit {
+            float: left;
             width: 65px;
             height: 35px;
-            line-height: 30px;
-            text-align: center;
-            background: #eee;
-            float: left;
             border-left: 1px solid #ccc;
+            background: #eee;
+            text-align: center;
+            line-height: 30px;
             cursor: pointer;
 
             &:hover {
@@ -803,36 +806,36 @@ iframe {
     }
 }
 .footer .health-wrapper {
-    text-align: right;
     margin-bottom: 10px;
+    text-align: right;
     
     .health {
         display: inline-block; 
-        width: 50%; 
-        border-radius: 5px; 
         overflow: hidden; 
+        width: 50%; 
         border: 2px solid #3A3329; 
+        border-radius: 5px; 
         
         .in {
             width: 30%; 
-            line-height: 20px; 
             background: #3A3329; 
             color: #ccc; 
             text-align: center;
+            line-height: 20px; 
         }
     }
     
     .assign {
-        vertical-align: top;
-        line-height: 24px;
         display: inline-block;
-        color: #896d48;
-        text-align: center;
         margin-left: 8px;
+        padding: 0 10px;
+        border-radius: 3px;
         background: url("../../img/surf/send-button.png");
         background-size: 100% 100%;
-        border-radius: 3px;
-        padding: 0 10px;
+        color: #896d48;
+        vertical-align: top;
+        text-align: center;
+        line-height: 24px;
         cursor: pointer;
 
         &:hover {

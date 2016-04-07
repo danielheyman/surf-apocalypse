@@ -41,10 +41,7 @@ class MapController extends Controller
             }
         }
 
-        $user = User::where(function ($query) {
-            $query->where('human', true)
-            ->orWhere('coins', '>', 0);
-        })->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
+        $user = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
 
         $site = $user->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url', 'name']);
 
@@ -53,6 +50,11 @@ class MapController extends Controller
         $map = $site->toArray();
         $map['items'] = $map_items;
         $map['id'] = md5($ids['id']);
+        $map['user_info'] = array(
+            "name" => $user->name,
+            "equip" => $user->orderedEquipsString(),
+            "id" => $user->id
+        );
 
         Session::put('current_map', $ids);
 

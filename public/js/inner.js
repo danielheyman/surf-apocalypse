@@ -2,7 +2,6 @@
 'use strict';
 
 var Vue = require('vue');
-window.Vue = Vue;
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 
@@ -11,7 +10,7 @@ window.socket = io('http://surf.local:3000');
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 $(document).ready(function () {
-    require('./draggable');
+    require('./draggable')(Vue);
 
     var Billboard = Vue.extend({
         template: require('./components/billboard.template.html')
@@ -13631,7 +13630,6 @@ module.exports = {
             height: 110,
             width: 110,
             loaded: false,
-            name: '',
             style: {
                 background: '',
                 'background-size': ''
@@ -13661,6 +13659,12 @@ module.exports = {
         },
         charId: {
             type: Number
+        },
+        equip: {
+            type: String
+        },
+        name: {
+            type: String
         }
     },
 
@@ -13736,6 +13740,11 @@ module.exports = {
         if (this.mine) {
             this.name = window.session_name;
             this.buildEquips(window.session_equips);
+            this.$nextTick(preload);
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
+        } else if (this.equip && this.name) {
+            this.buildEquips(this.equip);
             this.$nextTick(preload);
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);
@@ -13987,6 +13996,11 @@ module.exports = {
             this.characterEl = el;
         },
 
+        createMapCharacter: function createMapCharacter(el, id) {
+            el.css("left", this.getLeftPos(95));
+            this.site.user_info.el = el;
+        },
+
         createCharacter: function createCharacter(el, id) {
 
             var char_array_pos = this.getCharArrayPos(id);
@@ -14083,6 +14097,12 @@ module.exports = {
             var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
 
+            var characterMapEl = $(self.site.user_info.el);
+            if (myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width() && !self.site.user_info.attacked) {
+                self.site.user_info.attacked = true;
+                self.$dispatch('notification', "You attacked <span>" + self.site.user_info.name + "</span> (-5 HP)");
+            }
+
             for (var x = 0; x < self.site.items.length; x++) {
                 if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {
                     self.site.items[x].pickedUp = true;
@@ -14171,7 +14191,7 @@ module.exports = {
 };
 
 },{"./character.js":30,"./map.template.html":39}],39:[function(require,module,exports){
-module.exports = '<div>\n    <billboard></billboard>\n\n    <div class="billboard-title" v-if="site && siteLoaded" v-text="site.name"></div>\n    <div class="billboard-content map">\n        <div class="loader" v-show="!site || !siteLoaded">\n            <div class="ball"></div>\n            <p>LOADING MAP</p>\n        </div>\n\n        <span v-if="site">\n            <iframe v-show="siteLoaded" @load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n        </span>\n\n    </div>\n\n    <div v-if="site && siteLoaded">\n        <div class="characters">\n            <span v-for="c in characters"><character :set-state="c.state" :on-create="createCharacter" :message="c.message" v-if="site" :char-id="c.i"></character></span>\n        </div>\n        <character :mine="true" :message="message" :on-move="moveCharacter" :on-create="createMyCharacter" :current-state.sync="state"></character>\n        <div class="items">\n            <span v-for="item in site.items | notFound" :style="{\'left\': item.left + \'px\'}"><img :src="getItemSrc(item.icon)" /></span>\n        </div>\n    </div>\n</div>\n';
+module.exports = '<div>\n    <billboard></billboard>\n\n    <div class="billboard-title" v-if="site && siteLoaded" v-text="site.name"></div>\n    <div class="billboard-content map">\n        <div class="loader" v-show="!site || !siteLoaded">\n            <div class="ball"></div>\n            <p>LOADING MAP</p>\n        </div>\n\n        <span v-if="site">\n            <iframe v-show="siteLoaded" @load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>\n        </span>\n\n    </div>\n\n    <div v-if="site && siteLoaded">\n        <div class="characters">\n            <span v-for="c in characters"><character :set-state="c.state" :on-create="createCharacter" :message="c.message" v-if="site" :char-id="c.i"></character></span>\n        </div>\n        <character set-state="IDLE_LEFT" :on-create="createMapCharacter" v-if="site" :equip="site.user_info.equip" :name="site.user_info.name" :char-id="site.user_info.id" message="I am the owner of this website. Pleasure to meet you."></character>\n        <character :mine="true" :message="message" :on-move="moveCharacter" :on-create="createMyCharacter" :current-state.sync="state"></character>\n        <div class="items">\n            <span v-for="item in site.items | notFound" :style="{\'left\': item.left + \'px\'}"><img :src="getItemSrc(item.icon)" /></span>\n        </div>\n    </div>\n</div>\n';
 },{}],40:[function(require,module,exports){
 'use strict';
 
@@ -14569,49 +14589,51 @@ module.exports = '<div>\n    <billboard></billboard>\n\n    <div class="billboar
 },{}],46:[function(require,module,exports){
 "use strict";
 
-var move = null;
-var el = null;
+module.exports = function (Vue) {
+    var move = null;
+    var el = null;
 
-$(window).on('mouseup', function () {
-    $("body").css("pointer-events", "auto");
-    move = null;
-});
+    $(window).on('mouseup', function () {
+        $("body").css("pointer-events", "auto");
+        move = null;
+    });
 
-$(document).on('mousemove', function (event) {
-    if (!move) return;
+    $(document).on('mousemove', function (event) {
+        if (!move) return;
 
-    var x = event.pageX - move.mouseX + move.locX;
-    var y = event.pageY - move.mouseY + move.locY;
+        var x = event.pageX - move.mouseX + move.locX;
+        var y = event.pageY - move.mouseY + move.locY;
 
-    if (x < 0) x = 0;else if (x > $(document).width() - el.width()) x = $(document).width() - el.width();
-    if (y < 0) y = 0;else if (y > $(document).height() - el.height()) y = $(document).height() - el.height();
+        if (x < 0) x = 0;else if (x > $(document).width() - el.width()) x = $(document).width() - el.width();
+        if (y < 0) y = 0;else if (y > $(document).height() - el.height()) y = $(document).height() - el.height();
 
-    el.css('left', x);
-    el.css('top', y);
-});
+        el.css('left', x);
+        el.css('top', y);
+    });
 
-window.Vue.directive('draggable', {
-    bind: function bind() {
-        $(this.el).find('[data-draggable=draggable]').bind('mousedown', { el: $(this.el) }, this.mousedown);
-        $(this.el).css({
-            position: 'absolute',
-            zIndex: 10,
-            left: ($(document).width() - $(this.el).width()) / 2,
-            top: ($(document).height() - 400) / 2,
-            boxShadow: "0 0 10px #000"
-        });
-    },
+    Vue.directive('draggable', {
+        bind: function bind() {
+            $(this.el).find('[data-draggable=draggable]').bind('mousedown', { el: $(this.el) }, this.mousedown);
+            $(this.el).css({
+                position: 'absolute',
+                zIndex: 10,
+                left: ($(document).width() - $(this.el).width()) / 2,
+                top: ($(document).height() - 400) / 2,
+                boxShadow: "0 0 10px #000"
+            });
+        },
 
-    mousedown: function mousedown(e) {
-        $("body").css("pointer-events", "none");
-        el = e.data.el;
-        var offset = el.offset();
-        move = { mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top };
-    },
+        mousedown: function mousedown(e) {
+            $("body").css("pointer-events", "none");
+            el = e.data.el;
+            var offset = el.offset();
+            move = { mouseX: event.pageX, mouseY: event.pageY, locX: offset.left, locY: offset.top };
+        },
 
-    unbind: function unbind() {
-        $(this.el).find('[data-draggable=draggable]').unbind('mousedown', this.mousedown);
-    }
-});
+        unbind: function unbind() {
+            $(this.el).find('[data-draggable=draggable]').unbind('mousedown', this.mousedown);
+        }
+    });
+};
 
 },{}]},{},[1]);

@@ -1,5 +1,4 @@
 var Vue = require('vue');
-window.Vue = Vue;
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 
@@ -8,7 +7,7 @@ window.socket = io('http://surf.local:3000');
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 $(document).ready(function() {
-    require('./draggable');
+    (require('./draggable'))(Vue);
 
     var Billboard = Vue.extend({
         template: require('./components/billboard.template.html')

@@ -38,6 +38,20 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany('App\Equip');
     }
+    
+    public function orderedEquipsString() 
+    {
+        $equip = $this->equips;
+        $equips = [];
+        foreach($equip as $e) {
+            $equips[] = $e->sprite();
+        }
+        uasort($equips, function ($a, $b) { return app("EquipType")->idToPriority($b) - app("EquipType")->idToPriority($a); });
+        $equips = array_map(function($e) {
+            return app("EquipType")->idToLocation($e);
+        }, $equips);
+        return implode(',', $equips);
+    }
         
     public function giveItem($item_type, $count)
     {

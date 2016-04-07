@@ -36,11 +36,10 @@ module.exports = {
             height: 110,
             width: 110,
             loaded: false,
-            name: '',
             style: {
                 background: '',
                 'background-size': ''
-            }
+            },
         };
     },
 
@@ -66,6 +65,12 @@ module.exports = {
         },
         charId: {
             type: Number
+        },
+        equip: {
+            type: String
+        },
+        name: {
+            type: String
         }
     },
 
@@ -152,6 +157,11 @@ module.exports = {
         if(this.mine) {
             this.name = window.session_name;
             this.buildEquips(window.session_equips);
+            this.$nextTick(preload);
+            $(document).on('keydown', this.keyDownListener);
+            $(document).on('keyup', this.keyUpListener);
+        } else if(this.equip && this.name) {
+            this.buildEquips(this.equip);
             this.$nextTick(preload);
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);

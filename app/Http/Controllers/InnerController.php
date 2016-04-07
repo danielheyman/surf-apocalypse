@@ -15,15 +15,7 @@ class InnerController extends Controller
     {
         $user = auth()->user();
 
-        $equips = [];
-        foreach($user->equips as $e) {
-            $equips[] = $e->sprite();
-        }
-        uasort($equips, function ($a, $b) { return app("EquipType")->idToPriority($b) - app("EquipType")->idToPriority($a); });
-        $equips = array_map(function($e) {
-            return app("EquipType")->idToLocation($e);
-        }, $equips);
-        $equips = implode(',', $equips);
+        $equips = $user->orderedEquipsString();
         
         $unreadPm = implode(',', PMGroup::unreadPm($user->id));
         

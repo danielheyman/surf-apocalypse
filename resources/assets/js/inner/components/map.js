@@ -12,7 +12,7 @@ module.exports = {
             state: 'IDLE_RIGHT',
             intervals: [],
             message: '',
-            characterEl: null
+            characterEl: null,
         };
     },
     
@@ -53,6 +53,11 @@ module.exports = {
         
         createMyCharacter: function(el, id) {
             this.characterEl = el;
+        },
+        
+        createMapCharacter: function(el, id) {
+            el.css("left", this.getLeftPos(95));
+            this.site.user_info.el = el;
         },
 
         createCharacter: function(el, id) {
@@ -152,6 +157,12 @@ module.exports = {
 
             var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
+            
+            var characterMapEl = $(self.site.user_info.el);
+            if (myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width() && !self.site.user_info.attacked) {
+                self.site.user_info.attacked = true;
+                self.$dispatch('notification', "You attacked <span>" + self.site.user_info.name + "</span> (-5 HP)");
+            }
 
             for (var x = 0; x < self.site.items.length; x++) {
                 if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {
