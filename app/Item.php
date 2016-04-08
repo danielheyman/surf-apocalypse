@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
-    protected $fillable = ['count', 'user_id'];
+    protected $fillable = ['count', 'user_id', 'item_type', 'attributes'];
+    protected $casts = [
+        'attributes' => 'json'
+    ];
+    
+    //$folder = config('equipment.id');
 
-    public function itemType()
-    {
-        return $this->belongsTo('App\ItemType');
-    }
 }

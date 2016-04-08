@@ -23,6 +23,16 @@
     </head>
 
     <body id="app" :class="{'bg': !loading}">
+        
+        <div style="right: 5px; position: absolute; z-index: 10; top: 38px;">
+            @foreach(['health', 'coins/gold', 'coins/silver'] as $i)
+                <div style="position: relative; margin-top: 10px; background: rgba(0,0,0,.5); border-radius: 5px; padding: 5px; color: #fff; padding-right: 30px; "> 
+                    <span style=" line-height: 20px; ">10</span>
+                    <div style=" height: 20px; width: 20px; background: url(http://surf.local:8000/img/surf/icons/{{ $i }}.png); background-size: cover; position: absolute; top: 4px; right: 5px; "></div> 
+                </div>
+            @endforeach
+        </div>
+        
         <div v-show="loading" class="loader-big">
             <div class="loader">
                 <div class="ball"></div>
@@ -51,18 +61,26 @@
                                 <li>Home</li>
                                 <li @click="navigate('map')">Surf</li>
                                 <li @click="navigate('sites')">Sites</li>
-                                <li @click="navigate('teams')">Teams</li>
-                                <li>Items</li>
+                                <li @click="navigate('teams')">Teams (5)</li>
                                 <li>Equip</li>
+                                <li>Stats</li>
                                 <li>Shop</li>
-                                <li class="coins"><span class="count">@{{ coins }}</span> COINS</li>
+                                <li :class="{'blink': unreadPm.length}">PM (@{{ unreadPm.length }})</li>
                             </ul>
-                            <health></health>
-                            <div class="online">
-                                Team Members Online <span class="count">()</span>
-                                | <span :class="{'blink': unreadPm.length}">Messages <span class="count">(@{{ unreadPm.length }})</span></span>
-                                 <!-- | Friends Online <span>(Coming Soon)</span> -->
+                            <div class="health-wrapper" style="display: flex; margin-top: 14px;">
+                                <div style="width: 100px; text-align: center; color: #BAA166; line-height: 23px;">LVL 2</div>
+                                <div class="health" style="width: 100%;">
+                                    <div class="in" style="width: 80%; background: #545834;">60/80 EXP</div>
+                                </div>                                
                             </div>
+                            <div style="margin-left: 5px; color: #896D46; text-align: center;">
+                                accuracy (10) defense (10) stength (20) luck (5) speed (8)
+                            </div>
+                            <!--<health></health>-->
+                            <!--<div class="online">
+                                Team Members Online <span class="count">()</span>
+                                | <span>Messages <span class="count">()</span></span>
+                            </div>-->
                         </div>
                     </div>
                 </div>

@@ -10,6 +10,7 @@
         <li v-for="c in channels" @click="toggleChannel(c)" :class="{'current': currentChannel(c), 'unseen': unseen[c]}">
             {{ c | capitalize }}
         </li>
+        <li class="text">Daniel &amp; Jay are online</li>
     </ul>
     <div class="chat-menu">
         <div class="form">

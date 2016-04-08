@@ -57,7 +57,7 @@ module.exports = {
         
         createMapCharacter: function(el, id) {
             el.css("left", this.getLeftPos(95));
-            this.site.user_info.el = el;
+            this.site.target_info.el = el;
         },
 
         createCharacter: function(el, id) {
@@ -119,10 +119,10 @@ module.exports = {
 
         processSite: function(site) {
             for (var x = 0; x < site.items.length; x++) {
-                site.items[x].left = this.getLeftPos(Math.floor((Math.random() * 65) + 25));
+                site.items[x].type = site.items[x].type.replace(".", "/");
                 site.items[x].pickedUp = false;
             }
-            
+            site.target_info.attacked = false;
             this.site = site;
         },
 
@@ -131,11 +131,7 @@ module.exports = {
         },
 
         getItemSrc: function(icon) {
-            var id = Math.floor(icon / 10);
-            var str_id = "000" + id;
-            str_id = str_id.substr(str_id.length - 3);
-            var ext = (icon % 1000 ? 'jpg' : 'png');
-            return '../img/surf/icons/' + str_id + "." + ext;
+            return '../img/surf/icons/' + icon + "." + "png";
         }
     },
 
@@ -158,16 +154,33 @@ module.exports = {
             var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
             
-            var characterMapEl = $(self.site.user_info.el);
-            if (myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width() && !self.site.user_info.attacked) {
-                self.site.user_info.attacked = true;
-                self.$dispatch('notification', "You attacked <span>" + self.site.user_info.name + "</span> (-5 HP)");
+            var characterMapEl = $(self.site.target_info.el);
+            if (!self.site.target_info.attacked && myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width()) {
+                self.site.target_info.attacked = true;
+                characterMapEl.animate({'opacity': 0.3}, function() {
+                    characterMapEl.animate({'opacity': 1});
+                });
+                self.$dispatch('notification', "You attacked <span>" + self.site.target_info.name + "</span> (-5 HP)");
+                var count = 0;
+                $("span", self.$els.items).each(function() {
+                    $(this).css({"top": -80, "left": characterMapEl.offset().left + 30});
+                    var left = characterMapEl.offset().left - Math.floor((Math.random() * 80) - 20);
+                    self.site.items[count++].left = left;
+                    $(this).animate({"top": -30, "left": left}, function() {
+                        $(this).css({"top": "auto"});
+                    });
+                });
             }
-
-            for (var x = 0; x < self.site.items.length; x++) {
-                if (myLocationEnd > self.site.items[x].left && myLocationStart < self.site.items[x].left + 30 && !self.site.items[x].pickedUp) {
-                    self.site.items[x].pickedUp = true;
-                    self.$dispatch('notification', "You have gained <span>" + self.site.items[x].name + "s</span> (+" + self.site.items[x].count + ")");
+            else if(self.site.target_info.attacked) {
+                for (var x = 0; x < self.site.items.length; x++) {
+                    if (myLocationEnd > self.site.items[x].left + 10 && myLocationStart < self.site.items[x].left + 15 && !self.site.items[x].pickedUp) {
+                        self.site.items[x].pickedUp = true;
+                        var type = self.site.items[x].type.split("/");
+                        var name = window.content_info.items.desc[type[0]];
+                        if(type.length == 2) name = name[type[1]];
+                        self.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + self.site.items[x].count + ")");
+                        break;
+                    }
                 }
             }
         });

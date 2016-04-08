@@ -1,5 +1,5 @@
 module.exports = {
-    human_health: function() {
+    health: function() {
         // import component for setting max daily usage
     }
 };

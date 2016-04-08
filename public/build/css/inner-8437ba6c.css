@@ -109,7 +109,7 @@ iframe {
 .notifications {
   position: absolute;
   right: 10px;
-  bottom: 20px;
+  top: 10px;
   z-index: 10;
   overflow: auto;
   border-radius: 5px; }
@@ -120,7 +120,7 @@ iframe {
     padding: 5px;
     border: 1px solid #333;
     border-radius: 5px;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     color: #baa166;
     font-size: bigger;
     line-height: 18px; }
@@ -152,13 +152,14 @@ iframe {
     bottom: 90%;
     z-index: 3;
     display: inline-block;
-    width: 100%;
+    width: 130%;
+    margin-left: -15%;
     text-align: center; }
     .character .message span {
       position: relative;
       display: inline-block;
       margin-bottom: 3px;
-      padding: 4px;
+      padding: 8px;
       max-width: 100%;
       border-radius: 3px;
       background: #006888;
@@ -246,6 +247,9 @@ iframe {
       background-size: 100% 100%;
       color: #896d48;
       text-align: center; }
+      .footer .channel-picker li.text {
+        width: auto;
+        background: none; }
       .footer .channel-picker li.current {
         background: linear-gradient(rgba(50, 128, 115, 0.3), rgba(50, 61, 128, 0.3)), url("../../img/surf/send-button.png");
         background-size: 100% 100%; }

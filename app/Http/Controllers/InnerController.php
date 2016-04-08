@@ -10,11 +10,11 @@ class InnerController extends Controller
     {
         $this->middleware('auth');
     }
-
+    
     public function index()
     {
         $user = auth()->user();
-
+        
         $equips = $user->orderedEquipsString();
         
         $unreadPm = implode(',', PMGroup::unreadPm($user->id));

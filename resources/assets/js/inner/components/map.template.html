@@ -18,10 +18,10 @@
         <div class="characters">
             <span v-for="c in characters"><character :set-state="c.state" :on-create="createCharacter" :message="c.message" v-if="site" :char-id="c.i"></character></span>
         </div>
-        <character set-state="IDLE_LEFT" :on-create="createMapCharacter" v-if="site" :equip="site.user_info.equip" :name="site.user_info.name" :char-id="site.user_info.id" message="I am the owner of this website. Pleasure to meet you."></character>
+        <character set-state="IDLE_LEFT" :on-create="createMapCharacter" v-if="site" :equip="site.target_info.equip" :name="site.target_info.name" :char-id="site.target_info.id" message="I am the owner of this website. Pleasure to meet you."></character>
         <character :mine="true" :message="message" :on-move="moveCharacter" :on-create="createMyCharacter" :current-state.sync="state"></character>
-        <div class="items">
-            <span v-for="item in site.items | notFound" :style="{'left': item.left + 'px'}"><img :src="getItemSrc(item.icon)" /></span>
+        <div class="items" v-show="site.target_info.attacked" v-el:items>
+            <span v-for="item in site.items | notFound"><img :src="getItemSrc(item.type)" /></span>
         </div>
     </div>
 </div>

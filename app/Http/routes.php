@@ -63,6 +63,4 @@ Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
         $controller = $app->make('ExampleController');
         return $controller->callAction('index', $parameters = array());
     });
-    
-    Route::get('equips/{id}.png', 'EquipsController@getEquip');
 });

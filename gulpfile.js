@@ -19,6 +19,8 @@ elixir(function(mix) {
     mix.scripts(['jquery-2.1.4.js', 'bootstrap.min.js'], './public/js/global_vendor.js')
         .scripts(['jquery.preload.min.js', 'socket.io-1.3.5.js'], './public/js/inner_vendor.js')
         .browserify(['inner/inner.js'], './public/js/inner.js');
+        
+    mix.copy('node_modules/font-awesome/fonts', 'public/build/fonts');
 
     mix.version(['css/*', 'js/*']);
 });

@@ -12,15 +12,14 @@ class CreateItemsTable extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->increments('id');
-            $table->smallInteger('count')->unsigned();
-
-            $table->integer('item_type_id')->unsigned();
-            $table->foreign('item_type_id')->references('id')->on('item_types')->onDelete('cascade');
+            $table->decimal('count', 10, 2)->default(0);
+            $table->json('attributes')->nullable();
+            $table->string('item_type');
 
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            $table->unique(['item_type_id', 'user_id']);
+            $table->index(['item_type', 'user_id']);
 
             $table->timestamps();
         });

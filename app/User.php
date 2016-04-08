@@ -13,12 +13,12 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     use Authenticatable, CanResetPassword;
 
     protected $fillable = ['name', 'email', 'password', 'confirmation_code', 'human'];
-
+    
     public function setPasswordAttribute($password)
     {
         $this->attributes['password'] = bcrypt($password);
     }
-
+        
     public function team()
     {
         return $this->belongsTo('App\Team');
@@ -39,54 +39,15 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         return $this->hasMany('App\Equip');
     }
     
-    public function orderedEquipsString() 
+    public function orderedEquipsString()
     {
-        $equip = $this->equips;
-        $equips = [];
-        foreach($equip as $e) {
-            $equips[] = $e->sprite();
-        }
-        uasort($equips, function ($a, $b) { return app("EquipType")->idToPriority($b) - app("EquipType")->idToPriority($a); });
-        $equips = array_map(function($e) {
-            return app("EquipType")->idToLocation($e);
-        }, $equips);
-        return implode(',', $equips);
-    }
-        
-    public function giveItem($item_type, $count)
-    {
-        if (!($type = ItemType::where('id', $item_type)->first(['id', 'item_type']))) {
-            return;
-        }
-
-        if ($type->item_type == ItemTypes::COIN) {
-            $this->increment('coins', $count);
-        } else {
-            if ($update = $this->items()->where('item_type_id', $item_type)->first(['id'])) {
-                $update->increment('count', $count);
-            } else {
-                $type->items()->create([
-                    'count' => $count,
-                    'user_id' => $this->id,
-                ]);
-            }
-        }
-    }
-    
-    public function giveEquip($equip) {
-        $equip->equips()->create([
-            'user_id' => $this->id
-        ]);
+        return \App\Facades\EquipTypes::priorityString($this->equips);
     }
     
     public function onCreate() {
-        $this->giveEquip(app("EquipType")->nameToItemType("torso/shirts/brown_longsleeve"));
-        $this->giveEquip(app("EquipType")->nameToItemType("head/caps/leather_cap"));
-        $this->giveEquip(app("EquipType")->nameToItemType("hair/plain/blonde"));
-        $this->giveEquip(app("EquipType")->nameToItemType("legs/pants/teal_pants"));
-        $this->giveEquip(app("EquipType")->nameToItemType("feet/shoes/brown_shoes"));
-        $this->giveEquip(app("EquipType")->nameToItemType("body/light"));
-
+        if($this->human === null) $this->human = true;
+        \App\Facades\EquipTypes::giveSet($this);
+        \App\Facades\ItemTypes::giveSet($this);
     }
 
     public function syncOriginal()

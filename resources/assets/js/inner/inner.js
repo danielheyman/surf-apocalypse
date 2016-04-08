@@ -6,6 +6,12 @@ window.socket = io('http://surf.local:3000');
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
+window.content_info = {
+    items: {
+        desc: require('./items/desc.js')
+    }
+};
+
 $(document).ready(function() {
     (require('./draggable'))(Vue);
 

@@ -36,8 +36,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('EquipType', function ($app) {
-            return new \App\EquipmentType();
+        $this->app->singleton('ItemTypes', function ($app) {
+            return new \App\ItemTypes\ItemTypes(auth()->check() ? auth()->user() : null);
+        });
+        $this->app->singleton('EquipTypes', function ($app) {
+            return new \App\EquipTypes\EquipTypes();
         });
     }
 }

@@ -181,7 +181,7 @@ module.exports = {
             self.$nextTick(preload);
         });
         
-        if(self.onCreate) self.onCreate($(this.$el), self.charId);
+        if(this.onCreate) this.onCreate($(this.$el), this.charId);
     },
 
     detached: function() {

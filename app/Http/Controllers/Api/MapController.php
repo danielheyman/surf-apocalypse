@@ -8,6 +8,8 @@ use App\User;
 use App\Website;
 use App\ItemType;
 use Session;
+use App\Facades\ItemTypes;
+
 
 class MapController extends Controller
 {
@@ -18,43 +20,36 @@ class MapController extends Controller
 
     public function getMap()
     {
-        $items = ItemType::where('find_chance', '>', 0)->get();
-
         $map_items = [];
-        $ids = [
-            'id' => null,
+        $hash = [
+            'id' => '',
             'items' => [],
         ];
-
-        foreach ($items as $item) {
-            if (rand(1, 10000) / 100 <= $item->find_chance) {
-                $id = str_random(60);
-                $multiplier = $item->find_decimal ? 100 : 1;
-                $count = rand($item->find_min * $multiplier, $item->find_max * $multiplier) / $multiplier;
-                $ids['items'][$id] = ['id_real' => $item->id, 'count' => $count];
-                $map_items[] = [
-                    'id' => $id,
-                    'icon' => $item->icon,
-                    'name' => $item->name,
-                    'count' => $count,
-                ];
-            }
+        
+        $target = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
+        foreach(ItemTypes::find($target) as $key => $value) {
+            $hash = str_random(60);
+            $ids['items'][$hash] = ['id' => $key, 'count' => $value];
+            $map_items[] = [
+                'id' => $hash,
+                'type' => $key,
+                'count' => $value,
+            ];
         }
 
-        $user = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
+        $site = $target->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url', 'name'])->toArray();
 
-        $site = $user->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url', 'name']);
+        $ids['id'] = $site['id'];
 
-        $ids['id'] = auth()->user()->human + $site->id;
-
-        $map = $site->toArray();
-        $map['items'] = $map_items;
-        $map['id'] = md5($ids['id']);
-        $map['user_info'] = array(
-            "name" => $user->name,
-            "equip" => $user->orderedEquipsString(),
-            "id" => $user->id
-        );
+        $map = array_merge($site, [
+            'items' => $map_items,
+            'id' => md5($ids['id']),
+            'target_info' => [
+                "name" => $target->name,
+                "equip" => $target->orderedEquipsString(),
+                "id" => $target->id
+            ]
+        ]);
 
         Session::put('current_map', $ids);
 
@@ -68,7 +63,7 @@ class MapController extends Controller
 
         if ($currentMap && md5($currentMap['id']) == $input['id']) {
             $site = Website::find($currentMap['id']);
-
+            
             if ($site) {
                 $site->increment('views_today');
                 $site->increment('views_total');
@@ -77,7 +72,7 @@ class MapController extends Controller
             foreach ($input['items'] as $item) {
                 if (isset($currentMap['items'][$item])) {
                     $item = $currentMap['items'][$item];
-                    auth()->user()->giveItem($item['id_real'], $item['count']);
+                    \App\Facades\ItemTypes::giveItem($item['id'], $item['count']);
                 }
             }
         }

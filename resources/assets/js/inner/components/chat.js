@@ -15,7 +15,7 @@ module.exports = {
                 }]
             },
             message: '',
-            channels: ['global', 'map'],
+            channels: ['global', 'map', 'team'],
             unseen: {'global': false, 'map': false},
             channel: 'global'
         };
