@@ -108,7 +108,7 @@ iframe {
 
 .notifications {
   position: absolute;
-  right: 10px;
+  right: 70px;
   top: 10px;
   z-index: 10;
   overflow: auto;
@@ -163,6 +163,7 @@ iframe {
       max-width: 100%;
       border-radius: 3px;
       background: #006888;
+      background: linear-gradient(rgba(50, 128, 115, 0.3), rgba(50, 61, 128, 0.3)), #006888;
       box-shadow: 0 0 8px #000;
       color: #fff;
       word-wrap: break-word; }
@@ -190,18 +191,28 @@ iframe {
   background-position: 0;
   box-shadow: 0 -10px 80px 50px #000; }
   .footer .left {
-    float: left;
     margin: 0;
     padding: 0;
-    width: 600px; }
+    -ms-flex-positive: 2;
+    flex-grow: 2;
+    -ms-flex-preferred-size: 400px;
+    flex-basis: 400px;
+    -ms-flex-negative: 0;
+    flex-shrink: 0; }
   .footer .right {
-    float: left;
     margin: 0;
     padding: 0 0 0 5px;
-    width: 600px; }
+    -ms-flex-preferred-size: 400px;
+    flex-basis: 400px;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    -ms-flex-negative: 0;
+    flex-shrink: 0; }
   .footer .inner {
     margin: 10px auto auto;
-    width: 1200px; }
+    display: -ms-flexbox;
+    display: flex;
+    padding: 0 5%; }
   .footer .messages {
     padding: 5px 10px;
     height: 90px;
@@ -264,15 +275,18 @@ iframe {
         background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("../../img/surf/send-button.png");
         background-size: 100% 100%; }
   .footer .chat-menu {
-    margin-top: 6px; }
+    margin-top: 6px;
+    display: -ms-flexbox;
+    display: flex; }
     .footer .chat-menu .form {
-      float: left;
       box-sizing: border-box;
       padding: 7px 8px;
-      width: 510px;
       height: 42px;
       background: url("../../img/surf/message-form.png");
-      background-size: 100% 100%; }
+      background-size: 100% 100%;
+      -ms-flex-positive: 1;
+      flex-grow: 1;
+      margin-right: 15px; }
       .footer .chat-menu .form .message {
         display: inline-block;
         padding-top: 2px;
@@ -295,14 +309,17 @@ iframe {
           color: #896d48; }
     .footer .chat-menu .send {
       float: right;
-      width: 80px;
       height: 42px;
       background: url("../../img/surf/send-button.png");
       background-size: 100% 100%;
       color: #896d48;
       text-align: center;
       line-height: 42px;
-      cursor: pointer; }
+      cursor: pointer;
+      -ms-flex-positive: 0;
+      flex-grow: 0;
+      -ms-flex-preferred-size: 80px;
+      flex-basis: 80px; }
       .footer .chat-menu .send:hover {
         background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("../../img/surf/send-button.png"); }
 

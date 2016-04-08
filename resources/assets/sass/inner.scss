@@ -132,7 +132,7 @@ iframe {
 
 .notifications {
     position: absolute;
-    right: 10px;
+    right: 70px;
     top: 10px;
     z-index: 10;
     overflow: auto;
@@ -200,6 +200,7 @@ iframe {
             max-width: 100%;
             border-radius: 3px;
             background: #006888;
+            background: linear-gradient(rgba(50, 128, 115, .3), rgba(50, 61, 128, 0.3)), #006888;
             box-shadow: 0 0 8px #000;
             color: #fff;
             word-wrap: break-word;
@@ -236,22 +237,25 @@ iframe {
     box-shadow: 0 -10px 80px 50px #000;
 
     .left {
-        float: left;
         margin: 0;
         padding: 0;
-        width: 600px;
+        flex-grow: 2;
+        flex-basis: 400px;
+        flex-shrink: 0;
     }
 
     .right {
-        float: left;
         margin: 0;
         padding: 0 0 0 5px;
-        width: 600px;
+        flex-basis: 400px;
+        flex-grow: 1;
+        flex-shrink: 0;
     }
 
     .inner {
         margin: 10px auto auto;
-        width: 1200px;
+        display: flex;
+        padding: 0 5%;
     }
 
     .messages {
@@ -351,18 +355,19 @@ iframe {
 
     .chat-menu {
         margin-top: 6px;
+        display: flex;
 
         .form {
-            float: left;
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
             padding: 7px 8px;
-            width: 510px;
             height: 42px;
             background: url("../../img/surf/message-form.png");
             background-size: 100% 100%;
-
+            flex-grow: 1;
+            margin-right: 15px;
+            
             .message {
                 display: inline-block;
                 padding-top: 2px;
@@ -385,7 +390,6 @@ iframe {
 
         .send {
             float: right;
-            width: 80px;
             height: 42px;
             background: url("../../img/surf/send-button.png");
             background-size: 100% 100%;
@@ -393,6 +397,8 @@ iframe {
             text-align: center;
             line-height: 42px;
             cursor: pointer;
+            flex-grow: 0;
+            flex-basis: 80px;
 
             &:hover {
                 background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .2)), url("../../img/surf/send-button.png");
