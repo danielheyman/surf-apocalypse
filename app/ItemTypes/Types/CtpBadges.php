@@ -1,13 +1,11 @@
 <?php
 namespace App\ItemTypes\Type;
 
-use \App\ItemTypes\Interfaces\{Item,Findable};
+use \App\ItemTypes\Item;
 
 abstract class CtpBadges extends Item {    
     public $users = ['human', 'zombie'];
     public $max = 1;
-    
-    use Findable;
 } 
 
 $module['CtpBadge50'] = new class extends CtpBadges {

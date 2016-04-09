@@ -1,14 +1,12 @@
 <?php
 namespace App\ItemTypes\Type;
 
-use \App\ItemTypes\Interfaces\{Item,Findable};
+use \App\ItemTypes\Item;
 
 abstract class Views extends Item {
     public $users = ['human', 'zombie'];
     protected $inUsersTable = true;
-    protected $sendUpdates = false;
-    
-    use Findable;
+    protected $sendUpdates = false;    
 } 
 
 $module['ViewsToday'] = new class extends Views {

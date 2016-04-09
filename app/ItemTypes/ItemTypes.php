@@ -77,7 +77,6 @@ class ItemTypes {
     public function find($target) : array {
         $finds = [];
         foreach ($this->types as $key => $value) {
-            if (!(method_exists($value, 'find'))) continue;
             $amount = $value->find($this->user, $target);
             if($amount != 0) $finds[$key] = $amount;
         }

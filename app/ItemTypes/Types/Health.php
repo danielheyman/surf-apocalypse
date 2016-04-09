@@ -1,7 +1,7 @@
 <?php
 namespace App\ItemTypes\Type;
 
-use \App\ItemTypes\Interfaces\{Item,Findable};
+use \App\ItemTypes\Item;
 
 $module = new class extends Item {
     public $name = 'health';
@@ -9,7 +9,6 @@ $module = new class extends Item {
     protected $inUsersTable = true;
     protected $attr = ['max_daily_usage' => 0];
     
-    use Findable;
     protected $findable = [
         'decimal' => true,
     ];
