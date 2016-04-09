@@ -3,7 +3,7 @@ namespace App\ItemTypes\Type;
 
 use \App\ItemTypes\Item;
 
-$module = new class extends Item {
+$module['default'] = new class extends Item {
     public $name = 'coins';
     protected $users = ['human'];
     protected $inUsersTable = true;

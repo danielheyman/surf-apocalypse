@@ -14,30 +14,25 @@ class ItemTypes {
     private $types;
     
     public function __construct($user) {
-        $this->original_types = [];
-        $module = function($file, $types = null) {
-            include ("Types/" . $file . ".php");
-            if(!$types) {
-                $val = $module;
-                $this->original_types[$val->name] = $val;
-                return;
-            }
-            foreach($types as $type) {
-                $val = $module[$type];
-                $this->original_types[$val->name] = $val;
-            }
-        };
-                     
-        $module('Coin');
-        $module('Views', ['ViewsToday','ViewsTotal']);
-        $module('Health');
-        $module('CtpBadges', ['CtpBadge50']);
+        $this->module('Coin');
+        $this->module('Views', ['ViewsToday','ViewsTotal']);
+        $this->module('Health');
+        $this->module('CtpBadges', ['CtpBadge50']);
         
         if($user) $this->types = $this->cleanTypes($user);
         $this->user = $user;     
     }
+    
+    public function module($file, $types = ['default']) {
+        include ("Types/" . $file . ".php");
         
-    public function giveSet($user) {
+        foreach($types as $type) {
+            $val = $module[$type];
+            $this->original_types[$val->name] = $val;
+        }
+    }
+        
+    public function giveSet($user = null) {
         $user = $user ?: $this->user;
         
         $set = array_merge($this->sets['base'], $this->sets[$user->human ? 'human' : 'zombie']);
@@ -64,7 +59,7 @@ class ItemTypes {
         foreach($this->original_types as $key => $value) {
             if(!$value->is($user_type)) continue;
             $value = clone $value;
-            call_user_func(array($value, 'if_' . $user_type));
+            call_user_func(array($value, 'if' . ucfirst($user_type)));
             $new[$key] = $value;
         }
         return $new;
@@ -75,22 +70,23 @@ class ItemTypes {
     }
     
     public function find($target) : array {
-        $finds = [];
-        foreach ($this->types as $key => $value) {
-            $amount = $value->find($this->user, $target);
-            if($amount != 0) $finds[$key] = $amount;
-        }
-        return $finds;
+        return $this->findWhereNotZero(function($type) use ($target) {
+            return $type->find($this->user, $target);
+        });
     }
     
     public function getMyItems() : array {
-        $types = [];
-        foreach ($this->types as $key => $value) {
-            $value = $this->types[$key]->getValue($this->user, true);
-            if($value != 0) {
-                $types[$key] = $value;
-            }
+        return $this->findWhereNotZero(function($type) {
+            return $type->getValue($this->user, true);
+        });
+    }
+    
+    private function findWhereNotZero($closure) : array {
+        $finds = [];
+        foreach($this->types as $key => $value) {
+            if(($amount = $closure($value)) != 0) 
+                $finds[$key] = $amount;
         }
-        return $types;
+        return $finds;
     }
 }

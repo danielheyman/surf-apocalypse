@@ -16,7 +16,7 @@ $module['CtpBadge50'] = new class extends CtpBadges {
         'every' => 50,
     ];
     
-    public function on_create($attr) {
+    public function onCreate($attr) {
         $attr->link = ''; // generate badge link
     }
 };

@@ -3,7 +3,7 @@ namespace App\ItemTypes\Type;
 
 use \App\ItemTypes\Item;
 
-$module = new class extends Item {
+$module['default'] = new class extends Item {
     public $name = 'health';
     protected $users = ['human', 'zombie'];
     protected $inUsersTable = true;
@@ -13,7 +13,7 @@ $module = new class extends Item {
         'decimal' => true,
     ];
     
-    public function if_human() {
+    public function ifHuman() {
         $this->onChange = function($user) {
             if($this->getValue() <= 0) $user->ops('die');
         };
@@ -22,7 +22,7 @@ $module = new class extends Item {
         };
     }
     
-    public function if_zombie() {
+    public function ifZombie() {
         $this->onChange = function($user) {
             if($this->getValue() >= 100) $user->ops('revive');
         };

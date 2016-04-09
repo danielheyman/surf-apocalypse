@@ -4,7 +4,6 @@ namespace App\ItemTypes;
 abstract class Item {
     
     public function update($value, $inc, $user, $attribute_to_update) {
-
         $max = null;
         if(!$attribute_to_update && property_exists($this, 'max')) {
             $max = $this->max;
@@ -104,11 +103,11 @@ abstract class Item {
         return in_array($user_type, $this->users);
     }
     
-    public function if_human() {
+    public function ifHuman() {
         
     }
     
-    public function if_zombie() {
+    public function ifZombie() {
         
     }
     
