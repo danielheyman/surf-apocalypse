@@ -1,14 +1,24 @@
 <?php
+namespace App\ItemTypes\Type;
 
-$abstract = [
-    'users' => ['human', 'zombie'],
-    'max' => 1,
-];
+use \App\ItemTypes\Interfaces\{Item,Findable};
 
-$module['CtpBadge50'] = array_merge($abstract, [
-    'attr' => ['link' => ''],
-    'find_every' => 50,
-    'on_create' => function($attr) {
+abstract class CtpBadges extends Item {    
+    public $users = ['human', 'zombie'];
+    public $max = 1;
+    
+    use Findable;
+} 
+
+$module['CtpBadge50'] = new class extends CtpBadges {
+    public $name = 'CtpBadge50';
+    protected $attr = ['link' => ''];
+    
+    protected $findable = [
+        'every' => 50,
+    ];
+    
+    public function on_create($attr) {
         $attr->link = ''; // generate badge link
     }
-]);
+};

@@ -1,13 +1,24 @@
 <?php
+namespace App\ItemTypes\Type;
 
-$abstract = [
-    'users' => ['human', 'zombie'],
-    'in_users_table' => true,
-    'send_updates' => false 
-];
+use \App\ItemTypes\Interfaces\{Item,Findable};
 
-$module['ViewsToday'] = array_merge($abstract, [
-    'cron' => 'do cron task'
-]);
+abstract class Views extends Item {
+    public $users = ['human', 'zombie'];
+    protected $inUsersTable = true;
+    protected $sendUpdates = false;
+    
+    use Findable;
+} 
 
-$module['ViewsTotal'] = $abstract;
+$module['ViewsToday'] = new class extends Views {
+    public $name = 'ViewsToday';
+    
+    public function cron() {
+        //TODO
+    }
+};
+
+$module['ViewsTotal'] = new class extends Views {
+    public $name = 'ViewsTotal';
+};

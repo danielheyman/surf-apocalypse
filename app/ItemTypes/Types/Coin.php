@@ -1,9 +1,17 @@
 <?php
+namespace App\ItemTypes\Type;
 
-$module = [
-    'users' => ['human'],
-    'in_users_table' => true,
-    'decimal' => true,
-    'find_chance' => 90,
-    'find_range' => [0.01, .3],
-];
+use \App\ItemTypes\Interfaces\{Item,Findable};
+
+$module = new class extends Item {
+    public $name = 'coins';
+    protected $users = ['human'];
+    protected $inUsersTable = true;
+    
+    use Findable;
+    protected $findable = [
+        'decimal' => true,
+        'chance' => 90,
+        'range' => [0.01, .3]
+    ];
+};

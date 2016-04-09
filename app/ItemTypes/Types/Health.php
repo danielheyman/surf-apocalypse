@@ -1,21 +1,31 @@
 <?php
+namespace App\ItemTypes\Type;
 
-$module = [
-    'users' => ['human', 'zombie'],
-    'in_users_table' => true,
-    'decimal' => true,
-    'attr' => ['max_daily_usage' => 0],
-    'if_human' => [
-        'on_change' => function($user, $value) {
-            if($value <= 0) $user->ops('die');
-        },
-        'usable_computed' => function($attr) {
+use \App\ItemTypes\Interfaces\{Item,Findable};
+
+$module = new class extends Item {
+    public $name = 'health';
+    protected $users = ['human', 'zombie'];
+    protected $inUsersTable = true;
+    protected $attr = ['max_daily_usage' => 0];
+    
+    use Findable;
+    protected $findable = [
+        'decimal' => true,
+    ];
+    
+    public function if_human() {
+        $this->onChange = function($user) {
+            if($this->getValue() <= 0) $user->ops('die');
+        };
+        $this->findable['computed'] = function($attr) {
             return $attr->max_daily_usage;
-        },
-    ],
-    'if_zombie' => [
-        'on_change' => function($user, $value) {
-            if($value >= 100) $user->ops('revive');
-        },
-    ]
-];
+        };
+    }
+    
+    public function if_zombie() {
+        $this->onChange = function($user) {
+            if($this->getValue() >= 100) $user->ops('revive');
+        };
+    }
+};
