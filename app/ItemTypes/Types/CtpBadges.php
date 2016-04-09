@@ -1,9 +1,13 @@
 <?php
 
-namespace App\ItemTypes\CtpBadge;
+namespace App\ItemTypes\Types;
 
-return array_merge(include "CtpBadge.php", [
-    'abstract' => false,
+$abstract = [
+    'users' => ['human', 'zombie'],
+    'max' => 1,
+];
+
+$module['CtpBadge50'] = array_merge($abstract, [
     'attr' => ['link' => ''],
     'find_every' => 50,
     'on_create' => function($attr) {

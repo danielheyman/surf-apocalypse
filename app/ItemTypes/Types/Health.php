@@ -1,8 +1,8 @@
 <?php
 
-namespace App\ItemTypes;
+namespace App\ItemTypes\Types;
 
-return [
+$module = [
     'users' => ['human', 'zombie'],
     'in_users_table' => true,
     'decimal' => true,

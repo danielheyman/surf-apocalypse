@@ -13,13 +13,19 @@ class ItemTypes {
     private $user;
     private $types;
     
-    public function __construct($user) {        
+    public function __construct($user) {
+        $include = function($file, $type = null) {
+            include ("Types/" . $file . ".php");
+            if($type) return $module[$type];
+            return $module;
+        };
+             
         $this->original_types = [
-            'coins' => include 'Coin.php',
-            'views_today' => include 'Views/ViewsToday.php',
-            'views_total' => include 'Views/ViewsTotal.php',
-            'health' => include 'Health.php',
-            'ctp_badge_50' => include 'CtpBadges/CtpBadge50.php' 
+            'coins' => $include('Coin'),
+            'views_today' => $include('Views', 'ViewsToday'),
+            'views_total' => $include('Views', 'ViewsTotal'),
+            'health' => $include('Health'),
+            'ctp_badge_50' => $include('CtpBadges', 'CtpBadge50')
         ];
         
         if($user) $this->types = $this->cleanTypes($user);
