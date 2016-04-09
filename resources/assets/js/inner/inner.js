@@ -74,7 +74,7 @@ $(document).ready(function() {
                 if(window.content_info.items.decimal[key]) {
                     var split = window.content_info.items.decimal[key];
                     new_item_list[key + "/" + split[0]] = parseInt(items[key]);
-                    new_item_list[key + "/" + split[1]] = (items[key] * 100) % 100;
+                    new_item_list[key + "/" + split[1]] = Math.round(items[key] * 100) % 100;
                 } else {
                     new_item_list[key] = parseFloat(items[key]);
                 }
@@ -107,7 +107,7 @@ $(document).ready(function() {
                 if(window.content_info.items.decimal[data.type]) {
                     var split = window.content_info.items.decimal[data.type];
                     self.items[data.type + "/" + split[0]] = parseInt(data.amount);
-                    self.items[data.type + "/" + split[1]] = (data.amount * 100) % 100;
+                    self.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
                 } else {
                     self.items[data.type] = parseFloat(data.amount);
                 }

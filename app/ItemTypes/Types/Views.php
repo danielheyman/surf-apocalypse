@@ -1,7 +1,5 @@
 <?php
 
-namespace App\ItemTypes\Types;
-
 $abstract = [
     'users' => ['human', 'zombie'],
     'in_users_table' => true,

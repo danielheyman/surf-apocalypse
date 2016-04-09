@@ -14,18 +14,18 @@ class ItemTypes {
     private $types;
     
     public function __construct($user) {
-        $include = function($file, $type = null) {
+        $module = function($file, $type = null) : \stdClass {
             include ("Types/" . $file . ".php");
-            if($type) return $module[$type];
-            return $module;
+            return ($type) ? (object) $module[$type] : (object) $module;
         };
+        
              
         $this->original_types = [
-            'coins' => $include('Coin'),
-            'views_today' => $include('Views', 'ViewsToday'),
-            'views_total' => $include('Views', 'ViewsTotal'),
-            'health' => $include('Health'),
-            'ctp_badge_50' => $include('CtpBadges', 'CtpBadge50')
+            'coins' => $module('Coin'),
+            'views_today' => $module('Views', 'ViewsToday'),
+            'views_total' => $module('Views', 'ViewsTotal'),
+            'health' => $module('Health'),
+            'ctp_badge_50' => $module('CtpBadges', 'CtpBadge50')
         ];
         
         if($user) $this->types = $this->cleanTypes($user);
@@ -73,7 +73,7 @@ class ItemTypes {
                 $user->{$key} = $value;
                 $user->save();
             }
-            $this->notifyItemUpdate($original_type, $user);
+            if(count($type) == 1) $this->notifyItemUpdate($type[0], $user);
             return;
         }
         
@@ -101,7 +101,7 @@ class ItemTypes {
                 $item->value = $value;
                 $item->save();
             }
-            $this->notifyItemUpdate($original_type, $user);
+            if(count($type) == 1) $this->notifyItemUpdate($type[0], $user);
             return;
         } 
         
@@ -122,7 +122,7 @@ class ItemTypes {
             'count' => $value,
             'attributes' => $attr
         ]);
-        $this->notifyItemUpdate($original_type, $user);
+        $this->notifyItemUpdate($type[0], $user);
     }
     
     public function notifyItemUpdate($type, $user) {
@@ -133,7 +133,7 @@ class ItemTypes {
         event(new \App\Events\UpdatedItem($type, $user, $this->getItemValue($type, $user)));  
     }
     
-    public function getItemValue($type, $user = null) {
+    public function getItemValue($type, $user = null) : float {
         $user = $user ?: $this->user;
         $types = $user ? $this->cleanTypes($user) : $this->types;
         
@@ -146,11 +146,11 @@ class ItemTypes {
         return 0;
     }
     
-    public function inUsersTable($types, $type) {
+    public function inUsersTable($types, $type) : bool {
         return (property_exists($types[$type], 'in_users_table') && $types[$type]->in_users_table);
     }
     
-    public function cleanTypes($user) {
+    public function cleanTypes($user) : array {
         $new = [];
         foreach($this->original_types as $key => $value) {
             $cleaned = $this->cleanItemType($key, $value, $user);
@@ -159,26 +159,23 @@ class ItemTypes {
         return $new;
     }
         
-    public function cleanItemType($key, $value, $user) {
+    public function cleanItemType($key, $value, $user) : \stdClass {
+        $value = clone $value;
         $user_type = ($user->human) ? 'human' : 'zombie';
 
-        if(!in_array($user_type, $value['users'])) {
+        if(!in_array($user_type, $value->users)) {
             return null;
         }
-        if(array_key_exists('abstract', $value)) {
-            if($value['abstract']) return null;
-            unset($value['abstract']);
+        if(property_exists($value, 'if_' . $user_type)) {
+            $value = (object) array_merge((array) $value, $value->{'if_' . $user_type});
         }
-        if(array_key_exists('if_' . $user_type, $value)) {
-            $value = array_merge($value, $value['if_' . $user_type]);
-        }
-        unset($value['if_human']);
-        unset($value['if_zombie']);
-        unset($value['users']);
-        return (object) $value;
+        unset($value->if_human);
+        unset($value->if_zombie);
+        unset($value->users);
+        return $value;
     }
     
-    public function all() {
+    public function all() : array {
         return $this->types;
     }
             
@@ -191,7 +188,7 @@ class ItemTypes {
         }
     }*/
     
-    public function find($target) {
+    public function find($target) : array {
         $finds = [];
         foreach ($this->types as $key => $value) {
             if(property_exists($value, 'find_chance_computed') && 
@@ -215,7 +212,7 @@ class ItemTypes {
         return $finds;
     }
     
-    public function getMyItems() {
+    public function getMyItems() : array {
         $types = [];
         foreach ($this->types as $key => $value) {
             if(property_exists($value, 'send_updates') && $value->send_updates == false) continue;

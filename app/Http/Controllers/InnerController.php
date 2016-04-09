@@ -18,7 +18,7 @@ class InnerController extends Controller
         $equips = $user->orderedEquipsString();
         $unreadPm = implode(',', PMGroup::unreadPm($user->id));
         $items = json_encode(\App\Facades\ItemManager::getMyItems());
-        
+
         Session::put('equips', $equips);
         Session::put('name', $user->name);
         return view('inner', compact('equips', 'user', 'unreadPm', 'items'));

@@ -1,7 +1,5 @@
 <?php
 
-namespace App\ItemTypes\Types;
-
 $module = [
     'users' => ['human'],
     'in_users_table' => true,

@@ -60,7 +60,7 @@ class EquipTypes {
             $list[] = $e->equip_type;
         }
         uasort($list, function($a, $b) {
-            return EquipManager::priority($b) - EquipManager::priority($a);
+            return EquipManager::priority($b) <=> EquipManager::priority($a);
         });
         return implode(',', $list);
     }

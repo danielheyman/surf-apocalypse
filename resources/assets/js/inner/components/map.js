@@ -126,7 +126,7 @@ module.exports = {
                     var count = parseInt(site.items[x].count);
                     if(count !== 0)
                         items.push({id: site.items[x].id, type: key + "/" + split[0], count: count});
-                    count = (site.items[x].count * 100) % 100;
+                    count = Math.round(site.items[x].count * 100) % 100;
                     if(count !== 0)
                         items.push({id: site.items[x].id, type: key + "/" + split[1], count: count});
                 } else {
