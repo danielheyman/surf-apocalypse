@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->smallInteger('website_count')->unsigned()->default(0);
             $table->integer('views_today')->unsigned()->default(0);
             $table->integer('views_total')->unsigned()->default(0);
-            $table->decimal('health', 5, 2)->default(0);
+            $table->decimal('health', 10, 2)->default(0);
             $table->decimal('health_max_daily_usage', 5, 2)->default(0);
             $table->boolean('human')->default(true);
 

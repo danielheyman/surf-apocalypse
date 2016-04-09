@@ -6,7 +6,7 @@ use App\Events\Event;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class UpdatedCoins extends Event implements ShouldBroadcast
+class UpdatedItem extends Event implements ShouldBroadcast
 {
     use SerializesModels;
 
@@ -17,15 +17,16 @@ class UpdatedCoins extends Event implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct($type, $user, $amount)
     {
         $this->data = array(
             'user_id' => $user->id,
             'data' => array(
-                'coins'=> $user->coins
+                'type' => $type,
+                'amount' => $amount
             )
         );
-    }
+     }
 
     /**
      * Get the channels the event should be broadcast on.

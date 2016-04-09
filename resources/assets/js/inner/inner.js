@@ -8,7 +8,8 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 window.content_info = {
     items: {
-        desc: require('./items/desc.js')
+        desc: require('./items/desc.js'),
+        decimal: require('./items/decimal.js')
     }
 };
 
@@ -28,9 +29,9 @@ $(document).ready(function() {
             currentView: 'map',
             loading: true,
             notifications: [],
-            coins: 0,
             openProfiles: [],
             unreadPm: [],
+            items: {}
         },
 
         components: {
@@ -65,8 +66,21 @@ $(document).ready(function() {
             // Init
             $(this.$els.main).removeClass('hidden');
             var self = this;
-            this.coins = window.session_coins;
 
+            // Load items
+            var items = window.session_items;
+            var new_item_list = {};
+            Object.keys(items).forEach(function(key,index) {
+                if(window.content_info.items.decimal[key]) {
+                    var split = window.content_info.items.decimal[key];
+                    new_item_list[key + "/" + split[0]] = parseInt(items[key]);
+                    new_item_list[key + "/" + split[1]] = (items[key] * 100) % 100;
+                } else {
+                    new_item_list[key] = parseFloat(items[key]);
+                }
+            });
+            this.items = new_item_list;
+            
             // Preloading
             var loading = { 
                 count: 0, 
@@ -89,8 +103,14 @@ $(document).ready(function() {
             $(".wrapper").preload(function() { loading.inc(); });
             
             // Update coins
-            socket.on('App\\Events\\UpdatedCoins', function(data) {
-                self.coins = data.coins;
+            socket.on('App\\Events\\UpdatedItem', function(data) {
+                if(window.content_info.items.decimal[data.type]) {
+                    var split = window.content_info.items.decimal[data.type];
+                    self.items[data.type + "/" + split[0]] = parseInt(data.amount);
+                    self.items[data.type + "/" + split[1]] = (data.amount * 100) % 100;
+                } else {
+                    self.items[data.type] = parseFloat(data.amount);
+                }
             });
 
             // Profile private messages

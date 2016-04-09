@@ -12,7 +12,7 @@
         <script type="text/javascript">
             window.session_id = '{{ $user->id }}';
             window.session_name = '{{ $user->name }}';
-            window.session_coins = {{ $user->coins }};
+            window.session_items = JSON.parse('{!! $items !!}');
             window.session_health = {{ $user->health }};
             window.session_equips = '{!! $equips !!}';
             window.unread_pm = '{{ $unreadPm }}';
@@ -31,13 +31,11 @@
             </div>
         </div>
         <div v-show="!loading" v-el:main class="wrapper small-footer hidden">
-            <div style="right: 5px; position: absolute; z-index: 3; top: 38px;">
-                @foreach(['health', 'coins/gold', 'coins/silver'] as $i)
-                    <div style="position: relative; margin-top: 10px; background: rgba(0,0,0,.5); border-radius: 5px; padding: 5px; color: #fff; padding-right: 30px; "> 
-                        <span style=" line-height: 20px; ">10</span>
-                        <div style=" height: 20px; width: 20px; background: url(http://surf.local:8000/img/surf/icons/{{ $i }}.png); background-size: cover; position: absolute; top: 4px; right: 5px; "></div> 
-                    </div>
-                @endforeach
+            <div class="itemsWrapper">
+                <div class="item" v-for="(item, value) in items"> 
+                    @{{ value }}
+                    <div class="icon" :style="'background: url(http://surf.local:8000/img/surf/icons/' + item + '.png); background-size: cover;'"></div> 
+                </div>
             </div>
             
             <div class="top @{{ currentView }}-view">

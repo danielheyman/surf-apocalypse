@@ -856,3 +856,31 @@ iframe {
         }
     }
 }
+
+.itemsWrapper {
+    right: 5px; 
+    position: absolute;
+    z-index: 3; 
+    top: 38px;
+    
+    .item {
+        line-height: 20px; 
+        position: relative; 
+        margin-top: 10px; 
+        background: rgba(0,0,0,.5); 
+        border-radius: 5px; 
+        padding: 5px 7px; 
+        color: #fff; 
+        padding-right: 30px;
+        float: right;
+        clear: right;
+
+        .icon {
+            height: 20px; 
+            width: 20px; 
+            position: absolute; 
+            top: 4px; 
+            right: 5px;
+        }
+    }
+}

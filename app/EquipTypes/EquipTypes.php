@@ -2,6 +2,8 @@
 
 namespace App\EquipTypes;
 
+use App\Facades\EquipManager;
+
 class EquipTypes {
     private $sets = [
         'human' => ['body/light', 'feet/brown_shoes', 'hair/plain_blonde', 'head/leather_cap', 'legs/teal_pants', 'torso/brown_longsleeve'],
@@ -58,7 +60,7 @@ class EquipTypes {
             $list[] = $e->equip_type;
         }
         uasort($list, function($a, $b) {
-            return EquipTypes::priority($b) - EquipTypes::priority($a);
+            return EquipManager::priority($b) - EquipManager::priority($a);
         });
         return implode(',', $list);
     }

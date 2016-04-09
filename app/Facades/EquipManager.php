@@ -3,9 +3,9 @@ namespace App\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class EquipTypes extends Facade
+class EquipManager extends Facade
 {
     protected static function getFacadeAccessor() { 
-        return 'EquipTypes';
+        return 'EquipManager';
     }
 }

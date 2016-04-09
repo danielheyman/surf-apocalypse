@@ -118,10 +118,26 @@ module.exports = {
         },
 
         processSite: function(site) {
+            var items = [];
             for (var x = 0; x < site.items.length; x++) {
-                site.items[x].type = site.items[x].type.replace(".", "/");
-                site.items[x].pickedUp = false;
+                var key = site.items[x].type;
+                if(window.content_info.items.decimal[key]) {
+                    var split = window.content_info.items.decimal[key];
+                    var count = parseInt(site.items[x].count);
+                    if(count !== 0)
+                        items.push({id: site.items[x].id, type: key + "/" + split[0], count: count});
+                    count = (site.items[x].count * 100) % 100;
+                    if(count !== 0)
+                        items.push({id: site.items[x].id, type: key + "/" + split[1], count: count});
+                } else {
+                    items.push(site.items[x]);
+                }
             }
+            for (var y = 0; y < items.length; y++) {
+                items[y].pickedUp = false;
+            }
+            site.items = items;
+
             site.target_info.attacked = false;
             this.site = site;
         },

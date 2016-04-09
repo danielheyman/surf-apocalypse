@@ -14,6 +14,14 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     protected $fillable = ['name', 'email', 'password', 'confirmation_code', 'human'];
     
+    public function ops()
+    {
+        $args = func_get_args();
+        dd($args);
+        OpsManager::call($some_function, $this, $arg1, $arg2);
+        call_user_func_array('mysql_safe_query', $args);
+    }
+        
     public function setPasswordAttribute($password)
     {
         $this->attributes['password'] = bcrypt($password);
@@ -41,39 +49,12 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     
     public function orderedEquipsString()
     {
-        return \App\Facades\EquipTypes::priorityString($this->equips);
+        return \App\Facades\EquipManager::priorityString($this->equips);
     }
     
     public function onCreate() {
         if($this->human === null) $this->human = true;
-        \App\Facades\EquipTypes::giveSet($this);
-        \App\Facades\ItemTypes::giveSet($this);
-    }
-
-    public function syncOriginal()
-    {
-        $this->syncCoins();
-
-        parent::syncOriginal();
-    }
-
-    public function syncOriginalAttribute($attribute)
-    {
-        if ($attribute == 'coins') {
-            $this->syncCoins();
-        }
-
-        parent::syncOriginalAttribute($attribute);
-    }
-
-    public function syncCoins()
-    {
-        if (!$this->getOriginal('coins')) {
-            return;
-        }
-
-        if ($this->original['coins'] != $this->coins) {
-            event(new \App\Events\UpdatedCoins($this));
-        }
+        \App\Facades\EquipManager::giveSet($this);
+        \App\Facades\ItemManager::giveSet($this);
     }
 }

@@ -11,7 +11,8 @@ Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
 window.content_info = {
     items: {
-        desc: require('./items/desc.js')
+        desc: require('./items/desc.js'),
+        decimal: require('./items/decimal.js')
     }
 };
 
@@ -31,9 +32,9 @@ $(document).ready(function () {
             currentView: 'map',
             loading: true,
             notifications: [],
-            coins: 0,
             openProfiles: [],
-            unreadPm: []
+            unreadPm: [],
+            items: {}
         },
 
         components: {
@@ -66,7 +67,20 @@ $(document).ready(function () {
             // Init
             $(this.$els.main).removeClass('hidden');
             var self = this;
-            this.coins = window.session_coins;
+
+            // Load items
+            var items = window.session_items;
+            var new_item_list = {};
+            Object.keys(items).forEach(function (key, index) {
+                if (window.content_info.items.decimal[key]) {
+                    var split = window.content_info.items.decimal[key];
+                    new_item_list[key + "/" + split[0]] = parseInt(items[key]);
+                    new_item_list[key + "/" + split[1]] = items[key] * 100 % 100;
+                } else {
+                    new_item_list[key] = parseFloat(items[key]);
+                }
+            });
+            this.items = new_item_list;
 
             // Preloading
             var loading = {
@@ -88,8 +102,14 @@ $(document).ready(function () {
             });
 
             // Update coins
-            socket.on('App\\Events\\UpdatedCoins', function (data) {
-                self.coins = data.coins;
+            socket.on('App\\Events\\UpdatedItem', function (data) {
+                if (window.content_info.items.decimal[data.type]) {
+                    var split = window.content_info.items.decimal[data.type];
+                    self.items[data.type + "/" + split[0]] = parseInt(data.amount);
+                    self.items[data.type + "/" + split[1]] = data.amount * 100 % 100;
+                } else {
+                    self.items[data.type] = parseFloat(data.amount);
+                }
             });
 
             // Profile private messages
@@ -147,7 +167,7 @@ $(document).ready(function () {
     });
 });
 
-},{"./components/billboard.template.html":29,"./components/chat":32,"./components/equip":34,"./components/health":36,"./components/map":38,"./components/profile":40,"./components/sites":42,"./components/teams":44,"./draggable":46,"./items/desc.js":47,"vue":28,"vue-resource":16,"vue-validator":27}],2:[function(require,module,exports){
+},{"./components/billboard.template.html":29,"./components/chat":32,"./components/equip":34,"./components/health":36,"./components/map":38,"./components/profile":40,"./components/sites":42,"./components/teams":44,"./draggable":46,"./items/decimal.js":47,"./items/desc.js":48,"vue":28,"vue-resource":16,"vue-validator":27}],2:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -14343,10 +14363,24 @@ module.exports = {
         },
 
         processSite: function processSite(site) {
+            var items = [];
             for (var x = 0; x < site.items.length; x++) {
-                site.items[x].type = site.items[x].type.replace(".", "/");
-                site.items[x].pickedUp = false;
+                var key = site.items[x].type;
+                if (window.content_info.items.decimal[key]) {
+                    var split = window.content_info.items.decimal[key];
+                    var count = parseInt(site.items[x].count);
+                    if (count !== 0) items.push({ id: site.items[x].id, type: key + "/" + split[0], count: count });
+                    count = site.items[x].count * 100 % 100;
+                    if (count !== 0) items.push({ id: site.items[x].id, type: key + "/" + split[1], count: count });
+                } else {
+                    items.push(site.items[x]);
+                }
             }
+            for (var y = 0; y < items.length; y++) {
+                items[y].pickedUp = false;
+            }
+            site.items = items;
+
             site.target_info.attacked = false;
             this.site = site;
         },
@@ -14935,6 +14969,13 @@ module.exports = function (Vue) {
 };
 
 },{}],47:[function(require,module,exports){
+'use strict';
+
+module.exports = {
+    coins: ['gold', 'silver']
+};
+
+},{}],48:[function(require,module,exports){
 'use strict';
 
 module.exports = {

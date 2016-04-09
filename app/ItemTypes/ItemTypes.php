@@ -10,7 +10,6 @@ class ItemTypes {
     ];
     
     private $original_types;
-    private $ops;
     private $user;
     private $types;
     
@@ -24,14 +23,7 @@ class ItemTypes {
         ];
         
         if($user) $this->types = $this->cleanTypes($user);
-        $this->user = $user;        
-                        
-        $this->ops = [
-            'item_type' => '',
-            'giveThisItem' => function($user, $amount) {
-                $user->giveItem($this->item_type, $amount);
-            }
-        ];
+        $this->user = $user;     
     }
         
     public function giveSet($user) {
@@ -43,20 +35,10 @@ class ItemTypes {
         }
     }
     
-    public function giveItem($type, $value, $inc = null, $user = null) {
+    public function giveItem($type, $value = 1, $inc = true, $user = null) {
+        $original_type = $type;
+        $types = $user ? $this->cleanTypes($user) : $this->types;
         $user = $user ?: $this->user;
-        $inc = ($inc === null) ? true : true;
-        
-        $types = $this->types ?: $this->cleanTypes($user);
-        
-        // Check if it has a decimal splitter
-        if(strpos($type, ".") !== false) {
-            $type = explode(".", $type);
-            if(property_exists($types[$type[0]], 'split_decimal') && in_array($type[1], $types[$type[0]]->split_decimal)) {
-                if($types[$type[0]]->split_decimal[1] == $type[1]) $value /= 100;
-                $type = $type[0]; 
-            } else return;
-        }
         
         $type = explode("/", $type);
         if(!array_key_exists($type[0], $types)) return;
@@ -69,7 +51,7 @@ class ItemTypes {
             $value = 0;
         
         // If in users table
-        if(property_exists($types[$type[0]], 'in_users_table') && $types[$type[0]]->in_users_table) {
+        if($this->inUsersTable($types, $type[0])) {
             $key = implode("_", $type);
             if($inc) {
                 $user->increment($key, $value);
@@ -85,6 +67,7 @@ class ItemTypes {
                 $user->{$key} = $value;
                 $user->save();
             }
+            $this->notifyItemUpdate($original_type, $user);
             return;
         }
         
@@ -112,6 +95,7 @@ class ItemTypes {
                 $item->value = $value;
                 $item->save();
             }
+            $this->notifyItemUpdate($original_type, $user);
             return;
         } 
         
@@ -132,6 +116,32 @@ class ItemTypes {
             'count' => $value,
             'attributes' => $attr
         ]);
+        $this->notifyItemUpdate($original_type, $user);
+    }
+    
+    public function notifyItemUpdate($type, $user) {
+        $types = $user ? $this->cleanTypes($user) : $this->types;
+        
+        if(property_exists($types[$type], 'send_updates') && $types[$type]->send_updates == false) return;
+        
+        event(new \App\Events\UpdatedItem($type, $user, $this->getItemValue($type, $user)));  
+    }
+    
+    public function getItemValue($type, $user = null) {
+        $user = $user ?: $this->user;
+        $types = $user ? $this->cleanTypes($user) : $this->types;
+        
+        if($this->inUsersTable($types, $type)) {
+            return $user->{$type};
+        } else if($item = $user->items()->where('item_type', $type)->first()) {
+            return $item->value;
+        }
+        
+        return 0;
+    }
+    
+    public function inUsersTable($types, $type) {
+        return (property_exists($types[$type], 'in_users_table') && $types[$type]->in_users_table);
     }
     
     public function cleanTypes($user) {
@@ -166,16 +176,14 @@ class ItemTypes {
         return $this->types;
     }
             
-    public function onAttack($target, $items) {
+    /*public function onAttack($target, $items) {
         foreach($this->types as $key => $value) {
             if(!property_exists($value, 'on_attack')) continue;
             
-            $ops = (Object) $this->ops;
-            $ops->item_type = $key;
             $amount = array_key_exists($key, $items) ? $items[$key] : 0;
-            call_user_func($this->types[$item]->on_attack, $user, $target, $ops, $amount);
+            call_user_func($this->types[$item]->on_attack, $user, $target, $amount);
         }
-    }
+    }*/
     
     public function find($target) {
         $finds = [];
@@ -193,16 +201,24 @@ class ItemTypes {
                 if(property_exists($value, 'find_range')) {
                     $multiplier = (property_exists($value, 'decimal') && $value->decimal) ? 100 : 1;
                     $amount = rand($value->find_range[0] * $multiplier, $value->find_range[1] * $multiplier) / $multiplier;
-                    if(property_exists($value, 'split_decimal')) {
-                        if(($amount_first = intval($amount)) != 0)
-                            $finds[$key . '.' . $value->split_decimal[0]] = $amount_first;
-                        if(($amount_second = ($amount * 100) % 100) != 0)
-                            $finds[$key . '.' . $value->split_decimal[1]] = $amount_second;
-                    } else $finds[$key] = $amount;
+                    $finds[$key] = $amount;
                 }
                 else $finds[$key] = 1;
             }
         }
         return $finds;
+    }
+    
+    public function getMyItems() {
+        $types = [];
+        foreach ($this->types as $key => $value) {
+            if(property_exists($value, 'send_updates') && $value->send_updates == false) continue;
+            
+            $value = $this->getItemValue($key);
+            if($value != 0) {
+                $types[$key] = $value;
+            }
+        }
+        return $types;
     }
 }

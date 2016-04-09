@@ -115,8 +115,9 @@ redis.on('message', function(channel, message) {
         user_id = parseInt(user_id);
         if (users[user_id])
             users[user_id].socket_info.emit(message.event, message.data.data.data);
-    } else
+    } else {
         io.emit(message.event, message.data.data);
+    }
 });
 
 io.on('connection', function(socket) {

@@ -8,7 +8,7 @@ use App\User;
 use App\Website;
 use App\ItemType;
 use Session;
-use App\Facades\ItemTypes;
+use App\Facades\ItemManager;
 
 
 class MapController extends Controller
@@ -27,7 +27,7 @@ class MapController extends Controller
         ];
         
         $target = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
-        foreach(ItemTypes::find($target) as $key => $value) {
+        foreach(ItemManager::find($target) as $key => $value) {
             $hash = str_random(60);
             $ids['items'][$hash] = ['id' => $key, 'count' => $value];
             $map_items[] = [
@@ -36,6 +36,9 @@ class MapController extends Controller
                 'count' => $value,
             ];
         }
+        
+        // TODO: Calculate the amount of damage done to target
+        // TODO: Team surfing
 
         $site = $target->websites()->where('enabled', true)->orderByRaw('RANDOM()')->first(['id', 'url', 'name'])->toArray();
 
@@ -72,9 +75,11 @@ class MapController extends Controller
             foreach ($input['items'] as $item) {
                 if (isset($currentMap['items'][$item])) {
                     $item = $currentMap['items'][$item];
-                    \App\Facades\ItemTypes::giveItem($item['id'], $item['count']);
+                    ItemManager::giveItem($item['id'], $item['count']);
                 }
             }
+            ItemManager::giveItem('views_today');
+            ItemManager::giveItem('views_total');
         }
 
         return $this->getMap();

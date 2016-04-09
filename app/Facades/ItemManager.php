@@ -3,9 +3,9 @@ namespace App\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class ItemTypes extends Facade
+class ItemManager extends Facade
 {
     protected static function getFacadeAccessor() { 
-        return 'ItemTypes';
+        return 'ItemManager';
     }
 }
