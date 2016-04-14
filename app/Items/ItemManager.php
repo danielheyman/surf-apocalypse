@@ -21,13 +21,15 @@ class ItemManager {
             ->module('CtpBadges', ['CtpBadge50']);        
     }
     
-    private function module($file, $types = ['default']) {
-        include ("Types/" . $file . ".php");
-        
+    private function module($file, $types = null) {
+        if(!$types) $types = [$file];
         $user_type = ($this->user->human) ? 'human' : 'zombie';
-        
+
+        require_once("Types\\{$file}.php");    
+            
         foreach($types as $type) {
-            $package = $module[$type];
+            $namespace = "App\Items\Types\\{$type}";
+            $package = new $namespace;
             
             if(!$package->availableForUserType($user_type)) continue;
             call_user_func(array($package, 'if' . ucfirst($user_type)));
@@ -46,8 +48,8 @@ class ItemManager {
     
     public function give($type, $value = 1, $inc = true) {
         $type = explode("/", $type);
-        if(!array_key_exists($type[0], $types)) return;
-        $types[$type[0]]->update($value, $inc, $this->user, $type[1] ?? null);
+        if(!array_key_exists($type[0], $this->types)) return;
+        $this->types[$type[0]]->update($value, $inc, $this->user, $type[1] ?? null);
     }
     
     public function all() : array {

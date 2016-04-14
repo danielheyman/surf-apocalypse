@@ -1,12 +1,12 @@
 <?php
-namespace App\Items\Type;
+namespace App\Items\Types;
 
 abstract class CtpBadges extends \App\Items\Item {    
     public $users = ['human', 'zombie'];
     public $max = 1;
 } 
 
-$module['CtpBadge50'] = new class extends CtpBadges {
+class CtpBadge50 extends CtpBadges {
     public $name = 'CtpBadge50';
     protected $attr = ['link' => ''];
     
@@ -17,4 +17,4 @@ $module['CtpBadge50'] = new class extends CtpBadges {
     public function onCreate($attr) {
         $attr->link = ''; // generate badge link
     }
-};
+}

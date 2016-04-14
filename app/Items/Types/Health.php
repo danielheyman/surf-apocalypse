@@ -1,7 +1,7 @@
 <?php
-namespace App\Items\Type;
+namespace App\Items\Types;
 
-$module['default'] = new class extends \App\Items\Item {
+class Health extends \App\Items\Item {
     public $name = 'health';
     protected $users = ['human', 'zombie'];
     protected $inUsersTable = true;
@@ -25,4 +25,4 @@ $module['default'] = new class extends \App\Items\Item {
             if($this->getValue() >= 100) $user->ops('revive');
         };
     }
-};
+}

@@ -1,7 +1,7 @@
 <?php
-namespace App\Items\Type;
+namespace App\Items\Types;
 
-$module['default'] = new class extends \App\Items\Item {
+class Coin extends \App\Items\Item {
     public $name = 'coins';
     protected $users = ['human'];
     protected $inUsersTable = true;
@@ -11,4 +11,4 @@ $module['default'] = new class extends \App\Items\Item {
         'chance' => 90,
         'range' => [0.01, .3]
     ];
-};
+}

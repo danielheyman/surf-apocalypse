@@ -10,7 +10,5 @@ class Item extends Model
     protected $casts = [
         'attributes' => 'json'
     ];
-    
-    //$folder = config('equipment.id');
 
 }

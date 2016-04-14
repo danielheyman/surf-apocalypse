@@ -14,9 +14,9 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     protected $fillable = ['name', 'email', 'password', 'confirmation_code', 'human'];
     
-    private $items = null;
-    private $equips = null;
-    private $ops = null;
+    private $itemManager = null;
+    private $equipManager = null;
+    private $opManager = null;
             
     public function setPasswordAttribute($password)
     {
@@ -45,24 +45,26 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function itemManager()
     {
-        if(!$this->items) $this->items = new \App\Items\ItemManager($this);
-        return $this->items;
+        if(!$this->itemManager) $this->itemManager = new \App\Items\ItemManager($this);
+        return $this->itemManager;
     }
     
     public function equipManager()
     {
-        if(!$this->equips) $this->equips = new \App\Equips\EquipManager($this);
-        return $this->equips;
+        if(!$this->equipManager) $this->equipManager = new \App\Equips\EquipManager($this);
+        return $this->equipManager;
     }
     
-    public function ops()
+    public function opManager()
     {
-        if(!$this->ops) $this->ops = new \App\UserOps\OpsManager($this);
-        return $this->ops;
+        if(!$this->opManager) $this->opManager = new \App\UserOps\OpManager($this);
+        return $this->opManager;
     }
     
     public function onCreate() {
-        if($this->human === null) $this->human = true;
+        if($this->human === null) {
+            $this->human = true;
+        }
         
         $this->equipManager()->giveSet();
         $this->itemManager()->giveSet();
