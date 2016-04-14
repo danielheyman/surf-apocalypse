@@ -1,9 +1,7 @@
 <?php
-namespace App\ItemTypes\Type;
+namespace App\Items\Type;
 
-use \App\ItemTypes\Item;
-
-$module['default'] = new class extends Item {
+$module['default'] = new class extends \App\Items\Item {
     public $name = 'health';
     protected $users = ['human', 'zombie'];
     protected $inUsersTable = true;

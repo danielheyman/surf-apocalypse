@@ -32,28 +32,23 @@ module.exports = {
 
     filters: {
         notMine: function(teams) {
-            var self = this;
+            if(!this.myTeam) return teams;
 
-            if(!this.myTeam)
-                return teams;
-
-            return teams.filter(function(team) {
-                return team.id != self.myTeam.id;
+            return teams.filter(team => {
+                return team.id != this.myTeam.id;
             });
         }
     },
 
     methods: {
         openTeam: function(e, team) {
-            var self = this;
-
             e.preventDefault();
 
             this.viewTeam.active = true;
             this.viewTeam.team = team;
 
-            this.$http.get('/api/teams/' + team.id).then(function(result) {
-                self.viewTeam.data = result.data;
+            this.$http.get('/api/teams/' + team.id).then(result => {
+                this.viewTeam.data = result.data;
             });
         },
 
@@ -81,14 +76,12 @@ module.exports = {
             this.cancelLeave();
             this.viewTeam.loadingMessage = "LEAVING TEAM";
 
-            var self = this;
+            this.$http.post('/api/teams/leave').then(() => {
 
-            this.$http.post('/api/teams/leave').then(function() {
-
-                self.viewTeam.loadingMessage = "";
-                self.viewTeam.team.user_count--;
-                self.myTeam = null;
-                self.backToList();
+                this.viewTeam.loadingMessage = "";
+                this.viewTeam.team.user_count--;
+                this.myTeam = null;
+                this.backToList();
             });
         },
 
@@ -106,14 +99,12 @@ module.exports = {
             this.cancelDestroy();
             this.viewTeam.loadingMessage = "DESTROYING TEAM";
 
-            var self = this;
+            this.$http.delete('/api/teams').then(() => {
 
-            this.$http.delete('/api/teams').then(function() {
-
-                self.viewTeam.loadingMessage = "";
-                self.teams.$remove(self.viewTeam.team);
-                self.myTeam = null;
-                self.backToList();
+                this.viewTeam.loadingMessage = "";
+                this.teams.$remove(this.viewTeam.team);
+                this.myTeam = null;
+                this.backToList();
             });
         },
 
@@ -130,14 +121,12 @@ module.exports = {
         confirmCreate: function() {
             this.newTeam.posting = true;
 
-            var self = this;
-
-            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).then(function(result) {
+            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).then(result => {
                 var site = result.data;
-                self.teams.push(site);
-                self.myTeam = site;
+                this.teams.push(site);
+                this.myTeam = site;
 
-                self.cancelCreate();
+                this.cancelCreate();
                 this.newTeam.posting = false;
             });
         },
@@ -149,16 +138,14 @@ module.exports = {
     },
 
     ready: function() {
-        var self = this;
-
-        this.$http.get('/api/teams').then(function(result) {
+        this.$http.get('/api/teams').then(result => {
             var data = result.data;
-            self.teams = data.teams;
+            this.teams = data.teams;
 
             if(data.my_team) {
-                $.each(data.teams, function(team) {
+                $.each(data.teams, team => {
                     if(data.teams[team].id == data.my_team)
-                        self.myTeam = data.teams[team];
+                        this.myTeam = data.teams[team];
                 });
             }
 

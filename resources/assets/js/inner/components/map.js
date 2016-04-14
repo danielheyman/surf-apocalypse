@@ -85,12 +85,11 @@ module.exports = {
             if (this.charXPercent < 0)
                 this.charXPercent = 0;
             else if (this.charXPercent > 100) {
-                var self = this;
                 var itemsFound = [];
 
                 socket.emit('map_leave', this.site.id);
 
-                this.site.items.forEach(function(item) {
+                this.site.items.forEach(item => {
                     if (!item.pickedUp) return;
                     itemsFound.push(item.id);
                 });
@@ -98,8 +97,8 @@ module.exports = {
                 this.$http.post('/api/map', {
                     'id': this.site.id,
                     'items': itemsFound
-                }).then(function(result) {
-                    self.processSite(result.data);
+                }).then(result => {
+                    this.processSite(result.data);
                 });
 
                 this.site = null;
@@ -156,29 +155,28 @@ module.exports = {
     },
 
     attached: function() {
-        var self = this;
-
-        this.$http.get('/api/map').then(function(result) {
-            self.processSite(result.data);
+        this.$http.get('/api/map').then(result => {
+            this.processSite(result.data);
         });
 
         this.intervals.push(setInterval(this.sendStatus, 500));
 
-        $(document).keydown(function(e) {
-            if (!self.site || e.keyCode != 38 || !self.characterEl) return;
+        $(document).keydown(e => {
+            if (!this.site || e.keyCode != 38 || !this.characterEl) return;
 
-            var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
+            var myLocationStart = this.getLeftPos(this.charXPercent) + this.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
             
-            var characterMapEl = $(self.site.target_info.el);
-            if (!self.site.target_info.attacked && myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width()) {
-                self.site.target_info.attacked = true;
+            var characterMapEl = $(this.site.target_info.el);
+            if (!this.site.target_info.attacked && myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width()) {
+                this.site.target_info.attacked = true;
                 characterMapEl.animate({'opacity': 0.3}, function() {
                     characterMapEl.animate({'opacity': 1});
                 });
-                self.$dispatch('notification', "You attacked <span>" + self.site.target_info.name + "</span> (-5 HP)");
+                this.$dispatch('notification', "You attacked <span>" + this.site.target_info.name + "</span> (-5 HP)");
                 var count = 0;
-                $("span", self.$els.items).each(function() {
+                var self = this;
+                $("span", this.$els.items).each(function() {
                     $(this).css({"top": -80, "left": characterMapEl.offset().left + 30});
                     var left = characterMapEl.offset().left - Math.floor((Math.random() * 80) - 20);
                     self.site.items[count++].left = left;
@@ -187,34 +185,34 @@ module.exports = {
                     });
                 });
             }
-            else if(self.site.target_info.attacked) {
-                for (var x = 0; x < self.site.items.length; x++) {
-                    if (myLocationEnd > self.site.items[x].left + 10 && myLocationStart < self.site.items[x].left + 15 && !self.site.items[x].pickedUp) {
-                        self.site.items[x].pickedUp = true;
-                        var type = self.site.items[x].type.split("/");
+            else if(this.site.target_info.attacked) {
+                for (var x = 0; x < this.site.items.length; x++) {
+                    if (myLocationEnd > this.site.items[x].left + 10 && myLocationStart < this.site.items[x].left + 15 && !this.site.items[x].pickedUp) {
+                        this.site.items[x].pickedUp = true;
+                        var type = this.site.items[x].type.split("/");
                         var name = window.content_info.items.desc[type[0]];
                         if(type.length == 2) name = name[type[1]];
-                        self.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + self.site.items[x].count + ")");
+                        this.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + this.site.items[x].count + ")");
                         break;
                     }
                 }
             }
         });
 
-        socket.on('map_status', function(data) {
-            if (!self.site) return;
+        socket.on('map_status', data => {
+            if (!this.site) return;
             
-            var char_array_pos = self.getCharArrayPos(data.i);
-            var el = (char_array_pos > -1) ? self.characters[char_array_pos] : null;
+            var char_array_pos = this.getCharArrayPos(data.i);
+            var el = (char_array_pos > -1) ? this.characters[char_array_pos] : null;
             
-            if (char_array_pos > -1 && self.characters[char_array_pos].el !== undefined) {
+            if (char_array_pos > -1 && this.characters[char_array_pos].el !== undefined) {
                 var state;
 
                 if (el.l != data.l) {
                     state = (data.l > el.l) ? "WALK_RIGHT" : "WALK_LEFT";
-                    var left = self.getLeftPos(data.l);
+                    var left = this.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - el.l) / self.walkingSpeed * 65;
+                    var time = Math.abs(data.l - el.l) / this.walkingSpeed * 65;
                     el.state = state;
 
                     el.el.stop(true).animate({
@@ -236,49 +234,47 @@ module.exports = {
             } else {
                 data.message = '';
                 data.state = (data.r) ? "IDLE_RIGHT" : "IDLE_LEFT";
-                self.characters.push(data);
+                this.characters.push(data);
             }
             
         });
         
-        socket.on('map_leave', function(id) {
-            if (!self.site) return;
-            var char_array_pos = parseInt(self.getCharArrayPos(id));
-            if (char_array_pos > -1) self.characters.splice(char_array_pos, 1);
+        socket.on('map_leave', id => {
+            if (!this.site) return;
+            var char_array_pos = parseInt(this.getCharArrayPos(id));
+            if (char_array_pos > -1) this.characters.splice(char_array_pos, 1);
         });
 
-        this.$on('chat-sent', function(message) {
-            self.message = message;
+        this.$on('chat-sent', message => {
+            this.message = message;
 
-            setTimeout(function() {
-                if (self.message == message) self.message = "";
+            setTimeout(() => {
+                if (this.message == message) this.message = "";
             }, 5000);
         });
 
-        this.$on('chat-received', function(message) {
-            var char_array_pos = self.getCharArrayPos(message.id);
+        this.$on('chat-received', message => {
+            var char_array_pos = this.getCharArrayPos(message.id);
 
             if (char_array_pos == -1)
                 return;
 
-            self.characters[char_array_pos].message = message.text;
+            this.characters[char_array_pos].message = message.text;
 
             setTimeout(function() {
-                var char_array_pos = self.getCharArrayPos(message.id);
+                var char_array_pos = this.getCharArrayPos(message.id);
 
                 if (char_array_pos == -1) return;
 
-                if (self.characters[char_array_pos].message == message.text)
-                    self.characters[char_array_pos].message = "";
+                if (this.characters[char_array_pos].message == message.text)
+                    this.characters[char_array_pos].message = "";
             }, 5000);
         });
     },
 
     detached: function() {
-        var self = this;
-
-        $.each(this.intervals, function(key) {
-            clearInterval(self.intervals[key]);
+        $.each(this.intervals, key => {
+            clearInterval(this.intervals[key]);
         });
     }
 };

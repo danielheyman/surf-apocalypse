@@ -14,13 +14,16 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     protected $fillable = ['name', 'email', 'password', 'confirmation_code', 'human'];
     
-    public function ops()
+    private $items = null;
+    private $equips = null;
+    
+    /*public function ops()
     {
         $args = func_get_args();
         dd($args);
         OpsManager::call($some_function, $this, $arg1, $arg2);
         call_user_func_array('mysql_safe_query', $args);
-    }
+    }*/
         
     public function setPasswordAttribute($password)
     {
@@ -36,7 +39,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany('App\Website');
     }
-
+    
     public function items()
     {
         return $this->hasMany('App\Item');
@@ -46,15 +49,24 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     {
         return $this->hasMany('App\Equip');
     }
-    
-    public function orderedEquipsString()
+
+
+    public function item()
     {
-        return \App\Facades\EquipManager::priorityString($this->equips);
+        if(!$this->items) $this->items = new \App\Items\ItemManager($this);
+        return $this->items;
+    }
+    
+    public function equip()
+    {
+        if(!$this->equips) $this->equips = new \App\Equips\EquipManager($this);
+        return $this->equips;
     }
     
     public function onCreate() {
         if($this->human === null) $this->human = true;
-        \App\Facades\EquipManager::giveSet($this);
-        \App\Facades\ItemManager::giveSet($this);
+        
+        $this->equip()->giveSet();
+        $this->item()->giveSet();
     }
 }

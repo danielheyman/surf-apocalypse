@@ -1,9 +1,7 @@
 <?php
-namespace App\ItemTypes\Type;
+namespace App\Items\Type;
 
-use \App\ItemTypes\Item;
-
-abstract class CtpBadges extends Item {    
+abstract class CtpBadges extends \App\Items\Item {    
     public $users = ['human', 'zombie'];
     public $max = 1;
 } 

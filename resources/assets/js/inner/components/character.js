@@ -125,7 +125,6 @@ module.exports = {
         buildEquips: function(equips) {
             if(typeof equips == "string") equips = equips.split(",");
             
-            var self = this;
             var style = '';
             var equipsLength = equips.length;
 
@@ -144,13 +143,12 @@ module.exports = {
     },
     
     attached: function() {
-        var self = this;
         this.initNewState('IDLE_RIGHT');        
         this.intervals.push(setInterval(this.drawCharacter, 50));
 
-        var preload = function() {
-            $(this.$els.character).preload(function() {                
-                self.loaded = true;
+        var preload = () => {
+            $(this.$els.character).preload(() => {                
+                this.loaded = true;
             });
         };
 
@@ -169,29 +167,27 @@ module.exports = {
             socket.emit('char_info', this.charId);
         }
 
-        socket.on('char_info', function(data) {
-            if(data.i != self.charId) return;
+        socket.on('char_info', data => {
+            if(data.i != this.charId) return;
             
             if(typeof data.e == "string")
                 data.e = data.e.split(",");
             if(data.e[0] === "") data.e = [];
-            self.name = data.n; 
-            self.buildEquips(data.e);
+            this.name = data.n; 
+            this.buildEquips(data.e);
                 
-            self.$nextTick(preload);
+            this.$nextTick(preload);
         });
         
         if(this.onCreate) this.onCreate($(this.$el), this.charId);
     },
 
     detached: function() {
-        var self = this;
-        
         $(document).off('keydown', this.keyDownListener);
         $(document).off('keyup', this.keyUpListener);
 
-        $.each(this.intervals, function(key) {
-            clearInterval(self.intervals[key]);
+        $.each(this.intervals, key => {
+            clearInterval(this.intervals[key]);
         });
     }
 };

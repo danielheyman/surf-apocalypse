@@ -1,5 +1,5 @@
 <?php
-namespace App\ItemTypes;
+namespace App\Items;
 
 abstract class Item {
     
@@ -70,7 +70,10 @@ abstract class Item {
             $attr[$attribute_to_update] = $value;
             $value = 0;
         }
-        $user->items()->create([
+        if(method_exists($this, 'onCreate')) {
+            $this->onCreate($attr);
+        }
+        $item = $user->items()->create([
             'item_type' => $this->name,
             'count' => $value,
             'attributes' => $attr

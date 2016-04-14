@@ -6,10 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
 use App\Website;
-use App\ItemType;
 use Session;
-use App\Facades\ItemManager;
-
 
 class MapController extends Controller
 {
@@ -27,7 +24,7 @@ class MapController extends Controller
         ];
         
         $target = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
-        foreach(ItemManager::find($target) as $key => $value) {
+        foreach(auth()->user()->item()->find($target) as $key => $value) {
             $hash = str_random(60);
             $ids['items'][$hash] = ['id' => $key, 'count' => $value];
             $map_items[] = [
@@ -49,7 +46,7 @@ class MapController extends Controller
             'id' => md5($ids['id']),
             'target_info' => [
                 "name" => $target->name,
-                "equip" => $target->orderedEquipsString(),
+                "equip" => $target->equip()->myEquipsToString(),
                 "id" => $target->id
             ]
         ]);
@@ -72,14 +69,15 @@ class MapController extends Controller
                 $site->increment('views_total');
             }
 
+            $itemManager = auth()->user()->item();
             foreach ($input['items'] as $item) {
                 if (isset($currentMap['items'][$item])) {
                     $item = $currentMap['items'][$item];
-                    ItemManager::giveItem($item['id'], $item['count']);
+                    $userItems->give($item['id'], $item['count']);
                 }
             }
-            ItemManager::giveItem('views_today');
-            ItemManager::giveItem('views_total');
+            $userItems->give('views_today');
+            $userItems->give('views_total');
         }
 
         return $this->getMap();

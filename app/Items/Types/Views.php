@@ -1,9 +1,7 @@
 <?php
-namespace App\ItemTypes\Type;
+namespace App\Items\Type;
 
-use \App\ItemTypes\Item;
-
-abstract class Views extends Item {
+abstract class Views extends \App\Items\Item {
     public $users = ['human', 'zombie'];
     protected $inUsersTable = true;
     protected $sendUpdates = false;    

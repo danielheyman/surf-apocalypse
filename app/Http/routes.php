@@ -13,8 +13,6 @@
 
 Route::get('/', 'HomeController@index');
 
-Route::get('/', 'InnerController@index');
-
 Route::group(['namespace' => 'Auth'], function () {
     Route::group(['prefix' => 'register'], function () {
         Route::get('/', 'AuthController@getRegister');

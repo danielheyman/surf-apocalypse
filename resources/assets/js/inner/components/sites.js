@@ -70,15 +70,13 @@ module.exports = {
         confirmAdd: function() {
             this.newSite.posting = true;
 
-            var self = this;
+            this.$http.post('/api/sites/new', {'name': this.newSite.name, 'url': this.newSite.url}).then(result => {
+                this.sites.push(result.data);
 
-            this.$http.post('/api/sites/new', {'name': this.newSite.name, 'url': this.newSite.url}).then(function(result) {
-                self.sites.push(result.data);
-
-                self.newSite.active = false;
-                self.newSite.posting = false;
-                self.newSite.name = '';
-                self.newSite.url = '';
+                this.newSite.active = false;
+                this.newSite.posting = false;
+                this.newSite.name = '';
+                this.newSite.url = '';
             });
         }
 
@@ -86,10 +84,8 @@ module.exports = {
     },
 
     ready: function() {
-        var self = this;
-
-        this.$http.get('/api/sites').then(function(result) {
-            self.sites = result.data;
+        this.$http.get('/api/sites').then(result => {
+            this.sites = result.data;
         });
     }
 };

@@ -52,17 +52,15 @@ module.exports = {
                 id: data.i
             });
 
-            var self = this;
-
             if(data.c != this.channel)
                 this.unseen[data.c] = true;
 
             if (scrolledToBottom && data.c == this.channel) {
-                this.$nextTick(function () {
+                this.$nextTick(() => {
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
-                    }, 100, function() {
-                        self.removeOldMessages(data.c);
+                    }, 100, () => {
+                        this.removeOldMessages(data.c);
                     });
                 });
             }

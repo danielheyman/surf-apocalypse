@@ -1,10 +1,8 @@
 <?php
 
-namespace App\EquipTypes;
+namespace App\Equips;
 
-use App\Facades\EquipManager;
-
-class EquipTypes {
+class EquipManager {
     private $sets = [
         'human' => ['body/light', 'feet/brown_shoes', 'hair/plain_blonde', 'head/leather_cap', 'legs/teal_pants', 'torso/brown_longsleeve'],
         'zombie' => []
@@ -41,10 +39,16 @@ class EquipTypes {
         ]
     ];
     
-    public function giveSet($user) {
-        $set = $this->sets[$user->human ? 'human' : 'zombie'];
+    private $user;
+    
+    public function __construct($user) {
+        $this->user = $user;
+    }
+    
+    public function giveSet() {
+        $set = $this->sets[$this->user->human ? 'human' : 'zombie'];
         foreach($set as $type) {
-            $user->equips()->create([
+            $this->user->equips()->create([
                 'equip_type' => $type
             ]);
         }
@@ -54,9 +58,9 @@ class EquipTypes {
         return array_search(explode("/", $item)[0], $this->priority);
     }
     
-    function priorityString($equips) {
+    function myEquipsToString() {
         $list = [];
-        foreach($equips as $e) {
+        foreach($this->user->equips as $e) {
             $list[] = $e->equip_type;
         }
         uasort($list, function($a, $b) {
