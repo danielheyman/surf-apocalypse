@@ -11,9 +11,9 @@ class HomeController extends Controller
         if (auth()->check()) {
             $user = auth()->user();
             
-            $equips = $user->equip()->myEquipsToString();
+            $equips = $user->equipManager()->myEquipsToString();
             $unreadPm = implode(',', PMGroup::unreadPm($user->id));
-            $items = json_encode($user->item()->getMyItems());
+            $items = json_encode($user->itemManager()->getMyItems());
 
             Session::put('equips', $equips);
             Session::put('name', $user->name);

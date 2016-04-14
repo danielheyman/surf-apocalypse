@@ -9,26 +9,29 @@ class ItemManager {
         'zombie' => ['health' => 0]
     ];
     
-    private $original_types = [];
     private $user;
     private $types;
     
     public function __construct($user) {
+        $this->user = $user;
+
         $this->module('Coin')
             ->module('Views', ['ViewsToday','ViewsTotal'])
             ->module('Health')
-            ->module('CtpBadges', ['CtpBadge50']);
-        
-        $this->user = $user;     
-        if($user) $this->types = $this->cleanTypes();
+            ->module('CtpBadges', ['CtpBadge50']);        
     }
     
     private function module($file, $types = ['default']) {
         include ("Types/" . $file . ".php");
         
+        $user_type = ($this->user->human) ? 'human' : 'zombie';
+        
         foreach($types as $type) {
-            $val = $module[$type];
-            $this->original_types[$val->name] = $val;
+            $package = $module[$type];
+            
+            if(!$package->availableForUserType($user_type)) continue;
+            call_user_func(array($package, 'if' . ucfirst($user_type)));
+            $this->types[$package->name] = $package;
         }
         
         return $this;
@@ -42,25 +45,9 @@ class ItemManager {
     }
     
     public function give($type, $value = 1, $inc = true) {
-        $original_type = $type;
-
         $type = explode("/", $type);
         if(!array_key_exists($type[0], $types)) return;
         $types[$type[0]]->update($value, $inc, $this->user, $type[1] ?? null);
-    }
-        
-    
-    private function cleanTypes() : array {
-        $user_type = ($this->user->human) ? 'human' : 'zombie';
-
-        $new = [];
-        foreach($this->original_types as $key => $value) {
-            if(!$value->is($user_type)) continue;
-            $value = clone $value;
-            call_user_func(array($value, 'if' . ucfirst($user_type)));
-            $new[$key] = $value;
-        }
-        return $new;
     }
     
     public function all() : array {

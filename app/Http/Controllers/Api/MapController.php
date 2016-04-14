@@ -24,7 +24,7 @@ class MapController extends Controller
         ];
         
         $target = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
-        foreach(auth()->user()->item()->find($target) as $key => $value) {
+        foreach(auth()->user()->itemManager()->find($target) as $key => $value) {
             $hash = str_random(60);
             $ids['items'][$hash] = ['id' => $key, 'count' => $value];
             $map_items[] = [
@@ -46,7 +46,7 @@ class MapController extends Controller
             'id' => md5($ids['id']),
             'target_info' => [
                 "name" => $target->name,
-                "equip" => $target->equip()->myEquipsToString(),
+                "equip" => $target->equipManager()->myEquipsToString(),
                 "id" => $target->id
             ]
         ]);
@@ -69,15 +69,15 @@ class MapController extends Controller
                 $site->increment('views_total');
             }
 
-            $itemManager = auth()->user()->item();
+            $itemManager = auth()->user()->itemManager();
             foreach ($input['items'] as $item) {
                 if (isset($currentMap['items'][$item])) {
                     $item = $currentMap['items'][$item];
-                    $userItems->give($item['id'], $item['count']);
+                    $itemManager->give($item['id'], $item['count']);
                 }
             }
-            $userItems->give('views_today');
-            $userItems->give('views_total');
+            $itemManager->give('views_today');
+            $itemManager->give('views_total');
         }
 
         return $this->getMap();

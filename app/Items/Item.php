@@ -102,7 +102,7 @@ abstract class Item {
         return 0;
     }
     
-    public function is($user_type) {
+    public function availableForUserType($user_type) {
         return in_array($user_type, $this->users);
     }
     
