@@ -17,7 +17,8 @@ module.exports = {
             message: '',
             channels: ['global', 'map', 'team'],
             unseen: {'global': false, 'map': false},
-            channel: 'global'
+            channel: 'global',
+            shared: window.store
         };
     },
     
@@ -34,7 +35,7 @@ module.exports = {
 
             this.addMessage({
                 c: this.channel,
-                n: window.session_name,
+                n: this.store.user.name,
                 m: this.message
             });
 

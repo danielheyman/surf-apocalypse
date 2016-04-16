@@ -40,6 +40,7 @@ module.exports = {
                 background: '',
                 'background-size': ''
             },
+            shared: window.store
         };
     },
 
@@ -153,8 +154,8 @@ module.exports = {
         };
 
         if(this.mine) {
-            this.name = window.session_name;
-            this.buildEquips(window.session_equips);
+            this.name = this.shared.user.name;
+            this.buildEquips(this.shared.user.equips);
             this.$nextTick(preload);
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);

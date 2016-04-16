@@ -18,7 +18,8 @@ module.exports = {
             loaded: false,
             message: '',
             gravatar: '',
-            sending: false
+            sending: false,
+            shared: window.store
         };
     },
 
@@ -92,12 +93,12 @@ module.exports = {
 
         this.$on('received-pm', data => {
             this.messages.push({
-                side: data.from == window.session_id ? 'right' : 'left',
+                side: data.from == this.shared.user.id ? 'right' : 'left',
                 message: data.message.message,
                 info: data.message.info
             });
             
-            if(data.from == window.session_id) {
+            if(data.from == this.shared.user.id) {
                 this.message = "";
                 this.sending = false;
                 this.$nextTick(() => {

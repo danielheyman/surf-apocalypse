@@ -109,6 +109,8 @@ redis.subscribe('global', function(err, count) {
 });
 
 redis.on('message', function(channel, message) {
+    message = JSON.parse(message);
+
     var user_id = message.data.data.user_id;
     if (user_id) {
         user_id = parseInt(user_id);

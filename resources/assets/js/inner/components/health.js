@@ -5,7 +5,7 @@ module.exports = {
     data: function() {
         return {
             width: 5,
-            health: 10
+            shared: window.store
         };
     },
 
@@ -14,7 +14,6 @@ module.exports = {
     },
 
     ready: function () {
-        this.health = window.session_health;
-        this.width = 5 + this.health * 0.95;
+        this.width = 5 + this.shared.user.health * 0.95;
     }
 };

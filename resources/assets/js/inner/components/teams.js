@@ -20,7 +20,8 @@ module.exports = {
                 leave: false,
                 join: false,
                 loadingMessage: ""
-            }
+            },
+            shared: window.store
         };
     },
 
@@ -59,7 +60,7 @@ module.exports = {
         },
 
         isOwner: function() {
-            return window.session_id == this.viewTeam.data.team.owner_id;
+            return this.shared.user.id == this.viewTeam.data.team.owner_id;
         },
 
         leaveTeam: function(e) {

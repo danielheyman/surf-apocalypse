@@ -6,11 +6,13 @@ window.socket = io('http://surf.local:3000');
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
-window.content_info = {
+window.store = {
     items: {
         desc: require('./items/desc.js'),
         decimal: require('./items/decimal.js')
-    }
+    },
+    user: user,
+    unread_pm: unread_pm
 };
 
 $(document).ready(function() {
@@ -31,7 +33,8 @@ $(document).ready(function() {
             notifications: [],
             openProfiles: [],
             unreadPm: [],
-            items: {}
+            items: [],
+            shared: window.store
         },
 
         components: {
@@ -65,23 +68,23 @@ $(document).ready(function() {
         ready: function() {
             // Init
             $(this.$els.main).removeClass('hidden');
-            var self = this;
 
             // Load items
-            var items = window.session_items;
+            var items = this.shared.user.items;
             var new_item_list = {};
-            Object.keys(items).forEach(function(key,index) {
-                if(window.content_info.items.decimal[key]) {
-                    var split = window.content_info.items.decimal[key];
+            Object.keys(items).forEach((key,index) => {
+                if(this.shared.items.decimal[key]) {
+                    var split = this.shared.items.decimal[key];
                     new_item_list[key + "/" + split[0]] = parseInt(items[key]);
                     new_item_list[key + "/" + split[1]] = Math.round(items[key] * 100) % 100;
                 } else {
                     new_item_list[key] = parseFloat(items[key]);
                 }
             });
-            this.items = new_item_list;
+            this.shared.user.items = new_item_list;
             
             // Preloading
+            var self = this;
             var loading = { 
                 count: 0, 
                 inc: function() { 
@@ -95,46 +98,46 @@ $(document).ready(function() {
                 '../../img/surf/bill-bg2.jpg'
             ];
 
-            $.preload(images, 3, function(last) {
+            $.preload(images, 3, last => {
                 if (!last) return;
                 loading.inc();
             });
 
-            $(".wrapper").preload(function() { loading.inc(); });
+            $(".wrapper").preload(() => { loading.inc(); });
             
-            // Update coins
-            socket.on('App\\Events\\UpdatedItem', function(data) {
-                if(window.content_info.items.decimal[data.type]) {
-                    var split = window.content_info.items.decimal[data.type];
-                    self.items[data.type + "/" + split[0]] = parseInt(data.amount);
-                    self.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
+            // Update item
+            socket.on('App\\Events\\UpdatedItem', data => {
+                if(this.shared.items.decimal[data.type]) {
+                    var split = this.shared.items.decimal[data.type];
+                    this.shared.user.items[data.type + "/" + split[0]] = parseInt(data.amount);
+                    this.shared.user.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
                 } else {
-                    self.items[data.type] = parseFloat(data.amount);
+                    this.shared.user.items[data.type] = parseFloat(data.amount);
                 }
             });
 
             // Profile private messages
-            this.unreadPm = window.unread_pm.split(",");
+            this.unreadPm = this.shared.unread_pm.split(",");
             if(this.unreadPm[0] === "") this.unreadPm = [];
             
-            socket.on('pm', function(data) {
-                if(data.from !== window.session_id && self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
+            socket.on('pm', data => {
+                if(data.from !== this.shared.user.id && this.unreadPm.indexOf(data.from) === -1) this.unreadPm.push(data.from);
                 
-                self.$broadcast('received-pm', data);
+                this.$broadcast('received-pm', data);
             });
 
-            this.$on('seen-pm', function(id) {
-                var index = self.unreadPm.indexOf(id);
-                if(index !== -1) self.unreadPm.splice(index, 1);
+            this.$on('seen-pm', id => {
+                var index = this.unreadPm.indexOf(id);
+                if(index !== -1) this.unreadPm.splice(index, 1);
                 this.$http.put('/api/pms/seen/' + id);          
                 return false;
             });
             
-            this.$on('open-profile', function(data) {
-                if(!data.id || window.session_id == data.id || this.profileIndex(data.id) != -1)
+            this.$on('open-profile', data => {
+                if(!data.id || this.shared.user.id == data.id || this.profileIndex(data.id) != -1)
                     return;
 
-                self.openProfiles.push(data);
+                this.openProfiles.push(data);
                 return false;
             });
 
@@ -147,22 +150,22 @@ $(document).ready(function() {
 
             
             // Chat system
-            this.$on('chat-sent', function(message) {
-                self.$broadcast('chat-sent', message);
+            this.$on('chat-sent', message => {
+                this.$broadcast('chat-sent', message);
                 return false;
             });
 
-            this.$on('chat-received', function(message) {
-                self.$broadcast('chat-received', message);
+            this.$on('chat-received', message => {
+                this.$broadcast('chat-received', message);
                 return false;
             });
 
             
-            this.$on('notification', function(message) {
-                self.notifications.push(message);
+            this.$on('notification', message => {
+                this.notifications.push(message);
                 
-                setTimeout(function() {
-                    self.notifications.shift();
+                setTimeout(() => {
+                    this.notifications.shift();
                 }, 5000);
 
                 return false;

@@ -10,12 +10,14 @@
         <link href="{{ elixir('css/inner.css') }}" rel="stylesheet">
         <!-- Scripts -->
         <script type="text/javascript">
-            window.session_id = '{{ $user->id }}';
-            window.session_name = '{{ $user->name }}';
-            window.session_items = JSON.parse('{!! $items !!}');
-            window.session_health = {{ $user->health }};
-            window.session_equips = '{!! $equips !!}';
-            window.unread_pm = '{{ $unreadPm }}';
+            user = {
+                id: '{{ $user->id }}',
+                name: '{{ $user->name }}',
+                items: JSON.parse('{!! $items !!}'),
+                health: {{ $user->health }},
+                equips: '{!! $equips !!}'
+            };
+            unread_pm = '{{ $unreadPm }}';
         </script>
         <script src="{{ elixir('js/global_vendor.js') }}"></script>
         <script src="{{ elixir('js/inner_vendor.js') }}"></script>
@@ -31,8 +33,8 @@
             </div>
         </div>
         <div v-show="!loading" v-el:main class="wrapper small-footer hidden">
-            <div class="itemsWrapper">
-                <div class="item" v-for="(item, value) in items"> 
+            <div v-if="!loading" class="itemsWrapper">
+                <div class="item" v-for="(item, value) in shared.user.items"> 
                     @{{ value }}
                     <div class="icon" :style="'background: url(http://surf.local:8000/img/surf/icons/' + item + '.png); background-size: cover;'"></div> 
                 </div>

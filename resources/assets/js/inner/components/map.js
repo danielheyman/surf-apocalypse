@@ -13,6 +13,7 @@ module.exports = {
             intervals: [],
             message: '',
             characterEl: null,
+            shared: window.store
         };
     },
     
@@ -120,8 +121,8 @@ module.exports = {
             var items = [];
             for (var x = 0; x < site.items.length; x++) {
                 var key = site.items[x].type;
-                if(window.content_info.items.decimal[key]) {
-                    var split = window.content_info.items.decimal[key];
+                if(this.shared.items.decimal[key]) {
+                    var split = this.shared.items.decimal[key];
                     var count = parseInt(site.items[x].count);
                     if(count !== 0)
                         items.push({id: site.items[x].id, type: key + "/" + split[0], count: count});
@@ -190,7 +191,7 @@ module.exports = {
                     if (myLocationEnd > this.site.items[x].left + 10 && myLocationStart < this.site.items[x].left + 15 && !this.site.items[x].pickedUp) {
                         this.site.items[x].pickedUp = true;
                         var type = this.site.items[x].type.split("/");
-                        var name = window.content_info.items.desc[type[0]];
+                        var name = this.shared.items.desc[type[0]];
                         if(type.length == 2) name = name[type[1]];
                         this.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + this.site.items[x].count + ")");
                         break;

@@ -9,11 +9,13 @@ window.socket = io('http://surf.local:3000');
 
 Vue.http.headers.common['X-CSRF-TOKEN'] = $("#token").attr("value");
 
-window.content_info = {
+window.store = {
     items: {
         desc: require('./items/desc.js'),
         decimal: require('./items/decimal.js')
-    }
+    },
+    user: user,
+    unread_pm: unread_pm
 };
 
 $(document).ready(function () {
@@ -34,7 +36,8 @@ $(document).ready(function () {
             notifications: [],
             openProfiles: [],
             unreadPm: [],
-            items: {}
+            items: [],
+            shared: window.store
         },
 
         components: {
@@ -64,25 +67,27 @@ $(document).ready(function () {
         },
 
         ready: function ready() {
+            var _this = this;
+
             // Init
             $(this.$els.main).removeClass('hidden');
-            var self = this;
 
             // Load items
-            var items = window.session_items;
+            var items = this.shared.user.items;
             var new_item_list = {};
             Object.keys(items).forEach(function (key, index) {
-                if (window.content_info.items.decimal[key]) {
-                    var split = window.content_info.items.decimal[key];
+                if (_this.shared.items.decimal[key]) {
+                    var split = _this.shared.items.decimal[key];
                     new_item_list[key + "/" + split[0]] = parseInt(items[key]);
                     new_item_list[key + "/" + split[1]] = Math.round(items[key] * 100) % 100;
                 } else {
                     new_item_list[key] = parseFloat(items[key]);
                 }
             });
-            this.items = new_item_list;
+            this.shared.user.items = new_item_list;
 
             // Preloading
+            var self = this;
             var loading = {
                 count: 0,
                 inc: function inc() {
@@ -101,38 +106,38 @@ $(document).ready(function () {
                 loading.inc();
             });
 
-            // Update coins
+            // Update item
             socket.on('App\\Events\\UpdatedItem', function (data) {
-                if (window.content_info.items.decimal[data.type]) {
-                    var split = window.content_info.items.decimal[data.type];
-                    self.items[data.type + "/" + split[0]] = parseInt(data.amount);
-                    self.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
+                if (_this.shared.items.decimal[data.type]) {
+                    var split = _this.shared.items.decimal[data.type];
+                    _this.shared.user.items[data.type + "/" + split[0]] = parseInt(data.amount);
+                    _this.shared.user.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
                 } else {
-                    self.items[data.type] = parseFloat(data.amount);
+                    _this.shared.user.items[data.type] = parseFloat(data.amount);
                 }
             });
 
             // Profile private messages
-            this.unreadPm = window.unread_pm.split(",");
+            this.unreadPm = this.shared.unread_pm.split(",");
             if (this.unreadPm[0] === "") this.unreadPm = [];
 
             socket.on('pm', function (data) {
-                if (data.from !== window.session_id && self.unreadPm.indexOf(data.from) === -1) self.unreadPm.push(data.from);
+                if (data.from !== _this.shared.user.id && _this.unreadPm.indexOf(data.from) === -1) _this.unreadPm.push(data.from);
 
-                self.$broadcast('received-pm', data);
+                _this.$broadcast('received-pm', data);
             });
 
             this.$on('seen-pm', function (id) {
-                var index = self.unreadPm.indexOf(id);
-                if (index !== -1) self.unreadPm.splice(index, 1);
-                this.$http.put('/api/pms/seen/' + id);
+                var index = _this.unreadPm.indexOf(id);
+                if (index !== -1) _this.unreadPm.splice(index, 1);
+                _this.$http.put('/api/pms/seen/' + id);
                 return false;
             });
 
             this.$on('open-profile', function (data) {
-                if (!data.id || window.session_id == data.id || this.profileIndex(data.id) != -1) return;
+                if (!data.id || _this.shared.user.id == data.id || _this.profileIndex(data.id) != -1) return;
 
-                self.openProfiles.push(data);
+                _this.openProfiles.push(data);
                 return false;
             });
 
@@ -145,20 +150,20 @@ $(document).ready(function () {
 
             // Chat system
             this.$on('chat-sent', function (message) {
-                self.$broadcast('chat-sent', message);
+                _this.$broadcast('chat-sent', message);
                 return false;
             });
 
             this.$on('chat-received', function (message) {
-                self.$broadcast('chat-received', message);
+                _this.$broadcast('chat-received', message);
                 return false;
             });
 
             this.$on('notification', function (message) {
-                self.notifications.push(message);
+                _this.notifications.push(message);
 
                 setTimeout(function () {
-                    self.notifications.shift();
+                    _this.notifications.shift();
                 }, 5000);
 
                 return false;
@@ -13939,7 +13944,8 @@ module.exports = {
             style: {
                 background: '',
                 'background-size': ''
-            }
+            },
+            shared: window.store
         };
     },
 
@@ -14014,7 +14020,6 @@ module.exports = {
         buildEquips: function buildEquips(equips) {
             if (typeof equips == "string") equips = equips.split(",");
 
-            var self = this;
             var style = '';
             var equipsLength = equips.length;
 
@@ -14033,19 +14038,20 @@ module.exports = {
     },
 
     attached: function attached() {
-        var self = this;
+        var _this = this;
+
         this.initNewState('IDLE_RIGHT');
         this.intervals.push(setInterval(this.drawCharacter, 50));
 
         var preload = function preload() {
-            $(this.$els.character).preload(function () {
-                self.loaded = true;
+            $(_this.$els.character).preload(function () {
+                _this.loaded = true;
             });
         };
 
         if (this.mine) {
-            this.name = window.session_name;
-            this.buildEquips(window.session_equips);
+            this.name = this.shared.user.name;
+            this.buildEquips(this.shared.user.equips);
             this.$nextTick(preload);
             $(document).on('keydown', this.keyDownListener);
             $(document).on('keyup', this.keyUpListener);
@@ -14059,27 +14065,27 @@ module.exports = {
         }
 
         socket.on('char_info', function (data) {
-            if (data.i != self.charId) return;
+            if (data.i != _this.charId) return;
 
             if (typeof data.e == "string") data.e = data.e.split(",");
             if (data.e[0] === "") data.e = [];
-            self.name = data.n;
-            self.buildEquips(data.e);
+            _this.name = data.n;
+            _this.buildEquips(data.e);
 
-            self.$nextTick(preload);
+            _this.$nextTick(preload);
         });
 
         if (this.onCreate) this.onCreate($(this.$el), this.charId);
     },
 
     detached: function detached() {
-        var self = this;
+        var _this2 = this;
 
         $(document).off('keydown', this.keyDownListener);
         $(document).off('keyup', this.keyUpListener);
 
         $.each(this.intervals, function (key) {
-            clearInterval(self.intervals[key]);
+            clearInterval(_this2.intervals[key]);
         });
     }
 };
@@ -14108,7 +14114,8 @@ module.exports = {
             message: '',
             channels: ['global', 'map', 'team'],
             unseen: { 'global': false, 'map': false },
-            channel: 'global'
+            channel: 'global',
+            shared: window.store
         };
     },
 
@@ -14125,7 +14132,7 @@ module.exports = {
 
             this.addMessage({
                 c: this.channel,
-                n: window.session_name,
+                n: this.store.user.name,
                 m: this.message
             });
 
@@ -14133,6 +14140,8 @@ module.exports = {
         },
 
         addMessage: function addMessage(data) {
+            var _this = this;
+
             var messages = $(this.$els.messages);
 
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
@@ -14143,8 +14152,6 @@ module.exports = {
                 id: data.i
             });
 
-            var self = this;
-
             if (data.c != this.channel) this.unseen[data.c] = true;
 
             if (scrolledToBottom && data.c == this.channel) {
@@ -14152,7 +14159,7 @@ module.exports = {
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                     }, 100, function () {
-                        self.removeOldMessages(data.c);
+                        _this.removeOldMessages(data.c);
                     });
                 });
             }
@@ -14229,15 +14236,14 @@ module.exports = {
     data: function data() {
         return {
             width: 5,
-            health: 10
+            shared: window.store
         };
     },
 
     methods: {},
 
     ready: function ready() {
-        this.health = window.session_health;
-        this.width = 5 + this.health * 0.95;
+        this.width = 5 + this.shared.user.health * 0.95;
     }
 };
 
@@ -14260,7 +14266,8 @@ module.exports = {
             state: 'IDLE_RIGHT',
             intervals: [],
             message: '',
-            characterEl: null
+            characterEl: null,
+            shared: window.store
         };
     },
 
@@ -14321,6 +14328,8 @@ module.exports = {
         },
 
         moveCharacter: function moveCharacter(state) {
+            var _this = this;
+
             if (!this.site) return;
 
             if (state == 'WALK_LEFT') {
@@ -14330,7 +14339,6 @@ module.exports = {
             }
 
             if (this.charXPercent < 0) this.charXPercent = 0;else if (this.charXPercent > 100) {
-                var self = this;
                 var itemsFound = [];
 
                 socket.emit('map_leave', this.site.id);
@@ -14344,7 +14352,7 @@ module.exports = {
                     'id': this.site.id,
                     'items': itemsFound
                 }).then(function (result) {
-                    self.processSite(result.data);
+                    _this.processSite(result.data);
                 });
 
                 this.site = null;
@@ -14366,8 +14374,8 @@ module.exports = {
             var items = [];
             for (var x = 0; x < site.items.length; x++) {
                 var key = site.items[x].type;
-                if (window.content_info.items.decimal[key]) {
-                    var split = window.content_info.items.decimal[key];
+                if (this.shared.items.decimal[key]) {
+                    var split = this.shared.items.decimal[key];
                     var count = parseInt(site.items[x].count);
                     if (count !== 0) items.push({ id: site.items[x].id, type: key + "/" + split[0], count: count });
                     count = Math.round(site.items[x].count * 100) % 100;
@@ -14399,29 +14407,30 @@ module.exports = {
     },
 
     attached: function attached() {
-        var self = this;
+        var _this2 = this;
 
         this.$http.get('/api/map').then(function (result) {
-            self.processSite(result.data);
+            _this2.processSite(result.data);
         });
 
         this.intervals.push(setInterval(this.sendStatus, 500));
 
         $(document).keydown(function (e) {
-            if (!self.site || e.keyCode != 38 || !self.characterEl) return;
+            if (!_this2.site || e.keyCode != 38 || !_this2.characterEl) return;
 
-            var myLocationStart = self.getLeftPos(self.charXPercent) + self.characterEl.width() / 2 - 30;
+            var myLocationStart = _this2.getLeftPos(_this2.charXPercent) + _this2.characterEl.width() / 2 - 30;
             var myLocationEnd = myLocationStart + 60;
 
-            var characterMapEl = $(self.site.target_info.el);
-            if (!self.site.target_info.attacked && myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width()) {
-                self.site.target_info.attacked = true;
+            var characterMapEl = $(_this2.site.target_info.el);
+            if (!_this2.site.target_info.attacked && myLocationEnd > characterMapEl.offset().left && myLocationStart < characterMapEl.offset().left + characterMapEl.width()) {
+                _this2.site.target_info.attacked = true;
                 characterMapEl.animate({ 'opacity': 0.3 }, function () {
                     characterMapEl.animate({ 'opacity': 1 });
                 });
-                self.$dispatch('notification', "You attacked <span>" + self.site.target_info.name + "</span> (-5 HP)");
+                _this2.$dispatch('notification', "You attacked <span>" + _this2.site.target_info.name + "</span> (-5 HP)");
                 var count = 0;
-                $("span", self.$els.items).each(function () {
+                var self = _this2;
+                $("span", _this2.$els.items).each(function () {
                     $(this).css({ "top": -80, "left": characterMapEl.offset().left + 30 });
                     var left = characterMapEl.offset().left - Math.floor(Math.random() * 80 - 20);
                     self.site.items[count++].left = left;
@@ -14429,14 +14438,14 @@ module.exports = {
                         $(this).css({ "top": "auto" });
                     });
                 });
-            } else if (self.site.target_info.attacked) {
-                for (var x = 0; x < self.site.items.length; x++) {
-                    if (myLocationEnd > self.site.items[x].left + 10 && myLocationStart < self.site.items[x].left + 15 && !self.site.items[x].pickedUp) {
-                        self.site.items[x].pickedUp = true;
-                        var type = self.site.items[x].type.split("/");
-                        var name = window.content_info.items.desc[type[0]];
+            } else if (_this2.site.target_info.attacked) {
+                for (var x = 0; x < _this2.site.items.length; x++) {
+                    if (myLocationEnd > _this2.site.items[x].left + 10 && myLocationStart < _this2.site.items[x].left + 15 && !_this2.site.items[x].pickedUp) {
+                        _this2.site.items[x].pickedUp = true;
+                        var type = _this2.site.items[x].type.split("/");
+                        var name = _this2.shared.items.desc[type[0]];
                         if (type.length == 2) name = name[type[1]];
-                        self.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + self.site.items[x].count + ")");
+                        _this2.$dispatch('notification', "You have gained <span>" + name[0] + "</span> (+" + _this2.site.items[x].count + ")");
                         break;
                     }
                 }
@@ -14444,19 +14453,19 @@ module.exports = {
         });
 
         socket.on('map_status', function (data) {
-            if (!self.site) return;
+            if (!_this2.site) return;
 
-            var char_array_pos = self.getCharArrayPos(data.i);
-            var el = char_array_pos > -1 ? self.characters[char_array_pos] : null;
+            var char_array_pos = _this2.getCharArrayPos(data.i);
+            var el = char_array_pos > -1 ? _this2.characters[char_array_pos] : null;
 
-            if (char_array_pos > -1 && self.characters[char_array_pos].el !== undefined) {
+            if (char_array_pos > -1 && _this2.characters[char_array_pos].el !== undefined) {
                 var state;
 
                 if (el.l != data.l) {
                     state = data.l > el.l ? "WALK_RIGHT" : "WALK_LEFT";
-                    var left = self.getLeftPos(data.l);
+                    var left = _this2.getLeftPos(data.l);
 
-                    var time = Math.abs(data.l - el.l) / self.walkingSpeed * 65;
+                    var time = Math.abs(data.l - el.l) / _this2.walkingSpeed * 65;
                     el.state = state;
 
                     el.el.stop(true).animate({
@@ -14478,46 +14487,46 @@ module.exports = {
             } else {
                 data.message = '';
                 data.state = data.r ? "IDLE_RIGHT" : "IDLE_LEFT";
-                self.characters.push(data);
+                _this2.characters.push(data);
             }
         });
 
         socket.on('map_leave', function (id) {
-            if (!self.site) return;
-            var char_array_pos = parseInt(self.getCharArrayPos(id));
-            if (char_array_pos > -1) self.characters.splice(char_array_pos, 1);
+            if (!_this2.site) return;
+            var char_array_pos = parseInt(_this2.getCharArrayPos(id));
+            if (char_array_pos > -1) _this2.characters.splice(char_array_pos, 1);
         });
 
         this.$on('chat-sent', function (message) {
-            self.message = message;
+            _this2.message = message;
 
             setTimeout(function () {
-                if (self.message == message) self.message = "";
+                if (_this2.message == message) _this2.message = "";
             }, 5000);
         });
 
         this.$on('chat-received', function (message) {
-            var char_array_pos = self.getCharArrayPos(message.id);
+            var char_array_pos = _this2.getCharArrayPos(message.id);
 
             if (char_array_pos == -1) return;
 
-            self.characters[char_array_pos].message = message.text;
+            _this2.characters[char_array_pos].message = message.text;
 
             setTimeout(function () {
-                var char_array_pos = self.getCharArrayPos(message.id);
+                var char_array_pos = this.getCharArrayPos(message.id);
 
                 if (char_array_pos == -1) return;
 
-                if (self.characters[char_array_pos].message == message.text) self.characters[char_array_pos].message = "";
+                if (this.characters[char_array_pos].message == message.text) this.characters[char_array_pos].message = "";
             }, 5000);
         });
     },
 
     detached: function detached() {
-        var self = this;
+        var _this3 = this;
 
         $.each(this.intervals, function (key) {
-            clearInterval(self.intervals[key]);
+            clearInterval(_this3.intervals[key]);
         });
     }
 };
@@ -14547,7 +14556,8 @@ module.exports = {
             loaded: false,
             message: '',
             gravatar: '',
-            sending: false
+            sending: false,
+            shared: window.store
         };
     },
 
@@ -14571,8 +14581,6 @@ module.exports = {
         sendMessage: function sendMessage(e) {
             if (!this.message || this.sending) return;
 
-            var self = this;
-
             this.sending = true;
 
             this.$http.post('/api/pms/' + this.userId, { message: this.message });
@@ -14592,19 +14600,19 @@ module.exports = {
         },
 
         scrolledToBottom: function scrolledToBottom() {
-            var self = this;
+            var _this = this;
 
             var messages = $(this.$els.messages);
             var scrolledToBottom = messages.scrollTop() + messages.innerHeight() + 1 >= messages.prop('scrollHeight');
 
             if (scrolledToBottom || !messages.length) {
                 this.$nextTick(function () {
-                    if (!messages.length) messages = $(this.$els.messages);
+                    if (!messages.length) messages = $(_this.$els.messages);
 
                     messages.animate({
                         scrollTop: messages.prop('scrollHeight') - messages.innerHeight()
                     }, 100, function () {
-                        self.removeOldMessages();
+                        _this.removeOldMessages();
                     });
                 });
             }
@@ -14612,34 +14620,34 @@ module.exports = {
     },
 
     ready: function ready() {
-        var self = this;
+        var _this2 = this;
 
         this.$http.get('/api/pms/' + this.userId).then(function (result) {
             var data = result.data;
-            self.gravatar = data.gravatar;
-            self.messages = data.messages;
-            self.loaded = true;
-            self.scrolledToBottom();
-            self.$dispatch('seen-pm', this.userId);
+            _this2.gravatar = data.gravatar;
+            _this2.messages = data.messages;
+            _this2.loaded = true;
+            _this2.scrolledToBottom();
+            _this2.$dispatch('seen-pm', _this2.userId);
         });
 
         this.$on('received-pm', function (data) {
-            self.messages.push({
-                side: data.from == window.session_id ? 'right' : 'left',
+            _this2.messages.push({
+                side: data.from == _this2.shared.user.id ? 'right' : 'left',
                 message: data.message.message,
                 info: data.message.info
             });
 
-            if (data.from == window.session_id) {
-                self.message = "";
-                self.sending = false;
-                self.$nextTick(function () {
-                    self.$els.message.focus();
+            if (data.from == _this2.shared.user.id) {
+                _this2.message = "";
+                _this2.sending = false;
+                _this2.$nextTick(function () {
+                    _this2.$els.message.focus();
                 });
             }
 
-            self.scrolledToBottom();
-            self.$dispatch('seen-pm', data.from);
+            _this2.scrolledToBottom();
+            _this2.$dispatch('seen-pm', data.from);
             return false;
         });
     }
@@ -14721,27 +14729,27 @@ module.exports = {
         },
 
         confirmAdd: function confirmAdd() {
+            var _this = this;
+
             this.newSite.posting = true;
 
-            var self = this;
-
             this.$http.post('/api/sites/new', { 'name': this.newSite.name, 'url': this.newSite.url }).then(function (result) {
-                self.sites.push(result.data);
+                _this.sites.push(result.data);
 
-                self.newSite.active = false;
-                self.newSite.posting = false;
-                self.newSite.name = '';
-                self.newSite.url = '';
+                _this.newSite.active = false;
+                _this.newSite.posting = false;
+                _this.newSite.name = '';
+                _this.newSite.url = '';
             });
         }
 
     },
 
     ready: function ready() {
-        var self = this;
+        var _this2 = this;
 
         this.$http.get('/api/sites').then(function (result) {
-            self.sites = result.data;
+            _this2.sites = result.data;
         });
     }
 };
@@ -14773,7 +14781,8 @@ module.exports = {
                 leave: false,
                 join: false,
                 loadingMessage: ""
-            }
+            },
+            shared: window.store
         };
     },
 
@@ -14785,19 +14794,19 @@ module.exports = {
 
     filters: {
         notMine: function notMine(teams) {
-            var self = this;
+            var _this = this;
 
             if (!this.myTeam) return teams;
 
             return teams.filter(function (team) {
-                return team.id != self.myTeam.id;
+                return team.id != _this.myTeam.id;
             });
         }
     },
 
     methods: {
         openTeam: function openTeam(e, team) {
-            var self = this;
+            var _this2 = this;
 
             e.preventDefault();
 
@@ -14805,7 +14814,7 @@ module.exports = {
             this.viewTeam.team = team;
 
             this.$http.get('/api/teams/' + team.id).then(function (result) {
-                self.viewTeam.data = result.data;
+                _this2.viewTeam.data = result.data;
             });
         },
 
@@ -14816,7 +14825,7 @@ module.exports = {
         },
 
         isOwner: function isOwner() {
-            return window.session_id == this.viewTeam.data.team.owner_id;
+            return this.shared.user.id == this.viewTeam.data.team.owner_id;
         },
 
         leaveTeam: function leaveTeam(e) {
@@ -14830,17 +14839,17 @@ module.exports = {
         },
 
         confirmLeave: function confirmLeave() {
+            var _this3 = this;
+
             this.cancelLeave();
             this.viewTeam.loadingMessage = "LEAVING TEAM";
 
-            var self = this;
-
             this.$http.post('/api/teams/leave').then(function () {
 
-                self.viewTeam.loadingMessage = "";
-                self.viewTeam.team.user_count--;
-                self.myTeam = null;
-                self.backToList();
+                _this3.viewTeam.loadingMessage = "";
+                _this3.viewTeam.team.user_count--;
+                _this3.myTeam = null;
+                _this3.backToList();
             });
         },
 
@@ -14855,17 +14864,17 @@ module.exports = {
         },
 
         confirmDestroy: function confirmDestroy() {
+            var _this4 = this;
+
             this.cancelDestroy();
             this.viewTeam.loadingMessage = "DESTROYING TEAM";
 
-            var self = this;
-
             this.$http['delete']('/api/teams').then(function () {
 
-                self.viewTeam.loadingMessage = "";
-                self.teams.$remove(self.viewTeam.team);
-                self.myTeam = null;
-                self.backToList();
+                _this4.viewTeam.loadingMessage = "";
+                _this4.teams.$remove(_this4.viewTeam.team);
+                _this4.myTeam = null;
+                _this4.backToList();
             });
         },
 
@@ -14880,17 +14889,17 @@ module.exports = {
         },
 
         confirmCreate: function confirmCreate() {
-            this.newTeam.posting = true;
+            var _this5 = this;
 
-            var self = this;
+            this.newTeam.posting = true;
 
             this.$http.post('/api/teams/new', { 'name': this.newTeam.name, 'description': this.newTeam.description }).then(function (result) {
                 var site = result.data;
-                self.teams.push(site);
-                self.myTeam = site;
+                _this5.teams.push(site);
+                _this5.myTeam = site;
 
-                self.cancelCreate();
-                this.newTeam.posting = false;
+                _this5.cancelCreate();
+                _this5.newTeam.posting = false;
             });
         },
 
@@ -14901,15 +14910,15 @@ module.exports = {
     },
 
     ready: function ready() {
-        var self = this;
+        var _this6 = this;
 
         this.$http.get('/api/teams').then(function (result) {
             var data = result.data;
-            self.teams = data.teams;
+            _this6.teams = data.teams;
 
             if (data.my_team) {
                 $.each(data.teams, function (team) {
-                    if (data.teams[team].id == data.my_team) self.myTeam = data.teams[team];
+                    if (data.teams[team].id == data.my_team) _this6.myTeam = data.teams[team];
                 });
             }
         });
