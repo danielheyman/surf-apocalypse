@@ -9,11 +9,6 @@ use App\User;
 
 class TeamController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function getTeams()
     {
         $user_team = auth()->user()->team()->first(['id']);

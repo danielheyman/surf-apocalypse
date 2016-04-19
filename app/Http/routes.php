@@ -34,7 +34,7 @@ Route::group(['namespace' => 'Auth'], function () {
     });
 });
 
-Route::group(['prefix' => 'api', 'namespace' => 'Api'], function () {
+Route::group(['prefix' => 'api', 'namespace' => 'Api', 'middleware' => 'auth'], function () {
     Route::get('sites', 'SiteController@getSites');
     Route::post('sites/{id}', 'SiteController@toggleSite');
     Route::delete('sites/{id}', 'SiteController@deleteSite');

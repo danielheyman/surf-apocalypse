@@ -7,11 +7,6 @@ use Illuminate\Http\Request;
 
 class SiteController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function getSites()
     {
         return auth()->user()->websites()->get(['id', 'name', 'url', 'enabled', 'views_total', 'views_today']);

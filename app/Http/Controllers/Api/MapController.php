@@ -10,11 +10,6 @@ use Session;
 
 class MapController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     public function getMap()
     {
         $map_items = [];
