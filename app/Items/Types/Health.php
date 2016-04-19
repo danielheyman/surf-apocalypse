@@ -11,7 +11,7 @@ class Health extends \App\Items\Item {
         'decimal' => true,
     ];
     
-    public function ifHuman() {
+    protected function ifHuman() {
         $this->onChange = function($user) {
             if($this->getValue() <= 0) $user->ops('die');
         };
@@ -20,7 +20,7 @@ class Health extends \App\Items\Item {
         };
     }
     
-    public function ifZombie() {
+    protected function ifZombie() {
         $this->onChange = function($user) {
             if($this->getValue() >= 100) $user->ops('revive');
         };

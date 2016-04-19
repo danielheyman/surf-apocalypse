@@ -3,7 +3,21 @@ namespace App\Items;
 
 abstract class Item {
     
-    public function update($value, $inc, $user, $attribute_to_update) {
+    protected $user;
+    
+    public function __construct($user) {
+        $this->user = $user;
+        
+        $user_type = $this->user->human ? 'human' : 'zombie';
+        
+        if(!in_array($user_type, $this->users)) {
+            throw new ItemNotUsableException();
+        }
+        
+        call_user_func(array($this, 'if' . ucfirst($user_type)));
+    }
+    
+    public function update($value, $inc, $attribute_to_update) {
         $max = null;
         if(!$attribute_to_update && property_exists($this, 'max')) {
             $max = $this->max;
@@ -16,25 +30,25 @@ abstract class Item {
         if($this->inUsersTable ?? false) {
             $key = $this->name . ($attribute_to_update ? '_' . $attribute_to_update : '');
             if($inc) {
-                $user->increment($key, $value);
-                if($max && $user->{$key} > $max) {
-                    $user->{$key} = $max;
-                    $user->save();
-                } else if($user->{$key} < 0) {
-                    $user->{$key} = 0;
-                    $user->save();
+                $this->user->increment($key, $value);
+                if($max && $this->user->{$key} > $max) {
+                    $this->user->{$key} = $max;
+                    $this->user->save();
+                } else if($this->user->{$key} < 0) {
+                    $this->user->{$key} = 0;
+                    $this->user->save();
                 }
             }
             else {
-                $user->{$key} = $value;
-                $user->save();
+                $this->user->{$key} = $value;
+                $this->user->save();
             }
-            if(!$attribute_to_update) $this->notifyUpdate($user);
+            if(!$attribute_to_update) $this->notifyUpdate();
             return;
         }
         
         // If item exists
-        if($item = $user->items()->where('item_type', $this->name)->first()) {
+        if($item = $this->user->items()->where('item_type', $this->name)->first()) {
             if($attribute_to_update) {
                 $attr = array_merge($item->attributes, [$attribute_to_update => $value]);
                 $item->attributes = $attr;
@@ -42,19 +56,19 @@ abstract class Item {
             }
             else if($inc) {
                 $item->increment('value', $amount);
-                if($max && $user->{$this->name} > $max) {
-                    $user->{$this->name} = $max;
-                    $user->save();
-                } else if($user->{$this->name} < 0) {
-                    $user->{$this->name} = 0;
-                    $user->save();
+                if($max && $this->user->{$this->name} > $max) {
+                    $this->user->{$this->name} = $max;
+                    $this->user->save();
+                } else if($this->user->{$this->name} < 0) {
+                    $this->user->{$this->name} = 0;
+                    $this->user->save();
                 }
             }
             else {
                 $item->value = $value;
                 $item->save();
             }
-            if(!$attribute_to_update) $this->notifyUpdate($user);
+            if(!$attribute_to_update) $this->notifyUpdate();
             return;
         } 
         
@@ -73,44 +87,40 @@ abstract class Item {
         if(method_exists($this, 'onCreate')) {
             $this->onCreate($attr);
         }
-        $item = $user->items()->create([
+        $item = $this->user->items()->create([
             'item_type' => $this->name,
             'count' => $value,
             'attributes' => $attr
         ]);
-        $this->notifyUpdate($user);
+        $this->notifyUpdate();
     }
     
-    public function notifyUpdate($user) {
+    public function notifyUpdate() {
         if(method_exists($this, 'onChange')) {
-            $this->onChange($user);
+            $this->onChange($this->user);
         }  
         if($this->sendUpdates ?? true) {
-            event(new \App\Events\UpdatedItem($this->name, $user, $this->getValue($user)));
+            event(new \App\Events\UpdatedItem($this->name, $this->user, $this->getValue()));
         }
     }
     
-    public function getValue($user, $updatesOnly = false) : float {
+    public function getValue($updatesOnly = false) : float {
         if($updatesOnly && !($this->sendUpdates ?? true)) {
             return 0;
         } else if($this->inUsersTable ?? false) {
-            return $user->{$this->name};
-        } else if($item = $user->items()->where('item_type', $this->name)->first()) {
+            return $this->user->{$this->name};
+        } else if($item = $this->user->items()->where('item_type', $this->name)->first()) {
             return $item->value;
         }
         
         return 0;
     }
     
-    public function availableForUserType($user_type) {
-        return in_array($user_type, $this->users);
-    }
-    
-    public function ifHuman() {
+    protected function ifHuman() {
         
     }
     
-    public function ifZombie() {
+    protected function ifZombie() {
         
     }
     

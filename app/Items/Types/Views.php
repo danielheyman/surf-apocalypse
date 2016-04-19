@@ -2,7 +2,7 @@
 namespace App\Items\Types;
 
 abstract class Views extends \App\Items\Item {
-    public $users = ['human', 'zombie'];
+    protected $users = ['human', 'zombie'];
     protected $inUsersTable = true;
     protected $sendUpdates = false;    
 } 

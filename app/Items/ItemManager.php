@@ -23,17 +23,15 @@ class ItemManager {
     
     private function module($file, $types = null) {
         if(!$types) $types = [$file];
-        $user_type = ($this->user->human) ? 'human' : 'zombie';
-
         require_once("Types\\{$file}.php");    
             
         foreach($types as $type) {
             $namespace = "App\Items\Types\\{$type}";
-            $package = new $namespace;
-            
-            if(!$package->availableForUserType($user_type)) continue;
-            call_user_func(array($package, 'if' . ucfirst($user_type)));
-            $this->types[$package->name] = $package;
+        
+            try {
+                $package = new $namespace($this->user); 
+                $this->types[$package->name] = $package;
+            } catch (ItemNotUsableException $e) {}
         }
         
         return $this;

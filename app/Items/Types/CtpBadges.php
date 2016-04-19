@@ -2,8 +2,8 @@
 namespace App\Items\Types;
 
 abstract class CtpBadges extends \App\Items\Item {    
-    public $users = ['human', 'zombie'];
-    public $max = 1;
+    protected $users = ['human', 'zombie'];
+    protected $max = 1;
 } 
 
 class CtpBadge50 extends CtpBadges {
