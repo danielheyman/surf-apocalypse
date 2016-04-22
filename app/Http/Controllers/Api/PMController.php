@@ -17,36 +17,27 @@ class PMController extends Controller
         
     }
     
-    public function seenPM($id)
+    public function seenPM(User $user, $id)
     {
-        $user = auth()->user();
-        if($id == $user->id) return;
-        
         if($user->id < $id) {
             PMGroup::where('user_id', $user->id)->where('user2_id', $id)->update(['user_last_seen' => DB::raw('user2_last_message')]);
-        }
-        else {
+        } else if($user->id > $id) {
             PMGroup::where('user_id', $id)->where('user2_id', $user->id)->update(['user2_last_seen' => DB::raw('user_last_message')]);
         }
     }
 
-    public function getPM($id)
+    public function getPM(User $user, $id)
     {
-        $user = auth()->user();
         if($id == $user->id) return;
 
         $user_id = ($user->id > $id ? $id : $user->id);
         $user2_id = ($user->id > $id ? $user->id : $id);
 
-        $gravatar = md5(User::findOrFail($id, ['email'])->email);
-
-        $group = PMGroup::where('user_id', $user_id)->where('user2_id', $user2_id)->first(['id']);
-
         $messages = [];
-
-        if($group) {
+        
+        if($group = PMGroup::where('user_id', $user_id)->where('user2_id', $user2_id)->first(['id'])) {
             $pms = $group->pms()->get(['message', 'created_at', 'sender']);
-
+            
             foreach ($pms as $pm) {
                 $messages[] = [
                     'side' => (($user->id > $id) == $pm->sender) ? 'left' : 'right',
@@ -55,37 +46,33 @@ class PMController extends Controller
                 ];
             }
         }
-
+        
         return [
             'messages' => $messages,
-            'gravatar' => $gravatar
+            'gravatar' => md5(User::findOrFail($id, ['email'])->email)
         ];
     }
 
-    public function postPM(Request $request, $id)
+    public function postPM(Request $request, User $user, $id)
     {
-        $user = auth()->user();
-        if($id == $user->id || !$request->input('message'))
-            return;
+        if($id == $user->id || !$request->input('message')) return;
 
         $user_id = ($user->id > $id ? $id : $user->id);
         $user2_id = ($user->id > $id ? $user->id : $id);
         $sender = ($id > $user->id);
 
-        $group = PMGroup::where('user_id', $user_id)->where('user2_id', $user2_id)->first(['id']);
-
-        if(!$group) {
+        if(!($group = PMGroup::where('user_id', $user_id)->where('user2_id', $user2_id)->first(['id']))) {
             $group = new PMGroup;
             $group->user_id = $user_id;
             $group->user2_id = $user2_id;
-            $group->save();
         }
 
-        if($sender)
+        if($sender) {
             $group->user_last_seen = $group->user_last_message = Carbon::now();
-        else
+        } else {
             $group->user2_last_seen = $group->user2_last_message = Carbon::now();
-
+        }
+        
         $group->save();
 
         $message = $group->pms()->create([
@@ -93,9 +80,6 @@ class PMController extends Controller
             'message' => $request->input('message')
         ]);
 
-        $pms = $group->pms()->orderBy('id', 'desc')->skip(20)->get();
-        foreach($pms as $pm) {
-            $pm->delete();
-        }
+        $group->pms()->orderBy('id', 'desc')->skip(20)->get()->delete();
     }
 }

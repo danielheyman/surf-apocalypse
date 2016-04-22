@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Website;
-use App\Team;
 use App\User;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +35,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        
+        $this->app->bind(User::class, function ($app) {
+            return \Auth::user();  
+        });
     }
 }

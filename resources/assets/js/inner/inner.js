@@ -1,4 +1,4 @@
-var Vue = require('vue');
+let Vue = require('vue');
 Vue.use(require('vue-resource'));
 Vue.use(require('vue-validator'));
 
@@ -18,7 +18,7 @@ window.store = {
 $(document).ready(function() {
     (require('./draggable'))(Vue);
 
-    var Billboard = Vue.extend({
+    const Billboard = Vue.extend({
         template: require('./components/billboard.template.html')
     });
 
@@ -57,7 +57,7 @@ $(document).ready(function() {
             },
 
             profileIndex: function(id) {
-                for (var i = 0; i < this.openProfiles.length; i++)
+                for (let i = 0; i < this.openProfiles.length; i++)
                     if (this.openProfiles[i].id == id)
                         return i;
 
@@ -69,12 +69,12 @@ $(document).ready(function() {
             // Init
             $(this.$els.main).removeClass('hidden');
 
-            // Load items
-            var items = this.shared.user.items;
-            var new_item_list = {};
+            // Item loading and updating
+            const items = this.shared.user.items;
+            let new_item_list = {};
             Object.keys(items).forEach((key,index) => {
                 if(this.shared.items.decimal[key]) {
-                    var split = this.shared.items.decimal[key];
+                    const split = this.shared.items.decimal[key];
                     new_item_list[key + "/" + split[0]] = parseInt(items[key]);
                     new_item_list[key + "/" + split[1]] = Math.round(items[key] * 100) % 100;
                 } else {
@@ -83,16 +83,23 @@ $(document).ready(function() {
             });
             this.shared.user.items = new_item_list;
             
+            socket.on('App\\Events\\UpdatedItem', data => {
+                if(this.shared.items.decimal[data.type]) {
+                    const split = this.shared.items.decimal[data.type];
+                    this.shared.user.items[data.type + "/" + split[0]] = parseInt(data.amount);
+                    this.shared.user.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
+                } else {
+                    this.shared.user.items[data.type] = parseFloat(data.amount);
+                }
+            });
+            
             // Preloading
-            var self = this;
-            var loading = { 
-                count: 0, 
-                inc: function() { 
-                    if(++this.count === 2) self.loading = false; 
-                } 
+            let count = 0;
+            const inc = () => {
+                if(++count == 2) this.loading = false;
             };
 
-            var images = [
+            const images = [
                 '../../img/surf/bg.jpg',
                 '../../img/surf/bill-bg.jpg',
                 '../../img/surf/bill-bg2.jpg'
@@ -105,17 +112,6 @@ $(document).ready(function() {
 
             $(".wrapper").preload(() => { loading.inc(); });
             
-            // Update item
-            socket.on('App\\Events\\UpdatedItem', data => {
-                if(this.shared.items.decimal[data.type]) {
-                    var split = this.shared.items.decimal[data.type];
-                    this.shared.user.items[data.type + "/" + split[0]] = parseInt(data.amount);
-                    this.shared.user.items[data.type + "/" + split[1]] = Math.round(data.amount * 100) % 100;
-                } else {
-                    this.shared.user.items[data.type] = parseFloat(data.amount);
-                }
-            });
-
             // Profile private messages
             this.unreadPm = this.shared.unread_pm.split(",");
             if(this.unreadPm[0] === "") this.unreadPm = [];
@@ -127,7 +123,7 @@ $(document).ready(function() {
             });
 
             this.$on('seen-pm', id => {
-                var index = this.unreadPm.indexOf(id);
+                const index = this.unreadPm.indexOf(id);
                 if(index !== -1) this.unreadPm.splice(index, 1);
                 this.$http.put('/api/pms/seen/' + id);          
                 return false;
@@ -160,7 +156,7 @@ $(document).ready(function() {
                 return false;
             });
 
-            
+
             this.$on('notification', message => {
                 this.notifications.push(message);
                 

@@ -18,7 +18,7 @@ class ItemManager {
         $this->module('Coin')
             ->module('Views', ['ViewsToday','ViewsTotal'])
             ->module('Health')
-            ->module('CtpBadges', ['CtpBadge50']);        
+            ->module('CtpBadges', ['CtpBadge50']);    
     }
     
     private function module($file, $types = null) {

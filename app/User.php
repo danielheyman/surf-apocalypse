@@ -17,6 +17,10 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     private $itemManager = null;
     private $equipManager = null;
     private $opManager = null;
+    
+    public function isOwnerOfTeam() {
+        return $this->team && $this->team->isOwnedBy($user);
+    }
             
     public function setPasswordAttribute($password)
     {

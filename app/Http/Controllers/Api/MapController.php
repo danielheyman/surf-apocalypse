@@ -10,7 +10,7 @@ use Session;
 
 class MapController extends Controller
 {
-    public function getMap()
+    public function getMap(User $user)
     {
         $map_items = [];
         $hash = [
@@ -19,7 +19,7 @@ class MapController extends Controller
         ];
         
         $target = User::where('human', true)->where('website_count', '>', 0)->orderByRaw('RANDOM()')->first();
-        foreach(auth()->user()->itemManager()->find($target) as $key => $value) {
+        foreach($user->itemManager()->find($target) as $key => $value) {
             $hash = str_random(60);
             $ids['items'][$hash] = ['id' => $key, 'count' => $value];
             $map_items[] = [
@@ -51,7 +51,7 @@ class MapController extends Controller
         return $map;
     }
 
-    public function postMap(Request $request)
+    public function postMap(Request $request, User $user)
     {
         $input = $request->all();
         $currentMap = Session::get('current_map');
@@ -64,7 +64,7 @@ class MapController extends Controller
                 $site->increment('views_total');
             }
 
-            $itemManager = auth()->user()->itemManager();
+            $itemManager = $user->itemManager();
             foreach ($input['items'] as $item) {
                 if (isset($currentMap['items'][$item])) {
                     $item = $currentMap['items'][$item];

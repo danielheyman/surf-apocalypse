@@ -78,7 +78,6 @@ module.exports = {
             this.viewTeam.loadingMessage = "LEAVING TEAM";
 
             this.$http.post('/api/teams/leave').then(() => {
-
                 this.viewTeam.loadingMessage = "";
                 this.viewTeam.team.user_count--;
                 this.myTeam = null;
@@ -122,10 +121,9 @@ module.exports = {
         confirmCreate: function() {
             this.newTeam.posting = true;
 
-            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).then(result => {
-                var site = result.data;
-                this.teams.push(site);
-                this.myTeam = site;
+            this.$http.post('/api/teams/new', {'name': this.newTeam.name, 'description': this.newTeam.description}).then(site => {
+                this.teams.push(site.data);
+                this.myTeam = site.data;
 
                 this.cancelCreate();
                 this.newTeam.posting = false;
@@ -140,7 +138,7 @@ module.exports = {
 
     ready: function() {
         this.$http.get('/api/teams').then(result => {
-            var data = result.data;
+            const data = result.data;
             this.teams = data.teams;
 
             if(data.my_team) {

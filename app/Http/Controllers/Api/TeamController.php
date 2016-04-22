@@ -9,9 +9,9 @@ use App\User;
 
 class TeamController extends Controller
 {
-    public function getTeams()
+    public function getTeams(User $user)
     {
-        $user_team = auth()->user()->team()->first(['id']);
+        $user_team = $user->team()->first(['id']);
 
         return [
             'my_team' => $user_team ? $user_team->id : null,
@@ -19,10 +19,11 @@ class TeamController extends Controller
         ];
     }
 
-    public function getTeam($id)
+    public function getTeam($id, user $user)
     {
         $team = Team::findOrFail($id, ['id', 'name', 'description', 'user_count', 'owner_id']);
-
+        $team->member = $team->isMember($user);
+        
         $data = [
             "team" => $team,
             "users" => $team->users()->get(['id', 'name', 'email'])
@@ -33,57 +34,47 @@ class TeamController extends Controller
             unset($user->email);
         }
 
-        $data['team']->member = (auth()->user()->team_id == $team->id);
-
         return $data;
     }
 
-    public function joinTeam(Request $request)
+    public function joinTeam(Request $request, User $user)
     {
         $team = Team::findOrFail($request->input('team'), ['id', 'owner_id']);
 
-        if(auth()->user()->id != $team->owner_id) return;
+        if(!$team->isOwnedBy($user)) return;
 
-        $user = User::findOrFail($request->input('user'));
+        $target = User::findOrFail($request->input('user'));
 
-        if($user->team) return;
+        if($target->team) return;
 
-        $user->team()->associate($team);
-        $user->save();
+        $target->team()->associate($team);
+        $target->save();
         
         $team->increment('user_count');
     }
 
-    public function leaveTeam()
+    public function leaveTeam(User $user)
     {
-        $user = auth()->user();
-
-        if(!($team = $user->team))
-            return;
+        if(!$user->team) return;
 
         $user->team()->dissociate();
         $user->save();
 
-        $team->decrement('user_count');
+        $user->team->decrement('user_count');
     }
 
-    public function deleteTeam(Request $request)
+    public function deleteTeam(Request $request, User $user)
     {
-        $user = auth()->user();
+        if($user->isOwnerOfTeam()) return;
 
-        if(!($team = $user->team) || $user->id != $team->owner_id) return;
-
-        $team->delete();
+        $user->team->delete();
     }
 
-    public function newTeam(Request $request)
+    public function newTeam(Request $request, User $user)
     {
-        $user = auth()->user();
-
         if($user->team) return;
 
         $this->validate($request, ['name' => 'required|min:2']);
-
 
         $team = Team::create([
             'name' => $request->input('name'),
@@ -102,12 +93,10 @@ class TeamController extends Controller
         ];
     }
 
-    public function updateDesc(Request $request)
+    public function updateDesc(Request $request, User $user)
     {
-        $user = auth()->user();
+        if(!$user->isOwnerOfTeam) return;
 
-        if(!($team = $user->team) || $user->id != $team->owner_id) return;
-
-        $team->description = $request->input('description');
+        $user->team->description = $request->input('description');
     }
 }
