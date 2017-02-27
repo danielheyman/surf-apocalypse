@@ -1,0 +1,27 @@
+<div>
+    <billboard></billboard>
+
+    <div class="billboard-title" v-if="site && siteLoaded" v-text="site.name"></div>
+    <div class="billboard-content map">
+        <div class="loader" v-show="!site || !siteLoaded">
+            <div class="ball"></div>
+            <p>LOADING MAP</p>
+        </div>
+
+        <span v-if="site">
+            <iframe v-show="siteLoaded" @load="loadedSite" :src="site.url" sandbox="allow-forms allow-scripts allow-popups"></iframe>
+        </span>
+
+    </div>
+
+    <div v-if="site && siteLoaded">
+        <div class="characters">
+            <span v-for="c in characters"><character :set-state="c.state" :on-create="createCharacter" :message="c.message" v-if="site" :char-id="c.i"></character></span>
+        </div>
+        <character set-state="IDLE_LEFT" :on-create="createMapCharacter" v-if="site" :equip="site.target_info.equip" :name="site.target_info.name" :char-id="site.target_info.id" message="I am the owner of this website. Pleasure to meet you."></character>
+        <character :mine="true" :message="message" :on-move="moveCharacter" :on-create="createMyCharacter" :current-state.sync="state"></character>
+        <div class="items" v-show="site.target_info.attacked" v-el:items>
+            <span v-for="item in site.items | notFound"><img :src="getItemSrc(item.type)" /></span>
+        </div>
+    </div>
+</div>

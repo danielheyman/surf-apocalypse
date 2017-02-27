@@ -1,0 +1,26 @@
+<div class="profile" v-draggable>
+    <div class="close" @click="close"><i class="fa fa-times"></i></div>
+    <p class="draggable name" data-draggable="draggable">
+        {{ userName }}
+    </p>
+    <div class="loader-inline" v-if="!loaded">
+        <div class="ball"></div>
+        <p>LOADING CHAT</p>
+    </div>
+    <img draggable="false" data-draggable="draggable" class="pic" :src="'http://www.gravatar.com/avatar/' + gravatar">
+    <div v-if="loaded">
+        <div v-show="!messages.length" class="no-messages">
+            No messsages were found. Say hello :)
+        </div>
+        <div class="messages" v-el:messages>
+            <div v-for="m in messages" class="{{ m.side }}">
+                <div class="message">{{ m.message }}</div>
+                <div class="info">{{ m.info }}</div>
+            </div>
+        </div>
+        <div class="form">
+            <input type="text" placeholder="Type a message..." v-model="message" @keyup.enter="sendMessage" :disabled="sending" v-el:message>
+            <div class="submit" @click="sendMessage">Send</div>
+        </div>
+    </div>
+</div>

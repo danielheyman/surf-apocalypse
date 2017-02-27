@@ -1,0 +1,144 @@
+<div>
+    <billboard></billboard>
+
+    <div class="billboard-title">Teams</div>
+    <div class="billboard-content">
+        <div class="loader loader-dark" v-show="!teams">
+            <div class="ball"></div>
+            <p>LOADING TEAMS</p>
+        </div>
+
+        <div v-el="content" class="content" v-show="teams">
+            <span v-if="!viewTeam.active">
+                <div class="panel panel-default" v-if="!newTeam.active">
+                    <div class="panel-body">
+                        <h4>Teams are loads of fun, but what are they exactly?</h4>
+                        <ul>
+                            <li>The team will always be surfing together, as you will always be spawned on the same map.</li>
+                            <li>You will have your very own personal team chat.</li>
+                            <li>A maximum of four players per team.</li>
+                            <li>Good luck!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <table class="table table-striped" v-if="!newTeam.active">
+                    <thead>
+                        <tr>
+                            <th>Team Name</th>
+                            <th># of Players</th>
+                            <th>Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-if="myTeam">
+                            <td>{{ myTeam.name }} (Member)</td>
+                            <td>{{ myTeam.user_count }} of 4</td>
+                            <td><a href="#" @click="openTeam($event, myTeam)">More info</a></td>
+                        </tr>
+                        <tr v-for="team in teams | notMine">
+                            <td>{{ team.name }}</td>
+                            <td>{{ team.user_count }} of 4</td>
+                            <td><a href="#" @click="openTeam($event, team)">More info</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button type="button" class="btn btn-primary right" @click="createTeam" v-show="!myTeam && !newTeam.active">Create a Team</button>
+
+                <div class="panel panel-default" v-if="newTeam.active">
+                    <div class="panel-body">
+                        <div class="loader-inline" v-show="newTeam.posting">
+                            <div class="ball"></div>
+                            <p>ADDING SITE</p>
+                        </div>
+
+                        <div v-show="!newTeam.posting">
+                            <validator name="validation">
+                                <div class="form-group">
+                                    <label for="teamName">Team Name:</label>
+                                    <input type="text" class="form-control" v-model="newTeam.name" v-validate:name="{minLength: 2}">
+                                    <small class="text-danger" v-if="newTeam.name && $validation.name.minLength">Name is too short</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="siteUrl">Team Descripion:</label>
+                                    <textarea type="text" class="form-control" v-model="newTeam.description"></textarea>
+                                </div>
+
+                                <button type="button" class="btn btn-primary margin-right" v-if="$validation.valid" @click="confirmCreate">Create Team</button>
+                                <button type="button" class="btn btn-default" @click="cancelCreate">Cancel</button>
+                            </validator>
+                        </div>
+                    </div>
+                </div>
+
+            </span>
+
+            <div class="panel panel-default" v-show="viewTeam.active && !viewTeam.destroy && !viewTeam.leave">
+                <div class="panel-body">
+                    <div class="loader-inline" v-show="!viewTeam.data || viewTeam.loadingMessage">
+                        <div class="ball"></div>
+                        <p>{{ viewTeam.loadingMessage ? viewTeam.loadingMessage : 'LOADING TEAM' }}</p>
+                    </div>
+
+                    <div v-if="viewTeam.data && !viewTeam.loadingMessage">
+                        <h4>
+                            {{ viewTeam.data.team.name }}:
+                            <span v-if="viewTeam.data.team.member">
+                                <span v-if="!isOwner()">
+                                    You're a member. (<a href="#" @click="leaveTeam($event)">Leave Team</a>)
+                                </span>
+                                <span v-if="isOwner()">
+                                    You're the owner. (<a href="#" @click="destroyTeam($event)">Destroy Team</a>)
+                                </span>
+                            </span>
+                            <span v-if="!viewTeam.data.team.member">
+                                Not yet a member. (<a href="#">Join Team</a>)
+                            </span>
+                        </h4>
+                        <br>
+
+                        <span v-if="viewTeam.data.team.description"> <p>{{ viewTeam.data.team.description }}</p><br> </span>
+
+
+                        <button type="button" class="btn btn-default" @click="backToList">Go Back</button>
+                        <br><br>
+
+                        <h4>Members:</h4>
+                        <div class="media" v-for="user in viewTeam.data.users">
+                            <div class="media-left">
+                                <a href="#">
+                                    <img class="media-object" :src="'http://www.gravatar.com/avatar/' + user.gravatar">
+                                </a>
+                            </div>
+                            <div class="media-body">
+                                <h4 class="media-heading"><a href="#" @click="openProfile($event, user)">{{ user.name }}</a></h4>
+                                {{ user.id == viewTeam.data.team.owner_id ? 'Team Founder' : ''}}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="alert alert-danger" role="alert" v-if="viewTeam.leave">
+                  <p>Caution! Are you sure you want to leave team '{{ viewTeam.data.team.name }}'? </p>
+                  <p>Your health bar will be decreased once again.</p>
+                  <br>
+                  <button type="button" class="btn btn-danger margin-right" @click="confirmLeave">Yes, Leave Team</button>
+                  <button type="button" class="btn btn-default" @click="cancelLeave">Cancel</button>
+            </div>
+
+            <div class="alert alert-danger" role="alert" v-if="viewTeam.destroy">
+                  <p>Caution! Are you sure you want to destroy team '{{ viewTeam.data.team.name }}'? </p>
+                  <p>Doing so will kick all your team members.</p>
+                  <br>
+                  <button type="button" class="btn btn-danger margin-right" @click="confirmDestroy">Yes, Destroy Me</button>
+                  <button type="button" class="btn btn-default" @click="cancelDestroy">Cancel</button>
+            </div>
+
+
+        </div>
+    </div>
+</div>

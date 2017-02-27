@@ -1,0 +1,21 @@
+<div>
+    <div class="messages">
+        <div class="wrap" v-el:messages>
+            <div class="message" v-for="m in messages[channel]">
+                <span><a href="#" @click="openProfile($event, name, id)">{{ m.name }}</a>:</span>{{ m.text }}
+            </div>
+        </div>
+    </div>
+    <ul class="channel-picker">
+        <li v-for="c in channels" @click="toggleChannel(c)" :class="{'current': currentChannel(c), 'unseen': unseen[c]}">
+            {{ c | capitalize }}
+        </li>
+        <li class="text">Daniel &amp; Jay are online</li>
+    </ul>
+    <div class="chat-menu">
+        <div class="form">
+            <input placeholder="Your message" type="text" class="message" @keyup.enter="sendMessage" v-model="message"/>
+        </div>
+        <div class="send" @click="sendMessage">Send</div>
+    </div>
+</div>

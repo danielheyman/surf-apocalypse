@@ -3,63 +3,98 @@
 namespace App\Http\Controllers\Auth;
 
 use App\User;
-use Validator;
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
-use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use Auth;
+use Mail;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Registration & Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users, as well as the
-    | authentication of existing users. By default, this controller uses
-    | a simple trait to add these behaviors. Why don't you explore it?
-    |
-    */
-
-    use AuthenticatesAndRegistersUsers, ThrottlesLogins;
-
-    /**
-     * Create a new authentication controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest', ['except' => 'getLogout']);
     }
 
-    /**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
-    protected function validator(array $data)
+    public function getRegister()
     {
-        return Validator::make($data, [
-            'name' => 'required|max:255',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|confirmed|min:6',
-        ]);
+        return view('auth.register');
     }
 
-    /**
-     * Create a new user instance after a valid registration.
-     *
-     * @param  array  $data
-     * @return User
-     */
-    protected function create(array $data)
+    public function postRegister(RegisterRequest $request)
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
-        ]);
+        $fields = array_merge($request->all(), ['confirmation_code' => str_random(30)]);
+
+        $user = User::create($fields);
+
+        Mail::send('emails.verify', compact('user'), function ($message) use ($user) {
+            $message->to($user->email, $user->name);
+            $message->subject('Welcome to SurfApocalypse!');
+        });
+
+        return redirect()->back()->with('status', 'Thanks for signing up! Please check your email for a confirmation link.');
+    }
+
+    public function confirm($confirmation_code)
+    {
+        $user = User::whereConfirmationCode($confirmation_code)->first();
+
+        if (!$user) {
+            \App::abort(404);
+        }
+
+        $user->confirmation_code = null;
+        $user->save();
+
+        Auth::login($user);
+
+        return redirect('/')->with('message', 'You have successfully verified your account.');
+    }
+
+    public function resend()
+    {
+        return view('auth.resend');
+    }
+
+    public function postResend(Request $request)
+    {
+        $this->validate($request, ['email' => 'required|email']);
+
+        $user = User::whereEmail($request->get('email'))->first(['name', 'email', 'confirmation_code']);
+
+        if (!$user) {
+            return redirect()->back()->withErrors(['email' => 'Email not found.']);
+        }
+
+        if (!$user->confirmation_code) {
+            return redirect()->back()->withErrors(['email' => 'Account already confirmed.']);
+        }
+
+        Mail::send('emails.verify', compact('user'), function ($message) use ($user) {
+            $message->to($user->email, $user->name);
+            $message->subject('Welcome to bla');
+        });
+
+        return redirect()->back()->with('status', 'Please check your email for a confirmation link.');
+    }
+
+    public function getLogin()
+    {
+        return view('auth.login');
+    }
+
+    public function postLogin(LoginRequest $request)
+    {
+        Auth::attempt($request->only('email', 'password'), $request->has('remember'));
+
+        return redirect()->intended('/');
+    }
+
+    public function getLogout()
+    {
+        Auth::logout();
+
+        return redirect('/');
     }
 }
